@@ -15,7 +15,9 @@
 
 ## 本机落盘
 
-默认根目录：`~/.local/share/fetchspec/`（可用 `FETCHSPEC_DATA_ROOT` 或 `--out` 覆盖）。
+默认根目录在**跑 crawl 的那台机器**上：`~/.local/share/fetchspec/`（可用 `FETCHSPEC_DATA_ROOT` 或 `--out` 覆盖）。
+
+这不是 GitHub 上的路径，也不会出现在你笔记本的访达里。Cloud Agent 跑出来的文件在 Agent 虚拟机的 `/home/ubuntu/.local/share/fetchspec/`。Cursor 工作区打开的是 git 仓库，默认看不到家目录；本仓库用 gitignore 的 `.data/archive/` 作为工作区里的只读副本入口（仍不进 Git）。
 
 ```text
 blobs/<sha256>                          唯一原件
