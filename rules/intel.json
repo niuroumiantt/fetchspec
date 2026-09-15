@@ -1,0 +1,57 @@
+{
+  "rule_id": "intel-xeon-demo",
+  "company_id": "intel",
+  "company_en": "Intel",
+  "demo": true,
+  "ecosystems": ["compute"],
+  "notes": "Demo: Xeon 6 family pages and public product-brief PDFs on www.intel.com. ark.intel.com now redirects into intel.com. Do not fetch /content/dam/products/ (robots Disallow for *).",
+  "allowed_hosts": ["www.intel.com", "intel.com"],
+  "start_urls": [
+    "https://www.intel.com/content/www/us/en/products/details/processors/xeon.html",
+    "https://www.intel.com/content/www/us/en/products/docs/xeon-6-product-brief.html",
+    "https://www.intel.com/content/www/us/en/products/sku/240777/intel-xeon-6980p-processor-504m-cache-2-00-ghz/specifications.html",
+    "https://www.intel.com/content/dam/www/central-libraries/us/en/documents/2024-05/intel-xeon-6-product-brief.pdf"
+  ],
+  "path_include": [
+    "/content/www/us/en/products/details/processors/xeon",
+    "/content/www/us/en/products/docs/.*xeon",
+    "/content/www/us/en/products/sku/.*/intel-xeon",
+    "/content/dam/www/central-libraries/.*/intel-xeon",
+    "/content/dam/www/central-libraries/.*/xeon-6"
+  ],
+  "path_exclude": [
+    "/content/dam/products/",
+    "/content/dam/www/secure/",
+    "/buy/",
+    "/now/",
+    "/content/www/us/en/products/details/processors.html$"
+  ],
+  "link_text_include": [
+    "xeon",
+    "product brief",
+    "datasheet",
+    "specification",
+    "6900",
+    "6700",
+    "granite rapids",
+    "sierra forest"
+  ],
+  "asset_types": ["pdf", "html"],
+  "save_html": true,
+  "discover": ["pdf"],
+  "product_lines": [
+    {
+      "product_line": "x86服务器CPU",
+      "library_path": "library/3-算力芯片与核心器件/Intel/x86服务器CPU/",
+      "bom_parts": ["cpu"],
+      "path_hints": ["xeon"]
+    }
+  ],
+  "limits": {
+    "delay_seconds": 1.5,
+    "max_pages": 5,
+    "max_assets": 4,
+    "max_depth": 1,
+    "max_bytes": 20971520
+  }
+}
