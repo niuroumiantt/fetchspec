@@ -173,6 +173,13 @@ def crawl(rule, out_dir, dry_run=True, fetcher=None, clock=time.sleep):
             skipped.append({"url": url, "reason": "robots"})
             continue
         seen.add(url)
+        pdf_seed = looks_pdf(url)
+        if pdf_seed and len(assets) >= limits["max_assets"]:
+            skipped.append({"url": url, "reason": "asset_cap"})
+            continue
+        if not pdf_seed and len(pages) >= limits["max_pages"]:
+            skipped.append({"url": url, "reason": "page_cap"})
+            continue
         try:
             pause(url, host)
             result = fetcher.get(url)
@@ -232,6 +239,11 @@ def crawl(rule, out_dir, dry_run=True, fetcher=None, clock=time.sleep):
             parser.close()
         except Exception:
             continue
+        discover = set(rule.get("discover") or ["pdf", "html"])
+        remaining_pages = limits["max_pages"] - len(pages)
+        remaining_assets = limits["max_assets"] - len(assets)
+        queued_pdf = sum(1 for item in queue if looks_pdf(item[0]))
+        queued_html = len(queue) - queued_pdf
         for href, text in parser.links:
             child = canonicalize(href)
             if child in seen:
@@ -239,14 +251,22 @@ def crawl(rule, out_dir, dry_run=True, fetcher=None, clock=time.sleep):
             if not host_allowed(urlsplit(child).hostname, rule["allowed_hosts"]):
                 continue
             pdf = looks_pdf(child)
-            if not path_allowed(child, rule) and not (pdf and path_allowed(child, rule)):
-                if not path_allowed(child, rule):
-                    continue
+            if pdf and "pdf" not in discover:
+                continue
+            if not pdf and "html" not in discover:
+                continue
+            if not path_allowed(child, rule):
+                continue
             if not keyword_ok(child, text, rule, pdf):
                 continue
-            if not pdf and len(pages) >= limits["max_pages"] and depth + 1 > 0:
-                if not pdf:
+            if pdf:
+                if remaining_assets - queued_pdf <= 0:
                     continue
+                queued_pdf += 1
+            else:
+                if remaining_pages - queued_html <= 0:
+                    continue
+                queued_html += 1
             queue.append((child, depth + 1, final))
 
     run_id = f"{rule['rule_id']}-{now().replace(':', '').replace('.', '')}"

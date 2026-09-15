@@ -36,6 +36,7 @@
   ],
   "asset_types": ["pdf", "html"],
   "save_html": true,
+  "discover": ["pdf"],
   "product_lines": [
     {
       "product_line": "AI/GPU服务器",
@@ -46,9 +47,9 @@
   ],
   "limits": {
     "delay_seconds": 1.5,
-    "max_pages": 10,
-    "max_assets": 6,
-    "max_depth": 2,
+    "max_pages": 5,
+    "max_assets": 4,
+    "max_depth": 1,
     "max_bytes": 20971520
   }
 }

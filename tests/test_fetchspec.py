@@ -84,6 +84,7 @@ class CrawlTests(unittest.TestCase):
                 "path_include": ["/gpu/", "\\.pdf$"],
                 "path_exclude": ["skip"],
                 "link_text_include": ["datasheet", "h100"],
+                "discover": ["pdf"],
                 "product_lines": [{
                     "product_line": "训练/推理GPU",
                     "library_path": "library/3-算力芯片与核心器件/NVIDIA/训练-推理GPU/",

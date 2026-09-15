@@ -39,6 +39,7 @@ def compile_rule(raw):
         "asset_types": list(raw.get("asset_types") or ["pdf", "html"]),
         "save_html": bool(raw.get("save_html", True)),
         "demo": bool(raw.get("demo", False)),
+        "discover": list(raw.get("discover") or ["pdf", "html"]),
         "limits": limits,
         "_include": [re.compile(p, re.I) for p in raw["path_include"]],
         "_exclude": [re.compile(p, re.I) for p in (raw.get("path_exclude") or [])],
