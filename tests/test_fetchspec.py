@@ -1,4 +1,5 @@
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import json
 import threading
 import unittest
 from pathlib import Path
@@ -104,14 +105,31 @@ class CrawlTests(unittest.TestCase):
             server.shutdown()
             server.server_close()
 
-    def test_store_idempotent(self):
+    def test_store_layout_and_idempotent(self):
         with TemporaryDirectory() as tmp:
             store = Store(tmp)
-            a, rel, _ = store.put(b"hello", ".pdf", "library/x/", "a.pdf")
-            b, rel2, _ = store.put(b"hello", ".pdf", "library/x/", "b.pdf")
-            self.assertEqual(a, b)
-            self.assertEqual(rel, rel2)
+            rule = {"company_id": "nvidia", "company_en": "NVIDIA"}
+            line = {
+                "product_line": "训练/推理GPU",
+                "library_path": "library/3-算力芯片与核心器件/NVIDIA/训练-推理GPU/",
+                "bom_parts": ["gpu"],
+                "path_hints": ["h100"],
+            }
+            url = "https://www.nvidia.com/en-us/data-center/h100/nvidia-h100-datasheet.pdf"
+            a = store.capture(b"hello", ".pdf", "pdf", url, url, 200, "application/pdf", rule, line)
+            b = store.capture(b"hello", ".pdf", "pdf", url, url, 200, "application/pdf", rule, line)
+            self.assertEqual(a["sha256"], b["sha256"])
+            self.assertEqual(a["file_path"], b["file_path"])
+            self.assertEqual(a["doc_type"], "DS")
+            self.assertEqual(a["model"], "h100")
+            self.assertEqual(a["doc_id"], None)
+            self.assertEqual(a["company_id"], "nvidia")
+            self.assertTrue(a["file_path"].startswith("library/3-算力芯片与核心器件/NVIDIA/训练-推理GPU/h100/"))
             self.assertEqual(len(list(Path(tmp, "blobs").rglob("*.pdf"))), 1)
+            self.assertTrue((Path(tmp) / a["file_path"]).is_file())
+            self.assertTrue((Path(tmp) / "LAYOUT.json").is_file())
+            catalog = json.loads((Path(tmp) / "ledger/catalog.json").read_text())
+            self.assertEqual(len(catalog["records"]), 1)
 
 
 if __name__ == "__main__":

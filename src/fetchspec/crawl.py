@@ -8,7 +8,7 @@ from urllib.request import Request, build_opener, HTTPSHandler, HTTPRedirectHand
 
 from .match import host_allowed, keyword_ok, looks_pdf, path_allowed, route_product_line
 from .robots import Robots
-from .store import Store, now, sha256
+from .store import Store, now
 
 USER_AGENT = "InResearchFetchspec/0.1 (+https://github.com/niuroumiantt/fetchspec)"
 
@@ -58,16 +58,6 @@ def canonicalize(url):
     parts = urlsplit(url)
     path = parts.path or "/"
     return urlunsplit((parts.scheme.lower(), parts.netloc.lower(), path, parts.query, ""))
-
-
-def filename_for(url, digest, suffix):
-    name = urlsplit(url).path.rstrip("/").split("/")[-1] or digest
-    if suffix == ".pdf" and not name.lower().endswith(".pdf"):
-        name += ".pdf"
-    if suffix == ".html" and not name.lower().endswith((".html", ".htm")):
-        name += ".html"
-    safe = "".join(ch if ch.isalnum() or ch in "._-" else "-" for ch in name)[:120]
-    return f"{safe}"
 
 
 class Fetcher:
@@ -201,14 +191,16 @@ def crawl(rule, out_dir, dry_run=True, fetcher=None, clock=time.sleep):
         if kind == "pdf":
             if len(assets) >= limits["max_assets"]:
                 continue
-            digest, rel, lib = store.put(
-                result["body"], ".pdf", line["library_path"],
-                filename_for(final, sha256(result["body"]), ".pdf"),
+            record = store.capture(
+                result["body"], ".pdf", "pdf", final, url,
+                result["status"], result["content_type"], rule, line,
             )
             assets.append({
-                "url": final, "requested": url, "kind": "pdf", "sha256": digest,
-                "blob": rel, "library": lib, "product_line": line["product_line"],
-                "status": result["status"], "bytes": len(result["body"]),
+                "url": final, "requested": url, "kind": "pdf",
+                "sha256": record["sha256"], "blob": record["blob"],
+                "library": record["file_path"], "product_line": record["product_line"],
+                "model": record["model"], "doc_type": record["doc_type"],
+                "status": result["status"], "bytes": record["bytes"],
             })
             continue
         if kind != "html":
@@ -221,11 +213,15 @@ def crawl(rule, out_dir, dry_run=True, fetcher=None, clock=time.sleep):
             "bytes": len(result["body"]), "product_line": line["product_line"],
         }
         if rule["save_html"]:
-            digest, rel, lib = store.put(
-                result["body"], ".html", line["library_path"],
-                filename_for(final, sha256(result["body"]), ".html"),
+            record = store.capture(
+                result["body"], ".html", "html", final, url,
+                result["status"], result["content_type"], rule, line,
             )
-            page.update({"sha256": digest, "blob": rel, "library": lib})
+            page.update({
+                "sha256": record["sha256"], "blob": record["blob"],
+                "library": record["file_path"], "model": record["model"],
+                "doc_type": record["doc_type"],
+            })
         pages.append(page)
         if depth >= limits["max_depth"]:
             continue

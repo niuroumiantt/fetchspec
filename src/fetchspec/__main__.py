@@ -5,16 +5,21 @@ from pathlib import Path
 
 from .catalog import ROOT, load_rule, load_rules
 from .crawl import crawl
+from .store import default_data_root
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Declarative official-site spec fetch for inresearch")
-    parser.add_argument("command", choices=["list", "validate", "crawl"])
+    parser.add_argument("command", choices=["list", "validate", "crawl", "where"])
     parser.add_argument("--rule", help="Path or rule_id (filename stem)")
     parser.add_argument("--demo", action="store_true", help="Only rules marked demo=true")
-    parser.add_argument("--out", default=str(ROOT / "out"))
+    parser.add_argument("--out", default=None, help="Archive root; default ~/.local/share/fetchspec")
     parser.add_argument("--fetch", action="store_true", help="Download bodies; default is dry-run")
     args = parser.parse_args(argv)
+
+    if args.command == "where":
+        print(default_data_root())
+        return 0
 
     if args.command == "list":
         rules = load_rules(demo_only=args.demo)
@@ -41,9 +46,10 @@ def main(argv=None):
         rules = [load_one(args.rule)]
     elif args.demo:
         rules = load_rules(demo_only=True)
+    out = args.out or str(default_data_root())
     results = []
     for rule in rules:
-        results.append(crawl(rule, args.out, dry_run=not args.fetch))
+        results.append(crawl(rule, out, dry_run=not args.fetch))
     print(json.dumps(results, ensure_ascii=False, indent=2))
     return 0 if all(not r["errors"] for r in results) else 1
 
