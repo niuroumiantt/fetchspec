@@ -1,0 +1,55 @@
+{
+  "rule_id": "supermicro-gpu-server-demo",
+  "company_id": "supermicro",
+  "company_en": "Supermicro",
+  "demo": true,
+  "ecosystems": ["compute"],
+  "notes": "Demo: GPU SuperServer listing plus per-system datasheet pages. PDF/HTML datasheets are the research original; marketing blogs stay out.",
+  "allowed_hosts": ["www.supermicro.com", "supermicro.com"],
+  "start_urls": [
+    "https://www.supermicro.com/en/products/gpu",
+    "https://www.supermicro.com/en/products/system/datasheet/sys-822gs-nbrt",
+    "https://www.supermicro.com/en/products/system/datasheet/sys-521ge-tnrt"
+  ],
+  "path_include": [
+    "/en/products/gpu",
+    "/en/products/system/datasheet/",
+    "/en/products/system/.*/gpu",
+    "/datasheet/.*\\.(pdf|aspx)",
+    "/products/system/datasheet/"
+  ],
+  "path_exclude": [
+    "/wftp/",
+    "/wdl/",
+    "/Bios/",
+    "/support/premirror",
+    "/about/careers"
+  ],
+  "link_text_include": [
+    "datasheet",
+    "gpu",
+    "hgx",
+    "b200",
+    "h100",
+    "sys-",
+    "superserver"
+  ],
+  "asset_types": ["pdf", "html"],
+  "save_html": true,
+  "discover": ["pdf"],
+  "product_lines": [
+    {
+      "product_line": "AI/GPU服务器",
+      "library_path": "library/4-服务器与整机/Supermicro/AI-GPU服务器/",
+      "bom_parts": ["server"],
+      "path_hints": ["gpu", "hgx", "sys-", "datasheet"]
+    }
+  ],
+  "limits": {
+    "delay_seconds": 1.5,
+    "max_pages": 5,
+    "max_assets": 4,
+    "max_depth": 1,
+    "max_bytes": 20971520
+  }
+}
