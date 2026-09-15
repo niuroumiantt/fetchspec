@@ -1,0 +1,39 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Swagger Petstore",
+    "version": "1.0.0",
+    "description": "A sample API that exposes endpoints to manage a pet store inventory."
+  },
+  "servers": [
+    { "url": "https://petstore3.swagger.io/api/v3", "description": "Public demo server" }
+  ],
+  "paths": {
+    "/pet": {
+      "post": { "summary": "Add a new pet to the store", "operationId": "addPet", "tags": ["pet"] },
+      "put": { "summary": "Update an existing pet", "operationId": "updatePet", "tags": ["pet"] }
+    },
+    "/pet/findByStatus": {
+      "get": { "summary": "Finds pets by status", "operationId": "findPetsByStatus", "tags": ["pet"] }
+    },
+    "/pet/{petId}": {
+      "get": { "summary": "Find pet by ID", "operationId": "getPetById", "tags": ["pet"] },
+      "delete": { "summary": "Deletes a pet", "operationId": "deletePet", "tags": ["pet"] }
+    },
+    "/store/inventory": {
+      "get": { "summary": "Returns pet inventories by status", "operationId": "getInventory", "tags": ["store"] }
+    },
+    "/store/order": {
+      "post": { "summary": "Place an order for a pet", "operationId": "placeOrder", "tags": ["store"] }
+    },
+    "/user": {
+      "post": { "summary": "Create user", "operationId": "createUser", "tags": ["user"] }
+    },
+    "/user/login": {
+      "get": { "summary": "Logs user into the system", "operationId": "loginUser", "tags": ["user"] }
+    },
+    "/user/logout": {
+      "get": { "summary": "Logs out current logged in user session", "operationId": "logoutUser", "tags": ["user"], "deprecated": true }
+    }
+  }
+}
