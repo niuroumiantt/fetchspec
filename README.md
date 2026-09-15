@@ -15,9 +15,7 @@
 
 ## 本机落盘
 
-默认根目录在**跑 crawl 的那台机器**上：`~/.local/share/fetchspec/`（可用 `FETCHSPEC_DATA_ROOT` 或 `--out` 覆盖）。
-
-这不是 GitHub 上的路径，也不会出现在你笔记本的访达里。Cloud Agent 跑出来的文件在 Agent 虚拟机的 `/home/ubuntu/.local/share/fetchspec/`。Cursor 工作区打开的是 git 仓库，默认看不到家目录；本仓库用 gitignore 的 `.data/archive/` 作为工作区里的只读副本入口（仍不进 Git）。
+代码只在 GitHub。PDF 写在**执行 crawl 的那台机器**的磁盘上，不要写 Lightsail / Cursor Agent。请在阿里云上 clone 后配置 `config/archive.local.json` 再 `--fetch`。机器分工见 [docs/MACHINES.md](docs/MACHINES.md)。
 
 ```text
 blobs/<sha256>                          唯一原件
@@ -26,6 +24,8 @@ ledger/catalog.json                     每份文件的对应键（待 Spark 发
 ```
 
 文件名：`<company_id>__<model>__<DS|PB|WEB>__vNA__<日期>__en__<sha8>.pdf`
+
+优先级：`--out` > `FETCHSPEC_DATA_ROOT` > `config/archive.local.json` > `~/.local/share/fetchspec`
 
 ```bash
 PYTHONPATH=src python3 -m fetchspec where

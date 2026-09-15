@@ -1,5 +1,6 @@
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import os
 import threading
 import unittest
 from pathlib import Path
@@ -10,7 +11,7 @@ from fetchspec.catalog import compile_rule, load_rules
 from fetchspec.crawl import Fetcher, crawl
 from fetchspec.match import host_allowed, path_allowed, route_product_line
 from fetchspec.robots import Robots
-from fetchspec.store import Store
+from fetchspec.store import Store, default_data_root
 
 
 class MatchTests(unittest.TestCase):
@@ -130,6 +131,17 @@ class CrawlTests(unittest.TestCase):
             self.assertTrue((Path(tmp) / "LAYOUT.json").is_file())
             catalog = json.loads((Path(tmp) / "ledger/catalog.json").read_text())
             self.assertEqual(len(catalog["records"]), 1)
+
+    def test_data_root_env(self):
+        old = os.environ.get("FETCHSPEC_DATA_ROOT")
+        os.environ["FETCHSPEC_DATA_ROOT"] = "/data/fetchspec"
+        try:
+            self.assertEqual(default_data_root(), Path("/data/fetchspec"))
+        finally:
+            if old is None:
+                os.environ.pop("FETCHSPEC_DATA_ROOT", None)
+            else:
+                os.environ["FETCHSPEC_DATA_ROOT"] = old
 
 
 if __name__ == "__main__":
