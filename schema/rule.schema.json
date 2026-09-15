@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "fetchspec vendor crawl rule",
+  "type": "object",
+  "required": [
+    "rule_id",
+    "company_id",
+    "company_en",
+    "ecosystems",
+    "allowed_hosts",
+    "start_urls",
+    "path_include",
+    "product_lines"
+  ],
+  "properties": {
+    "rule_id": {"type": "string"},
+    "company_id": {"type": "string", "description": "inresearch data/products.json company_id"},
+    "company_en": {"type": "string"},
+    "demo": {"type": "boolean"},
+    "ecosystems": {
+      "type": "array",
+      "items": {"type": "string", "enum": ["compute", "storage", "memory", "network", "power", "cooling", "facility", "control"]}
+    },
+    "notes": {"type": "string"},
+    "allowed_hosts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string"}
+    },
+    "start_urls": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "format": "uri"}
+    },
+    "path_include": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "description": "Python regex matched against URL path + query"}
+    },
+    "path_exclude": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "link_text_include": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "If non-empty, HTML links must match one token (URL or anchor text, case-insensitive) unless the URL is a PDF already on an include path"
+    },
+    "asset_types": {
+      "type": "array",
+      "items": {"type": "string", "enum": ["pdf", "html"]},
+      "default": ["pdf", "html"]
+    },
+    "save_html": {"type": "boolean", "default": true},
+    "product_lines": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["product_line", "library_path", "bom_parts"],
+        "properties": {
+          "product_line": {"type": "string"},
+          "library_path": {"type": "string"},
+          "bom_parts": {"type": "array", "items": {"type": "string"}},
+          "path_hints": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "properties": {
+        "delay_seconds": {"type": "number", "minimum": 0.5},
+        "max_pages": {"type": "integer", "minimum": 1},
+        "max_assets": {"type": "integer", "minimum": 0},
+        "max_depth": {"type": "integer", "minimum": 0},
+        "max_bytes": {"type": "integer", "minimum": 1}
+      }
+    }
+  }
+}

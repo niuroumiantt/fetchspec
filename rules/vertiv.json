@@ -1,0 +1,63 @@
+{
+  "rule_id": "vertiv-ups-cdu-demo",
+  "company_id": "vertiv",
+  "company_en": "Vertiv",
+  "demo": true,
+  "ecosystems": ["power", "cooling"],
+  "notes": "Demo morphology for facility vendors: public product catalog + globalassets PDFs. UPS vs CDU routed by path hints. Skip search, login, and government price lists (robots Disallow).",
+  "allowed_hosts": ["www.vertiv.com", "vertiv.com"],
+  "start_urls": [
+    "https://www.vertiv.com/en-us/products-catalog/critical-power/uninterruptible-power-supplies-ups/liebert-exl-s1/",
+    "https://www.vertiv.com/en-us/products-catalog/thermal-management/high-density-solutions/vertiv-coolchip-cdu/",
+    "https://www.vertiv.com/en-us/products-catalog/thermal-management/high-density-solutions/liebert-xdu450-coolant-distribution-unit/",
+    "https://www.vertiv.com/globalassets/products/critical-power/uninterruptible-power-supplies-ups/liebert-exl-s1-400---500-vakw/liebert-exl-s1-ups-400-500kvakw-data-sheet.pdf",
+    "https://www.vertiv.com/globalassets/products/thermal-management/high-density-solutions/liebert-xdu-coolant-distribution-unit-data-sheet.pdf"
+  ],
+  "path_include": [
+    "/en-us/products-catalog/critical-power/",
+    "/en-us/products-catalog/thermal-management/high-density-solutions/",
+    "/globalassets/products/critical-power/",
+    "/globalassets/products/thermal-management/high-density-solutions/"
+  ],
+  "path_exclude": [
+    "/login/",
+    "/en-us/search",
+    "/government-pricing/",
+    "/documents/policy/",
+    "/code_of_ethics",
+    "/account-settings/"
+  ],
+  "link_text_include": [
+    "data sheet",
+    "datasheet",
+    "brochure",
+    "exl",
+    "coolchip",
+    "xdu",
+    "cdu",
+    "liebert"
+  ],
+  "asset_types": ["pdf", "html"],
+  "save_html": true,
+  "product_lines": [
+    {
+      "product_line": "大功率UPS/HVDC",
+      "library_path": "library/8-供配电/Vertiv/大功率UPS-HVDC/",
+      "bom_parts": ["ups"],
+      "path_hints": ["exl", "ups", "critical-power", "hvdc", "trinergy", "netsure"]
+    },
+    {
+      "product_line": "CDU/全链条温控",
+      "library_path": "library/9-散热与液冷/Vertiv/CDU-全链条温控/",
+      "bom_parts": ["cdu"],
+      "path_hints": ["coolchip", "xdu", "cdu", "thermal-management", "liquid"]
+    }
+  ],
+  "limits": {
+    "delay_seconds": 1.5,
+    "max_pages": 10,
+    "max_assets": 6,
+    "max_depth": 2,
+    "max_bytes": 20971520
+  }
+}

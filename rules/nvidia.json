@@ -1,0 +1,73 @@
+{
+  "rule_id": "nvidia-compute-demo",
+  "company_id": "nvidia",
+  "company_en": "NVIDIA",
+  "demo": true,
+  "ecosystems": ["compute"],
+  "notes": "Demo: data-center GPU / Grace / GB200 product pages and public PDFs. Exclude networking (ConnectX/InfiniBand/BlueField) and gated DAM paths.",
+  "allowed_hosts": ["www.nvidia.com", "nvidia.com", "resources.nvidia.com"],
+  "start_urls": [
+    "https://www.nvidia.com/en-us/data-center/h100/",
+    "https://www.nvidia.com/en-us/data-center/h200/",
+    "https://www.nvidia.com/en-us/data-center/grace-cpu/",
+    "https://www.nvidia.com/en-us/data-center/gb200-nvl72/",
+    "https://www.nvidia.com/content/dam/en-zz/Solutions/Data-Center/a100/pdf/nvidia-a100-datasheet.pdf"
+  ],
+  "path_include": [
+    "/en-us/data-center/",
+    "/content/dam/.*/(data-center|gtcs|grace|blackwell|hopper|h100|h200|gb200|dgx)",
+    "/content/dam/.*\\.pdf$",
+    "/en-us-gpu-resources/",
+    "/en-us-blackwell"
+  ],
+  "path_exclude": [
+    "/content/g/",
+    "/content/gated",
+    "/gated-resources/",
+    "infiniband",
+    "connectx",
+    "bluefield",
+    "networking",
+    "/geforce/",
+    "/gtc-session",
+    "/careers/"
+  ],
+  "link_text_include": [
+    "datasheet",
+    "data sheet",
+    "product brief",
+    "whitepaper",
+    "white paper",
+    "h100",
+    "h200",
+    "b200",
+    "gb200",
+    "grace",
+    "blackwell",
+    "hopper",
+    "dgx"
+  ],
+  "asset_types": ["pdf", "html"],
+  "save_html": true,
+  "product_lines": [
+    {
+      "product_line": "训练/推理GPU",
+      "library_path": "library/3-算力芯片与核心器件/NVIDIA/训练-推理GPU/",
+      "bom_parts": ["gpu"],
+      "path_hints": ["h100", "h200", "b200", "gb200", "blackwell", "hopper", "l40"]
+    },
+    {
+      "product_line": "Arm服务器CPU",
+      "library_path": "library/3-算力芯片与核心器件/NVIDIA/Arm服务器CPU/",
+      "bom_parts": ["cpu"],
+      "path_hints": ["grace"]
+    }
+  ],
+  "limits": {
+    "delay_seconds": 1.5,
+    "max_pages": 10,
+    "max_assets": 6,
+    "max_depth": 2,
+    "max_bytes": 20971520
+  }
+}
