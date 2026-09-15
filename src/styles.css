@@ -1,0 +1,270 @@
+:root {
+  --bg: #0f1220;
+  --panel: #181b2e;
+  --panel-2: #1f2338;
+  --border: #2b3050;
+  --text: #e7e9f5;
+  --muted: #9aa0c3;
+  --accent: #6d7cff;
+  --accent-2: #4cc9b0;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: radial-gradient(1200px 600px at 80% -10%, #23264a 0%, var(--bg) 55%);
+  color: var(--text);
+}
+
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+.app__header h1 {
+  font-size: 40px;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.app__header h1 span {
+  color: var(--accent);
+}
+
+.app__header p {
+  color: var(--muted);
+  margin: 8px 0 0;
+}
+
+.panel {
+  margin-top: 28px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.row--hint {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 14px 2px 8px;
+}
+
+.row--actions {
+  margin-top: 12px;
+}
+
+.row__input {
+  flex: 1;
+}
+
+input,
+textarea {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+input:focus,
+textarea:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.editor {
+  width: 100%;
+  min-height: 180px;
+  resize: vertical;
+  font-family: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  line-height: 1.5;
+}
+
+.btn {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.05s ease, background 0.15s ease;
+}
+
+.btn:hover:not(:disabled) {
+  background: #262b45;
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: var(--accent);
+  border-color: transparent;
+  color: #0c0f1c;
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: #8290ff;
+}
+
+.results {
+  margin-top: 24px;
+}
+
+.placeholder {
+  color: var(--muted);
+}
+
+.alert {
+  background: #3a1622;
+  border: 1px solid #7b2540;
+  color: #ffb3c4;
+  padding: 14px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.summary {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.summary__head h2 {
+  margin: 0 0 10px;
+  font-size: 26px;
+}
+
+.summary__meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  background: rgba(109, 124, 255, 0.16);
+  color: #b9c1ff;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge--muted {
+  background: rgba(154, 160, 195, 0.14);
+  color: var(--muted);
+}
+
+.summary__desc {
+  color: var(--muted);
+  margin: 16px 0 0;
+}
+
+.summary__section {
+  margin-top: 26px;
+}
+
+.summary__section h3 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 0 0 12px;
+}
+
+.servers {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.servers code {
+  color: var(--accent-2);
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: #2a2f4d;
+  color: #cfd4ff;
+}
+
+.chip--get { background: rgba(76, 201, 176, 0.18); color: #6fe3c9; }
+.chip--post { background: rgba(109, 124, 255, 0.2); color: #a9b3ff; }
+.chip--put { background: rgba(255, 186, 76, 0.18); color: #ffce8a; }
+.chip--patch { background: rgba(255, 145, 76, 0.18); color: #ffb488; }
+.chip--delete { background: rgba(255, 92, 122, 0.18); color: #ff9db0; }
+
+.endpoints {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.endpoints td {
+  padding: 9px 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.endpoints tr:last-child td {
+  border-bottom: none;
+}
+
+.endpoints__path code {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.endpoints__summary {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.tag {
+  margin-left: 8px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.tag--deprecated {
+  background: rgba(255, 92, 122, 0.16);
+  color: #ff9db0;
+}
