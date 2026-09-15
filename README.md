@@ -1,42 +1,52 @@
 # fetchspec
 
-声明式规则：从厂商官网抓取公开产品资料，按 inresearch 的 `company_id` + `product_line` 在**本机**归档。当前环境与 Spark 隔离，原件先留在本机；Spark 就绪后再按 `docs/LAYOUT.md` 整树搬迁，不在云会话里假装已经进研究库。
+Fetch, parse, and inspect OpenAPI / Swagger specifications right in the browser.
 
-本仓库只含规则和执行器。原件、哈希库、清单不进 Git。抓取结果不是 C3 采用。
+`fetchspec` is a small Vite + React + TypeScript app. Give it a spec URL (or
+paste a JSON/YAML document) and it renders a clean summary: title, version,
+servers, a per-method breakdown, and the full list of endpoints.
 
-## Demo 四站
+## Requirements
 
-| 规则 | 公司 | 生态 |
-|---|---|---|
-| `rules/nvidia.json` | NVIDIA | 计算 |
-| `rules/intel.json` | Intel | 计算 |
-| `rules/supermicro.json` | SuperMicro | 计算 |
-| `rules/vertiv.json` | Vertiv | 电力 + 冷却 |
+- Node.js 20+ (developed on Node 22)
+- npm 10+
 
-## 本机落盘
-
-默认根目录：`~/.local/share/fetchspec/`（可用 `FETCHSPEC_DATA_ROOT` 或 `--out` 覆盖）。
-
-```text
-blobs/<sha256>                          唯一原件
-library/<表>/<公司>/<产品线>/<型号>/     与 inresearch product/library 同形
-ledger/catalog.json                     每份文件的对应键（待 Spark 发 doc_id）
-```
-
-文件名：`<company_id>__<model>__<DS|PB|WEB>__vNA__<日期>__en__<sha8>.pdf`
+## Getting started
 
 ```bash
-PYTHONPATH=src python3 -m fetchspec where
-PYTHONPATH=src python3 -m fetchspec list --demo
-PYTHONPATH=src python3 -m fetchspec crawl --demo
-PYTHONPATH=src python3 -m fetchspec crawl --demo --fetch
-PYTHONPATH=src python3 -m unittest discover -s tests
+npm install       # install dependencies
+npm run dev       # start the dev server at http://localhost:5173
 ```
 
-默认 `crawl` 为 dry-run。`--fetch` 才下载到本机归档根。
+A bundled sample spec (Swagger Petstore) lives at `public/samples/petstore.json`
+and is pre-filled in the URL box, so the app works fully offline out of the box.
 
-## 边界
+## Scripts
 
-- 遵守 robots；Demo 间隔 1.5 秒；不登录、不绕 gated
-- NVIDIA 规则排除 InfiniBand / ConnectX / BlueField
-- Spark 搬迁见 `docs/LAYOUT.md`
+| Command             | Description                                   |
+| ------------------- | --------------------------------------------- |
+| `npm run dev`       | Start the Vite dev server.                    |
+| `npm run build`     | Type-check and build a production bundle.     |
+| `npm run preview`   | Preview the production build.                 |
+| `npm run lint`      | Run ESLint.                                   |
+| `npm run typecheck` | Type-check without emitting output.           |
+| `npm test`          | Run the Vitest unit tests.                    |
+
+## Project layout
+
+```
+src/
+  App.tsx                # top-level UI: fetch / paste / inspect
+  components/
+    SummaryView.tsx      # renders the parsed spec summary
+  lib/
+    parseSpec.ts         # JSON+YAML parsing and OpenAPI summarization
+    parseSpec.test.ts    # unit tests for the parser
+public/
+  samples/petstore.json  # bundled offline sample spec
+```
+
+## Cloud Agent environment
+
+`.cursor/environment.json` configures the Cursor Cloud Agent environment:
+`npm ci` installs dependencies and a `dev` terminal runs the Vite dev server.
