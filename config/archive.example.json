@@ -1,0 +1,5 @@
+{
+  "data_root": "/data/fetchspec",
+  "host": "aliyun",
+  "note": "Copy to config/archive.local.json on the Aliyun host. Do not put SSH keys or passwords in Git. PDFs are written here; the Git clone only holds rules and code."
+}

@@ -13,15 +13,26 @@ servers, a per-method breakdown, and the full list of endpoints.
 
 ## Getting started
 
-```bash
-npm install       # install dependencies
-npm run dev       # start the dev server at http://localhost:5173
+代码只在 GitHub。PDF 写在**执行 crawl 的那台机器**的磁盘上，不要写 Lightsail / Cursor Agent。请在阿里云上 clone 后配置 `config/archive.local.json` 再 `--fetch`。机器分工见 [docs/MACHINES.md](docs/MACHINES.md)。
+
+```text
+blobs/<sha256>                          唯一原件
+library/<表>/<公司>/<产品线>/<型号>/     与 inresearch product/library 同形
+ledger/catalog.json                     每份文件的对应键（待 Spark 发 doc_id）
 ```
 
 A bundled sample spec (Swagger Petstore) lives at `public/samples/petstore.json`
 and is pre-filled in the URL box, so the app works fully offline out of the box.
 
-## Scripts
+优先级：`--out` > `FETCHSPEC_DATA_ROOT` > `config/archive.local.json` > `~/.local/share/fetchspec`
+
+```bash
+PYTHONPATH=src python3 -m fetchspec where
+PYTHONPATH=src python3 -m fetchspec list --demo
+PYTHONPATH=src python3 -m fetchspec crawl --demo
+PYTHONPATH=src python3 -m fetchspec crawl --demo --fetch
+PYTHONPATH=src python3 -m unittest discover -s tests
+```
 
 | Command             | Description                                   |
 | ------------------- | --------------------------------------------- |

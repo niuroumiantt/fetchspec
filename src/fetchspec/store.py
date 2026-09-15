@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 
+from .catalog import ROOT
 from .naming import catalog_relpath, doc_type, guess_model, parse_library_path
 
 LAYOUT_VERSION = 1
@@ -22,7 +23,13 @@ def sha256(body):
 def default_data_root():
     override = os.environ.get("FETCHSPEC_DATA_ROOT")
     if override:
-        return Path(override)
+        return Path(override).expanduser()
+    local = ROOT / "config" / "archive.local.json"
+    if local.exists():
+        data = json.loads(local.read_text(encoding="utf-8"))
+        root = data.get("data_root")
+        if root:
+            return Path(root).expanduser()
     return Path.home() / ".local" / "share" / "fetchspec"
 
 
