@@ -25,11 +25,13 @@ Kinds
 - PDF → usually DS (datasheet); brief/brochure/whitepaper encoded in doc_type.
 - HTML product page → WEB. HTML is a snapshot, not a spec original.
 
-When Spark is up, move trees, do not re-crawl:
+When Spark is up, copy into the landing zone, do not re-crawl and do not
+drop unsorted files into raw-materials/:
 
-    rsync -a --partial library/ spark:.local/share/inresearch.ai/product/library/
-    rsync -a --partial blobs/   spark:.local/share/inresearch.ai/acquisition/blobs/
+    rsync -a --partial library/ spark:.local/share/inresearch.ai/incoming/YYYYMMDD-fetchspec/library/
+    rsync -a --partial blobs/   spark:.local/share/inresearch.ai/incoming/YYYYMMDD-fetchspec/blobs/
 
-Then merge ledger/catalog.json records into the product library index.
-Do not rsync catalog.json over an existing index.
+Elevate only the PDFs that should be catalogued. Merge ledger/catalog.json
+into the product library index by SHA; never rsync catalog.json over an
+existing index.
 """

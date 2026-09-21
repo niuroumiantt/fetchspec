@@ -13,7 +13,7 @@ servers, a per-method breakdown, and the full list of endpoints.
 
 ## Getting started
 
-代码只在 GitHub。PDF 写在**执行 crawl 的那台机器**的磁盘上，不要写 Lightsail / Cursor Agent。请在阿里云上 clone 后配置 `config/archive.local.json` 再 `--fetch`。机器分工见 [docs/MACHINES.md](docs/MACHINES.md)。
+官网规格爬虫：代码只在 GitHub。PDF 写在**执行 crawl 的长期抓取盘**上（阿里云若已重置就换新盘重抓），不要写 Lightsail / Cursor Agent。机器与投递见 [docs/MACHINES.md](docs/MACHINES.md)、[docs/FEEDERS.md](docs/FEEDERS.md)。本仓库里的 Vite OpenAPI 查看器是另一产品，与爬虫无关。
 
 ```text
 blobs/<sha256>                          唯一原件
