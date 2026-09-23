@@ -59,6 +59,19 @@ class RobotsTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 f.check(url)
 
+    def test_optional_host_tls_failure_stays_blocked(self):
+        f = InventoryFetcher(load_profile("supermicro"))
+        def fake_get(url):
+            if url == "https://supermicro.com/robots.txt":
+                raise ValueError("certificate verification failure")
+            return b"User-agent: *\nDisallow: /wftp/*", {"status": 200, "final_url": url}
+        f.get = fake_get
+        receipts = f.prepare_robots()
+        self.assertEqual(receipts[1]["status"], "blocked")
+        f.check(BASE + "/manuals/test.pdf")
+        with self.assertRaises(ValueError):
+            f.check("https://supermicro.com/manuals/test.pdf")
+
 
 class DiscoveryTests(unittest.TestCase):
     def test_sitemap_loc_not_image_loc(self):

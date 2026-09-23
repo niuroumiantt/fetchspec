@@ -391,6 +391,14 @@ def run_company(profile, root, manifest=None, max_requests=0, recheck=False, for
             receipts = fetcher.prepare_robots()
             atomic_json(ledger.base / "runs" / run / "robots.json", receipts)
             atomic_json(ledger.base / "runs" / run / "profile.json", profile)
+            evidence_url = profile.get("adapter_evidence", {}).get("datasheet_button_source")
+            if evidence_url and isinstance(fetcher, InventoryFetcher):
+                evidence, evidence_meta = fetcher.get(evidence_url)
+                evidence_sha = digest(evidence)
+                atomic_bytes(ledger.base / "adapter-evidence" / (evidence_sha + ".js"), evidence)
+                atomic_json(ledger.base / "runs" / run / "adapter-evidence.json", {"url": evidence_url, "sha256": evidence_sha, **evidence_meta})
+                if not all(token in evidence for token in (b"getNormalizedSkuRel", b"products/system/datasheet/", b".system-blade", b".sku-model")):
+                    raise ValueError("manufacturer datasheet button implementation changed; adapter review needed")
             while True:
                 if (ledger.base / "STOP").exists():
                     status = "paused_stop_file"
@@ -492,6 +500,8 @@ def run_company(profile, root, manifest=None, max_requests=0, recheck=False, for
                     atomic_json(ledger.base / "status.json", report)
                     if progress:
                         progress({"processed": processed, "queue": report["queue"], "documents": report["document_types"], "last_url": row["url"], "worker_status": status})
+                if processed % 100 == 0:
+                    export_documents(ledger)
                 if status != "running":
                     break
         except BaseException:

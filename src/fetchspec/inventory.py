@@ -163,10 +163,18 @@ class InventoryFetcher:
                 body, meta = self.get(url)
             except HTTPError as exc:
                 if exc.code not in {404, 410}:
-                    raise
+                    receipts.append({"url": url, "status": "blocked", "error": str(exc)[:300]})
+                    continue
                 body, meta = b"", {"final_url": url, "status": exc.code}
+            except Exception as exc:
+                # An unavailable optional host must not open its robots policy or
+                # prevent acquisition from independently verified allowed hosts.
+                receipts.append({"url": url, "status": "blocked", "error": type(exc).__name__ + ": " + str(exc)[:300]})
+                continue
             self.robots[host] = Robots(body.decode("utf-8", "replace"), USER_AGENT)
             receipts.append({"url": url, "text": body.decode("utf-8", "replace"), **meta})
+        if not self.robots:
+            raise ValueError("robots unavailable for every allowed host: " + str(receipts))
         return receipts
 
 
@@ -191,6 +199,7 @@ def run_inventory(profile, data_root, fetcher=None, progress=None):
     try:
         policies = fetcher.prepare_robots()
         atomic_json(run / "robots.json", policies)
+        summary["blocked_hosts"] = [r for r in policies if r.get("status") == "blocked"]
     except Exception as exc:
         summary.update(status="blocked_robots", finished_at=utc_now())
         summary["errors"].append({"stage": "robots", "error": type(exc).__name__, "detail": str(exc)[:300]})
