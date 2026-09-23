@@ -1,5 +1,10 @@
 # 代码在 Git，原件在哪台机器
 
+2026-09-23 更新：用户指定 **Macmini 为主力抓取机器**，不仅用于登录墙采集。
+Supermicro 当前机器、路径与操作以 [SUPERMICRO.md](SUPERMICRO.md) 为准：
+`hermes@macmini` 的 `/Users/hermes/.local/share/fetchspec` 保存原件与采集台账。
+下表中的 Linux/VPS 无 SSH 等描述是旧运行环境，不能用于判断当前任务权限或数据所在。
+
 ## 这些机器不是同一台
 
 | 角色 | 是什么 | 放什么 |

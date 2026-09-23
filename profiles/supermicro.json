@@ -1,0 +1,49 @@
+{
+  "profile_version": 1,
+  "company_id": "supermicro",
+  "company_en": "Supermicro",
+  "adapter_evidence": {"datasheet_button_source": "https://www.supermicro.com/sites/default/files/static/spec.js", "verified_date": "2026-09-23", "rule": "On .system-blade pages, lowercase/trim .sku-model rel, exclude empty or srs prefix, link /{lang}/products/system/datasheet/{sku}. Never infer SKU from filename."},
+  "status": "first_company_crawl_with_explicit_coverage_gaps",
+  "allowed_hosts": ["www.supermicro.com", "supermicro.com", "learn-more.supermicro.com"],
+  "sitemap_index": "https://www.supermicro.com/sitemap_master.xml",
+  "sitemaps": [
+    {"role": "system", "url": "https://www.supermicro.com/sitemap/products/system_sitemap.xml"},
+    {"role": "chassis", "url": "https://www.supermicro.com/sitemap/products/chassis_sitemap.xml"},
+    {"role": "motherboard", "url": "https://www.supermicro.com/sitemap/products/motherboard_sitemap.xml"},
+    {"role": "accessories", "url": "https://www.supermicro.com/sitemap/products/accessories_sitemap.xml"},
+    {"role": "manuals", "url": "https://www.supermicro.com/sitemap/products/resource_sitemap.xml"},
+    {"role": "downloadcenter", "url": "https://www.supermicro.com/sitemap/products/product_resource.xml"},
+    {"role": "general", "url": "https://www.supermicro.com/en/sitemap.xml"}
+  ],
+  "discovery_entrypoints": [
+    {"role": "vendor_taxonomy", "url": "https://www.supermicro.com/en/about/sitemap"},
+    {"role": "system_matrix", "url": "https://www.supermicro.com/en/products/system/matrix"},
+    {"role": "resources_paginated", "url": "https://www.supermicro.com/en/resources"}
+  ],
+  "document_formats": ["pdf", "doc", "docx", "xls", "xlsx", "docm", "xlsm", "xlsb"],
+  "locales": "retain_all_sitemap_locales",
+  "delay_seconds": 1.5,
+  "timeout_seconds": 30,
+  "max_xml_bytes": 20971520,
+  "max_document_bytes": 134217728,
+  "min_free_bytes": 8589934592,
+  "max_requests": 150000,
+  "max_discovery_depth": 15,
+  "page_prefixes": ["/en/products", "/products", "/en/solutions", "/solutions", "/en/resources", "/en/support/resources", "/support/resources", "/en/support/manuals", "/manuals", "/en/about/sitemap", "/zh-tw/products", "/zh-cn/products", "/ja-jp/products", "/de-de/products", "/zh-tw/solutions", "/zh-cn/solutions", "/ja-jp/solutions", "/de-de/solutions", "/zh-tw/resources", "/zh-cn/resources", "/ja-jp/resources", "/de-de/resources"],
+  "category_roots": [
+    {"label": "Servers & Storage", "paths": ["/en/products/rackmount", "/en/products/gpu", "/en/products/twin", "/en/products/storage", "/en/products/blade", "/en/products/microcloud"]},
+    {"label": "Building Blocks", "paths": ["/en/products/motherboards", "/en/products/chassis", "/en/products/rack", "/en/products/accessories"]},
+    {"label": "Edge, Embedded & Telecom", "paths": ["/en/products/edge/servers", "/en/products/motherboards/embedded-iot-boards", "/en/products/outdoor-edge"]},
+    {"label": "Networking", "paths": ["/en/products/networking"]},
+    {"label": "Client", "paths": ["/en/products/superworkstation"]}
+  ],
+  "known_gaps": [
+    "Sitemap URLs are discovery candidates, not downloaded documents or a complete website inventory.",
+    "Coverage is limited to public Supermicro hosts, sitemap pages, document literals and the observed read-only Manuals form; the official learn-more.supermicro.com asset host is included, while unrelated external mirrors remain excluded. Undiscovered JavaScript APIs remain a review gap.",
+    "FAQ and image sitemaps are recorded as additional sources, not traversed by this baseline.",
+    "Product role labels above name sitemap sources, not a replacement for the vendor's first-level product categories.",
+    "User authorized execution on 2026-09-23; this records user authorization, not a vendor license. No public redistribution. Robots rules remain independently enforced.",
+    "HTML-only manuals are retained as discovery snapshots, not counted as PDF documents. Public completeness, PCN completeness and unavailable/deleted products are not inferred from queue exhaustion.",
+    "Vendor first-level labels are preserved; URL-based membership is explicitly inferred, and unresolved documents remain unassigned. Collections describe document purpose, not vendor taxonomy."
+  ]
+}

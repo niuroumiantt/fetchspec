@@ -10,12 +10,48 @@ from .store import default_data_root
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Declarative official-site spec fetch for inresearch")
-    parser.add_argument("command", choices=["list", "validate", "crawl", "where"])
+    parser.add_argument("command", choices=["list", "validate", "crawl", "where", "inventory", "company-crawl", "company-status"])
+    parser.add_argument("--company", default="supermicro", help="Company inventory profile (not a legacy demo rule)")
     parser.add_argument("--rule", help="Path or rule_id (filename stem)")
     parser.add_argument("--demo", action="store_true", help="Only rules marked demo=true")
     parser.add_argument("--out", default=None, help="Archive root; default ~/.local/share/fetchspec")
     parser.add_argument("--fetch", action="store_true", help="Download bodies; default is dry-run")
+    parser.add_argument("--manifest", help="Previously saved company sitemap urls.jsonl")
+    parser.add_argument("--max-requests", type=int, default=0, help="Company worker request budget; 0 drains the persistent frontier")
+    parser.add_argument("--recheck", action="store_true", help="Requeue known company URLs for conditional checks, retaining versions")
+    parser.add_argument("--force", action="store_true", help="With --recheck, omit conditional headers for a full content audit")
     args = parser.parse_args(argv)
+
+    if args.command in {"company-crawl", "company-status"}:
+        from .company import CompanyLedger, run_company
+        from .inventory import load_profile
+        profile = load_profile(args.company)
+        root = Path(args.out or default_data_root()).expanduser()
+        if args.command == "company-status":
+            ledger = CompanyLedger(root, profile)
+            print(json.dumps(ledger.report(), ensure_ascii=False, indent=2))
+            ledger.db.close()
+            return 0
+        if not args.fetch:
+            parser.error("company-crawl requires --fetch; use inventory for metadata-only discovery")
+        if args.force and not args.recheck:
+            parser.error("--force requires --recheck")
+        if args.max_requests < 0:
+            parser.error("--max-requests must be nonnegative")
+        result = run_company(profile, root, manifest=args.manifest, max_requests=args.max_requests,
+                             recheck=args.recheck, force=args.force,
+                             progress=lambda row: print(json.dumps(row, ensure_ascii=False), flush=True))
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0 if result["run"]["status"] == "frontier_exhausted_with_gaps" else 2
+
+    if args.command == "inventory":
+        from .inventory import load_profile, run_inventory
+        if args.fetch or args.rule or args.demo:
+            parser.error("inventory only fetches sitemap metadata; use --company, not --fetch/--rule/--demo")
+        result = run_inventory(load_profile(args.company), Path(args.out or default_data_root()).expanduser(),
+                               progress=lambda row: print(json.dumps({"sitemap": row["role"], "entries": row["entries"]}), flush=True))
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 1 if result["errors"] else 0
 
     if args.command == "where":
         print(default_data_root())
