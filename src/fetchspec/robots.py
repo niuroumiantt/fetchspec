@@ -1,10 +1,12 @@
 """Subset of robots.txt: User-agent groups, Allow/Disallow by longest path, Crawl-delay."""
 
+import re
 from urllib.parse import unquote, urlsplit
 
 
 def _path_of(url):
-    return unquote(urlsplit(url).path or "/")
+    parts = urlsplit(url)
+    return unquote((parts.path or "/") + ("?" + parts.query if parts.query else ""))
 
 
 class Robots:
@@ -44,19 +46,23 @@ class Robots:
 
     def _select(self, groups, user_agent):
         ua = user_agent.lower()
-        best, best_len = None, -1
-        wildcard = None
+        selected, best_len = [], -1
         for group in groups:
+            specificity = -1
             for agent in group["agents"]:
                 if agent == "*":
-                    wildcard = group
-                elif ua.startswith(agent) and len(agent) > best_len:
-                    best, best_len = group, len(agent)
-        chosen = best or wildcard
-        if chosen:
-            self.delay = chosen.get("delay")
-            return chosen["rules"]
-        return []
+                    specificity = max(specificity, 0)
+                elif agent and agent in ua:
+                    specificity = max(specificity, len(agent))
+            if specificity < 0:
+                continue
+            if specificity > best_len:
+                selected, best_len = [group], specificity
+            elif specificity == best_len:
+                selected.append(group)
+        delays = [g["delay"] for g in selected if g["delay"] is not None]
+        self.delay = max(delays) if delays else None
+        return [rule for group in selected for rule in group["rules"]]
 
     def allowed(self, url):
         path = _path_of(url)
@@ -68,8 +74,11 @@ class Robots:
                     # Disallow: empty means allow all in this group
                     continue
                 pattern = "/"
-            if path.startswith(pattern) or (pattern.endswith("$") and path == pattern[:-1]):
-                length = len(pattern.rstrip("$"))
-                if length > best_len:
+            anchored = pattern.endswith("$")
+            value = unquote(pattern[:-1] if anchored else pattern)
+            expression = "^" + re.escape(value).replace(r"\*", ".*") + ("$" if anchored else "")
+            if re.search(expression, path):
+                length = len(value.replace("*", "").encode("utf-8"))
+                if length > best_len or (length == best_len and allow):
                     best, best_len = allow, length
         return True if best is None else best
