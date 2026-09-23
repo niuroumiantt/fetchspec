@@ -22,7 +22,7 @@
   ],
   "document_formats": ["pdf", "doc", "docx", "xls", "xlsx", "docm", "xlsm", "xlsb"],
   "locales": "retain_all_sitemap_locales",
-  "delay_seconds": 1.5,
+  "delay_seconds": 0.25,
   "timeout_seconds": 30,
   "max_xml_bytes": 20971520,
   "max_document_bytes": 134217728,
