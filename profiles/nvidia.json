@@ -1,0 +1,56 @@
+{
+  "profile_version": 1,
+  "company_id": "nvidia",
+  "company_en": "NVIDIA",
+  "adapter": "nvidia",
+  "base_url": "https://www.nvidia.com",
+  "status": "first_company_crawl_broad_public_product_scope",
+  "allowed_hosts": ["www.nvidia.com", "nvidia.com", "resources.nvidia.com", "docs.nvidia.com", "images.nvidia.com"],
+  "sitemap_index": "https://www.nvidia.com/sitemap_index.xml",
+  "sitemaps": [
+    {"role": "en_us", "url": "https://www.nvidia.com/en-us/en-us.sitemap.xml"},
+    {"role": "on_demand_2021", "url": "https://www.nvidia.com/content/dam/sitemaps/on-demand/2021/sitemap.xml"},
+    {"role": "on_demand_2022", "url": "https://www.nvidia.com/content/dam/sitemaps/on-demand/2022/sitemap.xml"},
+    {"role": "on_demand_2023", "url": "https://www.nvidia.com/content/dam/sitemaps/on-demand/2023/sitemap.xml"},
+    {"role": "on_demand_2024", "url": "https://www.nvidia.com/content/dam/sitemaps/on-demand/2024/sitemap.xml"},
+    {"role": "gtc", "url": "https://www.nvidia.com/gtc/sitemap.xml"},
+    {"role": "gtc_sessions", "url": "https://www.nvidia.com/gtc/sitemap_sessions.xml"}
+  ],
+  "document_formats": ["pdf", "doc", "docx", "xls", "xlsx", "docm", "xlsm", "xlsb"],
+  "locales": "English public product/resource pages first; locale sitemaps remain an explicit follow-up",
+  "delay_seconds": 1.0,
+  "timeout_seconds": 30,
+  "max_xml_bytes": 20971520,
+  "max_document_bytes": 268435456,
+  "min_free_bytes": 2147483648,
+  "max_requests": 150000,
+  "max_discovery_depth": 8,
+  "page_prefixes": [
+    "/en-us/data-center", "/en-us/geforce", "/en-us/studio", "/en-us/design-visualization",
+    "/en-us/ai-data-science", "/en-us/deep-learning-ai", "/en-us/autonomous-machines",
+    "/en-us/industries", "/en-us/networking",
+    "/en-us/omniverse", "/en-us/solutions", "/en-us/industries", "/en-us/developer",
+    "/en-us/technologies", "/en-us/on-demand", "/gtc"
+  ],
+  "path_exclude": [
+    "/content/g/", "/content/gated", "/gated-resources/", "/gated-pdfs/",
+    "/geforce/comparisons/", "/careers/", "/training/academy/auth/", "/training/academy/login/",
+    "?topicPage=", "?commentPage=", "utm_", "accessToken=", "?page="
+  ],
+  "category_roots": [
+    {"label": "Data Center & AI", "paths": ["/en-us/data-center", "/en-us/ai-data-science", "/en-us/deep-learning-ai"]},
+    {"label": "Networking", "paths": ["/en-us/networking"]},
+    {"label": "Gaming", "paths": ["/en-us/geforce"]},
+    {"label": "Professional Visualization", "paths": ["/en-us/studio", "/en-us/design-visualization"]},
+    {"label": "Automotive & Robotics", "paths": ["/en-us/industries/automotive", "/en-us/autonomous-machines"]},
+    {"label": "Omniverse", "paths": ["/en-us/omniverse"]},
+    {"label": "Developer & Software", "paths": ["/en-us/technologies", "/en-us/ai-data-science"]}
+  ],
+  "known_gaps": [
+    "This first pass uses the English product/resource sitemap and public GTC/on-demand sitemaps; other locale sitemaps are not yet traversed.",
+    "Gated resources, account-only downloads, robots-disallowed paths and JavaScript/API-only assets are intentionally excluded.",
+    "Sitemap URLs are candidates, not proof of complete website or product coverage; document classification is an auditable URL heuristic.",
+    "Official secondary hosts are accepted for direct documents but their HTML navigation is not crawled as a separate site.",
+    "No Spark transfer, full-text reading or inresearch fact adoption occurs during acquisition."
+  ]
+}

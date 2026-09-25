@@ -8,7 +8,7 @@ import unittest
 from urllib.error import HTTPError
 import zipfile
 
-from fetchspec.company import (CompanyLedger, PageLinks, SupermicroAdapter, document_kind,
+from fetchspec.company import (CompanyLedger, NvidiaAdapter, PageLinks, SupermicroAdapter, document_kind,
                                import_inventory, run_company)
 from fetchspec.inventory import InventoryFetcher, load_profile, parse_sitemap, run_inventory
 from fetchspec.robots import Robots
@@ -17,6 +17,7 @@ from fetchspec.robots import Robots
 PDF = b"%PDF-1.4\nfixture one\n%%EOF\n"
 PDF2 = b"%PDF-1.4\nfixture changed revision\n%%EOF\n"
 BASE = "https://www.supermicro.com"
+NVIDIA = "https://www.nvidia.com"
 
 
 class FakeFetcher:
@@ -74,6 +75,16 @@ class RobotsTests(unittest.TestCase):
 
 
 class DiscoveryTests(unittest.TestCase):
+    def test_nvidia_adapter_scope_categories_and_documents(self):
+        adapter = NvidiaAdapter(load_profile("nvidia"))
+        self.assertTrue(adapter.in_scope(NVIDIA + "/en-us/data-center/h100/"))
+        self.assertTrue(adapter.in_scope(NVIDIA + "/content/dam/en-zz/Solutions/Data-Center/a100/a.pdf"))
+        self.assertFalse(adapter.in_scope(NVIDIA + "/content/gated/a.pdf"))
+        self.assertFalse(adapter.in_scope(NVIDIA + "/en-us/data-center/h100/hero.jpg"))
+        self.assertEqual(adapter.categories(NVIDIA + "/en-us/data-center/h100/"), ["Data Center & AI"])
+        _, links = adapter.discover('<main><a href="/content/dam/a.pdf">Datasheet</a></main>', NVIDIA + "/en-us/data-center/h100/")
+        self.assertTrue(any(row["url"] == NVIDIA + "/content/dam/a.pdf" for row in links))
+
     def test_sitemap_loc_not_image_loc(self):
         kind, rows = parse_sitemap(b'<urlset xmlns:image="urn:image"><url><loc>https://www.supermicro.com/en/products/a</loc><image:image><image:loc>https://www.supermicro.com/a.jpg</image:loc></image:image></url></urlset>')
         self.assertEqual(kind, "urlset")

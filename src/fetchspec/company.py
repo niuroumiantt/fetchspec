@@ -210,6 +210,120 @@ class SupermicroAdapter:
         return parser, links
 
 
+class NvidiaAdapter:
+    """NVIDIA's public product/resource site adapter.
+
+    The shared worker owns robots, retries, the SQLite frontier and
+    content-addressed storage.  This adapter only describes NVIDIA's public
+    URL shape, first-level product groupings and document-purpose labels.
+    It intentionally refuses gated paths and does not attempt form/API
+    submission or JavaScript execution.
+    """
+    def __init__(self, profile):
+        self.profile = profile
+
+    def normalize(self, link, base):
+        url = urljoin(base, unescape(link).strip().replace("\\/", "/"))
+        parts = urlsplit(url)
+        if parts.hostname in self.profile["allowed_hosts"] and parts.scheme == "http":
+            parts = parts._replace(scheme="https")
+        parts = parts._replace(path=quote(parts.path, safe="/%:@!$&'()*+,;=-._~"),
+                               query=quote(parts.query, safe="%=&?/:@!$'()*+,;[]-._~"))
+        return canonical_url(urlunsplit(parts))
+
+    def _excluded(self, url):
+        value = url.lower()
+        return any(token.lower() in value for token in self.profile.get("path_exclude", []))
+
+    def in_scope(self, url):
+        p = urlsplit(url)
+        if p.hostname not in self.profile["allowed_hosts"] or p.scheme != "https" or p.port not in (None, 443):
+            return False
+        if self._excluded(url):
+            return False
+        suffix = Path(p.path).suffix.lower().lstrip(".")
+        if suffix in FORMATS:
+            return True
+        # Documents on official secondary hosts are in scope, but their HTML
+        # navigation is not crawled as a separate website.
+        if p.hostname not in {"www.nvidia.com", "nvidia.com"}:
+            return False
+        if suffix in {"jpg", "jpeg", "png", "svg", "gif", "webp", "mp4", "js", "css", "zip", "exe", "iso", "bin", "rpm", "dmg"}:
+            return False
+        path = p.path.lower()
+        return any(path == prefix.rstrip("/").lower() or path.startswith(prefix.rstrip("/").lower() + "/")
+                   for prefix in self.profile.get("page_prefixes", []))
+
+    def categories(self, url):
+        path = unquote(urlsplit(url).path).lower().rstrip("/")
+        labels = [row["label"] for row in self.profile.get("category_roots", [])
+                  if any(path == prefix.rstrip("/").lower() or
+                         path.startswith(prefix.rstrip("/").lower() + "/")
+                         for prefix in row["paths"])]
+        return sorted(set(labels))
+
+    def collection(self, url, label=""):
+        value = (url + " " + label).lower()
+        for name, pattern in [
+                ("pcn", r"\bpcn\b|product.change.notification"),
+                ("datasheets", r"datasheet|data.sheet|technical.brief|specification"),
+                ("brochures", r"brochure"),
+                ("white-papers", r"white.?paper"),
+                ("solution-briefs", r"solution.?brief|reference.?architecture"),
+                ("case-studies", r"case.?stud(?:y|ies)|success.?stor"),
+                ("product-guides", r"product.?guide|quick.?start|getting.?started"),
+                ("manuals", r"manual|user.?guide|installation|release.?notes"),
+                ("presentations", r"presentation|webinar|on.?demand"),
+        ]:
+            if re.search(pattern, value):
+                return name
+        return "other-documents"
+
+    def discover(self, html, base):
+        parser = PageLinks()
+        parser.feed(html)
+        links = []
+        seen = set()
+        for row in parser.links:
+            href = row["href"].strip()
+            candidates = []
+            if href and not href.lower().startswith(("javascript:", "mailto:", "tel:", "#")):
+                candidates.append(href)
+            # Keep literal asset references embedded in attributes/scripts, but
+            # never evaluate JavaScript or synthesize a guessed document URL.
+            candidates += re.findall(r"['\"]([^'\"<>\s]+\.(?:pdf|docx?|xlsx?|docm|xlsm|xlsb)(?:\?[^'\"<>\s]*)?)['\"]", href, re.I)
+            for candidate in candidates:
+                try:
+                    url = self.normalize(candidate, base)
+                except ValueError:
+                    continue
+                if not self.in_scope(url) or url in seen:
+                    continue
+                seen.add(url)
+                links.append({**row, "url": url, "method": "GET", "payload": "", "original_href": href})
+        for candidate in re.findall(r"['\"]((?:https?://|/)[^'\"<>\s]+\.(?:pdf|docx?|xlsx?|docm|xlsm|xlsb)(?:\?[^'\"<>\s]*)?)['\"]",
+                                    html.replace("\\/", "/"), re.I):
+            try:
+                url = self.normalize(candidate, base)
+            except ValueError:
+                continue
+            if not self.in_scope(url) or url in seen:
+                continue
+            seen.add(url)
+            links.append({"url": url, "label": "document literal", "context": "document_literal",
+                          "original_href": candidate, "method": "GET", "payload": ""})
+        return parser, links
+
+
+def adapter_for(profile):
+    name = profile.get("adapter", "supermicro")
+    if name == "supermicro":
+        return SupermicroAdapter(profile)
+    if name == "nvidia":
+        return NvidiaAdapter(profile)
+    raise ValueError("unsupported company adapter: " + str(name))
+
+
 class CompanyLedger:
     def __init__(self, root, profile):
         self.root, self.profile = Path(root), profile
@@ -326,11 +440,12 @@ def import_inventory(ledger, adapter, manifest):
             ledger.enqueue(url, priority=priority, categories=adapter.categories(url), source_role="sitemap")
         else:
             ledger.db.execute("INSERT OR IGNORE INTO exclusions VALUES(?,?,?)", (url, "sitemap", "outside declared public product/document scope"))
-    for row in ledger.profile["discovery_entrypoints"]:
+    for row in ledger.profile.get("discovery_entrypoints", []):
         ledger.enqueue(row["url"], priority=1, source_role=row["role"])
-    for row in ledger.profile["category_roots"]:
+    base_url = ledger.profile.get("base_url", "https://www.supermicro.com").rstrip("/")
+    for row in ledger.profile.get("category_roots", []):
         for path in row["paths"]:
-            ledger.enqueue("https://www.supermicro.com" + path, priority=2, categories=[row["label"]], source_role="vendor_category_entry")
+            ledger.enqueue(base_url + path, priority=2, categories=[row["label"]], source_role="vendor_category_entry")
     ledger.db.commit()
 
 
@@ -374,7 +489,7 @@ def export_documents(ledger):
 
 def run_company(profile, root, manifest=None, max_requests=0, recheck=False, force=False, progress=None, fetcher=None):
     ledger = CompanyLedger(root, profile)
-    adapter = SupermicroAdapter(profile)
+    adapter = adapter_for(profile)
     with company_lock(ledger.base):
         if manifest:
             import_inventory(ledger, adapter, manifest)
