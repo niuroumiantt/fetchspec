@@ -78,10 +78,16 @@ class DiscoveryTests(unittest.TestCase):
     def test_nvidia_adapter_scope_categories_and_documents(self):
         adapter = NvidiaAdapter(load_profile("nvidia"))
         self.assertTrue(adapter.in_scope(NVIDIA + "/en-us/data-center/h100/"))
+        self.assertFalse(adapter.in_scope(NVIDIA + "/de-de/data-center/h100/"))
+        self.assertFalse(adapter.in_scope(NVIDIA + "/content/dam/docs/datasheet-fr.pdf"))
+        self.assertFalse(adapter.in_scope(NVIDIA + "/content/dam/docs/datasheet.pdf?language=de-de"))
+        self.assertTrue(adapter.in_scope(NVIDIA + "/content/dam/docs/datasheet-zh-cn.pdf"))
+        self.assertTrue(adapter.in_scope("https://www.nvidia.cn/zh-cn/data-center/h100/"))
         self.assertTrue(adapter.in_scope(NVIDIA + "/content/dam/en-zz/Solutions/Data-Center/a100/a.pdf"))
         self.assertFalse(adapter.in_scope(NVIDIA + "/content/gated/a.pdf"))
         self.assertFalse(adapter.in_scope(NVIDIA + "/en-us/data-center/h100/hero.jpg"))
         self.assertEqual(adapter.categories(NVIDIA + "/en-us/data-center/h100/"), ["Data Center & AI"])
+        self.assertEqual(adapter.categories("https://www.nvidia.cn/zh-cn/data-center/h100/"), ["Data Center & AI"])
         self.assertEqual(adapter.normalize("/content/dam/a.pdf?ncid=tracking&utm_source=x&version=2", NVIDIA + "/en-us/data-center/h100/"),
                          NVIDIA + "/content/dam/a.pdf?version=2")
         _, links = adapter.discover('<main><a href="/content/dam/a.pdf">Datasheet</a></main>', NVIDIA + "/en-us/data-center/h100/")
@@ -118,6 +124,22 @@ class DiscoveryTests(unittest.TestCase):
             self.assertEqual(report["unique_url_candidates"], 1)
             self.assertFalse(report["website_coverage_complete"])
             self.assertEqual(report["downloaded_product_documents_this_run"], 0)
+
+    def test_inventory_selects_published_sitemaps_from_index(self):
+        p = load_profile("nvidia")
+        index = b'<sitemapindex><sitemap><loc>https://www.nvidia.com/en-us/en-us.sitemap.xml</loc></sitemap><sitemap><loc>https://www.nvidia.com/fr-fr/fr-fr.sitemap.xml</loc></sitemap><sitemap><loc>https://www.nvidia.com/zh-tw/zh-tw.sitemap.xml</loc></sitemap><sitemap><loc>https://www.nvidia.com/gtc/sitemap_sessions.xml</loc></sitemap></sitemapindex>'
+        page = b'<urlset><url><loc>https://www.nvidia.com/en-us/data-center/a</loc></url></urlset>'
+        f = FakeFetcher({p["sitemap_index"]: (index, "application/xml"),
+                         "https://www.nvidia.com/en-us/en-us.sitemap.xml": (page, "application/xml"),
+                         "https://www.nvidia.com/zh-tw/zh-tw.sitemap.xml": (page, "application/xml"),
+                         "https://www.nvidia.com/gtc/sitemap_sessions.xml": (page, "application/xml")})
+        with TemporaryDirectory() as tmp:
+            report = run_inventory(p, Path(tmp), fetcher=f)
+        urls = {call[0] for call in f.calls}
+        self.assertIn("https://www.nvidia.com/zh-tw/zh-tw.sitemap.xml", urls)
+        self.assertNotIn("https://www.nvidia.com/fr-fr/fr-fr.sitemap.xml", urls)
+        self.assertIn("https://www.nvidia.com/gtc/sitemap_sessions.xml", urls)
+        self.assertEqual(report["unique_url_candidates"], 1)
 
     def test_actual_frontend_datasheet_button_rule(self):
         a = SupermicroAdapter(load_profile("supermicro"))
@@ -183,6 +205,28 @@ class WorkerTests(unittest.TestCase):
             result = run_company(p, tmp, fetcher=f)
             self.assertEqual(result["unique_document_contents"], 0)
             self.assertEqual(result["queue"], {"blocked": 1, "error": 1})
+
+    def test_nvidia_language_policy_excludes_existing_frontier_before_fetch(self):
+        with TemporaryDirectory() as tmp:
+            p = load_profile("nvidia")
+            p["min_free_bytes"] = 0
+            p["category_roots"] = []
+            ledger = CompanyLedger(tmp, p)
+            english = NVIDIA + "/en-us/data-center/h100/"
+            german = NVIDIA + "/de-de/data-center/h100/"
+            french_pdf = NVIDIA + "/content/dam/datasheet-fr.pdf"
+            ledger.enqueue(english, priority=0)
+            ledger.enqueue(german, priority=0)
+            ledger.enqueue(french_pdf, priority=0)
+            ledger.db.commit(); ledger.db.close()
+            f = FakeFetcher({english: (b'<html><a href="/content/dam/datasheet-fr.pdf">French</a></html>', "text/html")})
+            run_company(p, tmp, fetcher=f)
+            self.assertEqual([call[0] for call in f.calls if call[0] != english], [])
+            check = CompanyLedger(tmp, p)
+            states = {row["url"]: row["state"] for row in check.db.execute("SELECT url,state FROM requests")}
+            check.db.close()
+            self.assertEqual(states[german], "excluded")
+            self.assertEqual(states[french_pdf], "excluded")
 
     def test_page_304_does_not_skip_attachment_check(self):
         with TemporaryDirectory() as tmp:

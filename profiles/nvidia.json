@@ -5,8 +5,16 @@
   "adapter": "nvidia",
   "base_url": "https://www.nvidia.com",
   "status": "first_company_crawl_broad_public_product_scope",
-  "allowed_hosts": ["www.nvidia.com", "nvidia.com", "resources.nvidia.com", "docs.nvidia.com", "images.nvidia.com"],
+  "allowed_hosts": ["www.nvidia.com", "nvidia.com", "resources.nvidia.com", "docs.nvidia.com", "images.nvidia.com", "www.nvidia.cn", "nvidia.cn"],
+  "robots_hosts": ["www.nvidia.com", "nvidia.com", "resources.nvidia.com", "docs.nvidia.com", "images.nvidia.com", "www.nvidia.cn", "nvidia.cn"],
+  "page_hosts": ["www.nvidia.com", "nvidia.com", "www.nvidia.cn", "nvidia.cn"],
+  "locale_prefixes": {"www.nvidia.cn": "/", "nvidia.cn": "/"},
+  "allowed_hosts_by_host": {"www.nvidia.cn": ["www.nvidia.cn", "nvidia.cn"], "nvidia.cn": ["www.nvidia.cn", "nvidia.cn"]},
   "sitemap_index": "https://www.nvidia.com/sitemap_index.xml",
+  "sitemap_index_select": [
+    {"role_prefix": "locale_", "url_regex": "www\\.nvidia\\.com/(?:en-[a-z]{2}|zh-(?:cn|tw))/[^/]+\\.sitemap\\.xml$"},
+    {"role_prefix": "china_", "url_regex": "www\\.nvidia\\.cn/zh-cn\\.sitemap\\.xml$"}
+  ],
   "sitemaps": [
     {"role": "en_us", "url": "https://www.nvidia.com/en-us/en-us.sitemap.xml"},
     {"role": "on_demand_2021", "url": "https://www.nvidia.com/content/dam/sitemaps/on-demand/2021/sitemap.xml"},
@@ -16,8 +24,11 @@
     {"role": "gtc", "url": "https://www.nvidia.com/gtc/sitemap.xml"},
     {"role": "gtc_sessions", "url": "https://www.nvidia.com/gtc/sitemap_sessions.xml"}
   ],
-  "document_formats": ["pdf", "doc", "docx", "xls", "xlsx", "docm", "xlsm", "xlsb"],
-  "locales": "English public product/resource pages first; locale sitemaps remain an explicit follow-up",
+  "document_formats": ["pdf", "doc", "docx", "docm", "dot", "dotx", "dotm", "xls", "xlsx", "xlsm", "xlsb", "xlt", "xltx", "xltm", "csv", "ppt", "pptx", "pptm", "pps", "ppsx", "ppsm", "pot", "potx", "potm", "rtf", "odt", "ods", "odp"],
+  "locales": "Traverse only English (en-*) and Chinese (zh-cn, zh-tw) locale sitemaps; do not download other languages",
+  "attachment_languages": ["en", "zh"],
+  "attachment_language_policy": "Save unmarked/default English attachments and explicitly English or Chinese variants. Reject explicitly tagged non-English/non-Chinese paths, filenames, or language query values.",
+  "save_discovery_pages": false,
   "delay_seconds": 1.0,
   "timeout_seconds": 30,
   "max_xml_bytes": 20971520,
@@ -25,15 +36,9 @@
   "min_free_bytes": 2147483648,
   "max_requests": 150000,
   "max_discovery_depth": 8,
-  "page_prefixes": [
-    "/en-us/data-center", "/en-us/geforce", "/en-us/studio", "/en-us/design-visualization",
-    "/en-us/ai-data-science", "/en-us/deep-learning-ai", "/en-us/autonomous-machines",
-    "/en-us/industries", "/en-us/networking",
-    "/en-us/omniverse", "/en-us/solutions", "/en-us/industries", "/en-us/developer",
-    "/en-us/technologies", "/en-us/on-demand", "/gtc"
-  ],
+  "page_prefixes": ["/en-us/", "/gtc/"],
   "path_exclude": [
-    "/content/g/", "/content/gated", "/gated-resources/", "/gated-pdfs/",
+    "/content/g/", "/content/gated", "/gated-resources/", "/gated-pdfs/", "/account/",
     "/geforce/comparisons/", "/careers/", "/training/academy/auth/", "/training/academy/login/",
     "?topicPage=", "?commentPage=", "utm_", "accessToken=", "?page="
   ],
@@ -47,7 +52,7 @@
     {"label": "Developer & Software", "paths": ["/en-us/technologies", "/en-us/ai-data-science"]}
   ],
   "known_gaps": [
-    "This first pass uses the English product/resource sitemap and public GTC/on-demand sitemaps; other locale sitemaps are not yet traversed.",
+    "Other NVIDIA corporate hostnames and non-indexed microsites may have separate sitemaps and remain follow-up coverage.",
     "Gated resources, account-only downloads, robots-disallowed paths and JavaScript/API-only assets are intentionally excluded.",
     "Sitemap URLs are candidates, not proof of complete website or product coverage; document classification is an auditable URL heuristic.",
     "Official secondary hosts are accepted for direct documents but their HTML navigation is not crawled as a separate site.",

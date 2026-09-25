@@ -1,11 +1,12 @@
 # NVIDIA 公司级 Fetchspec 规则
 
-本规则把 NVIDIA 的公开产品页、产品资源页、公开 PDF/Word/Excel 入口接入公司级持久队列。下载原件不进 Git；执行目录由 `--out` 或 `FETCHSPEC_DATA_ROOT` 决定。
+本规则把 NVIDIA 公开产品网站上的 PDF、Word、PowerPoint、Excel、CSV 和 OpenDocument 文件接入公司级持久队列。只下载英文和中文资料；英文/中文页面用于发现链接，其他语言页面不抓取。HTML 页面只在内存中解析可下载链接，不写成原件或页面快照。下载原件不进 Git；执行目录由 `--out` 或 `FETCHSPEC_DATA_ROOT` 决定。
 
 ## 本次首轮范围
 
-- 站点：`www.nvidia.com` 的英文 sitemap、2021–2024 on-demand sitemap、GTC sitemap；`sitemap_index.xml` 保留为来源证据。
-- 官方文档主机：`www.nvidia.com`、`images.nvidia.com`、`resources.nvidia.com`、`docs.nvidia.com`；二级主机只接收直接文档，不把它们当成第二套网站递归抓取。
+- 站点：只选择英文（`en-*`）与中文（`zh-cn`、`zh-tw`）页面 sitemap，并展开公开 on-demand sitemap 和 GTC sitemap；索引与各 sitemap 都保留原始快照作为来源证据。其他语种站点不进入抓取队列。
+- 语言：默认/无语言标记的官方 DAM 附件视为英文；明确标注英文或中文的附件允许下载；路径、文件名或语言参数明确标注为其他语种的附件排除。现有数据不会因规则更新而删除。
+- 官方文档主机：`www.nvidia.com`、`images.nvidia.com`、`resources.nvidia.com`、`docs.nvidia.com`、`www.nvidia.cn`；二级主机只接收直接文档，不把它们当成第二套网站递归抓取。
 - 首层分类：Data Center & AI、Networking、Gaming、Professional Visualization、Automotive & Robotics、Omniverse、Developer & Software。
 - 文档用途：datasheets、brochures、white-papers、solution-briefs、case-studies、product-guides、manuals、presentations、PCN、other-documents。
 - 明确排除：gated/account-only 资源、robots 禁止路径、认证/登录页面、追踪参数和未经证据支持的 API/JavaScript 下载。
@@ -28,4 +29,4 @@
 
 ## 当前已知边界
 
-这是一轮“英文公开产品/资源范围”的首个 NVIDIA 公司规则，不宣称全站完成。其他地区 sitemap、gated 资源和仅由 API 返回的文件仍列为后续补充范围。采集完成后才进入阅读、字段提炼、Spark 交付和 `inresearch.ai` 采用流程；采集台账本身不是研究事实库。
+这是一轮 NVIDIA 英文/中文公开范围采集，不宣称全站完整：其他 NVIDIA 官方主机/微站、gated 资源和仅由 API 返回的文件仍需单独核对。语言标记依赖官方 URL 路径、文件名和查询参数；未标记附件按 NVIDIA 官方默认英文处理。HTML 页面只用于内存中的链接发现，磁盘目录只新增识别为允许文档类型的附件。采集完成后才进入阅读、字段提炼、Spark 交付和 `inresearch.ai` 采用流程；采集台账本身不是研究事实库。
