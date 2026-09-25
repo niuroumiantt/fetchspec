@@ -82,6 +82,8 @@ class DiscoveryTests(unittest.TestCase):
         self.assertFalse(adapter.in_scope(NVIDIA + "/content/gated/a.pdf"))
         self.assertFalse(adapter.in_scope(NVIDIA + "/en-us/data-center/h100/hero.jpg"))
         self.assertEqual(adapter.categories(NVIDIA + "/en-us/data-center/h100/"), ["Data Center & AI"])
+        self.assertEqual(adapter.normalize("/content/dam/a.pdf?ncid=tracking&utm_source=x&version=2", NVIDIA + "/en-us/data-center/h100/"),
+                         NVIDIA + "/content/dam/a.pdf?version=2")
         _, links = adapter.discover('<main><a href="/content/dam/a.pdf">Datasheet</a></main>', NVIDIA + "/en-us/data-center/h100/")
         self.assertTrue(any(row["url"] == NVIDIA + "/content/dam/a.pdf" for row in links))
 

@@ -18,7 +18,7 @@ import shutil
 import sqlite3
 import time
 from urllib.error import HTTPError
-from urllib.parse import quote, unquote, urlencode, urljoin, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, quote, unquote, urlencode, urljoin, urlsplit, urlunsplit
 import zipfile
 
 from .inventory import (FORMATS, InventoryFetcher, atomic_bytes, atomic_json,
@@ -227,8 +227,11 @@ class NvidiaAdapter:
         parts = urlsplit(url)
         if parts.hostname in self.profile["allowed_hosts"] and parts.scheme == "http":
             parts = parts._replace(scheme="https")
+        tracking = {"accessToken", "cid", "eid", "hstc", "jso", "link", "lx", "ncid", "nvid", "ref", "srsltid", "wcmmode"}
+        pairs = [(key, value) for key, value in parse_qsl(parts.query, keep_blank_values=True)
+                 if key not in tracking and not key.lower().startswith("utm")]
         parts = parts._replace(path=quote(parts.path, safe="/%:@!$&'()*+,;=-._~"),
-                               query=quote(parts.query, safe="%=&?/:@!$'()*+,;[]-._~"))
+                               query=urlencode(pairs, doseq=True))
         return canonical_url(urlunsplit(parts))
 
     def _excluded(self, url):
