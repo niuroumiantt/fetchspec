@@ -708,37 +708,54 @@ def archive_small_spaces(ledger, adapter, fetcher, run, index, archive):
     Small spaces are product hardware guides (adapters, cables, transceivers,
     switches) that publish specifications as HTML with no PDF.  Large spaces
     are software manuals and release notes; they keep root-only treatment.
-    Each space's sitemap is read once and the decision is kept in the ledger.
+    A space can list several sitemaps (one per documentation version); the
+    decision counts all of them.  It is kept in the ledger and revisited only
+    when the space's set of sitemaps changes.
     """
     errors = []
+    spaces = {}
     for loc in re.findall(rb"<loc>\s*([^<\s]+)\s*</loc>", index):
         sitemap = unescape(loc.decode("utf-8", "replace"))
         parts = urlsplit(sitemap)
         space = parts.path.strip("/").split("/", 1)[0]
         if not space or space.startswith("__") or "/__sitemaps/" not in parts.path:
             continue
-        if ledger.db.execute("SELECT 1 FROM space_archive WHERE host=? AND space=?", (parts.hostname, space)).fetchone():
+        spaces.setdefault((parts.hostname, space), []).append(sitemap)
+    for (host, space), sitemaps in spaces.items():
+        listed = "\n".join(sorted(sitemaps))
+        known = ledger.db.execute("SELECT sitemap FROM space_archive WHERE host=? AND space=?", (host, space)).fetchone()
+        if known and known[0] == listed:
             continue
-        # Reading ~240 space sitemaps takes minutes; honour an operator stop.
-        # Undecided spaces are picked up by the next run.
-        if (ledger.base / "STOP").exists():
-            break
-        try:
-            body, meta = fetcher.get(sitemap)
-        except Exception as exc:
-            errors.append({"url": sitemap, "error": f"{type(exc).__name__}: {str(exc)[:300]}"})
+        pages, failed = set(), False
+        for sitemap in sitemaps:
+            try:
+                body, meta = fetcher.get(sitemap)
+            except Exception as exc:
+                errors.append({"url": sitemap, "error": f"{type(exc).__name__}: {str(exc)[:300]}"})
+                failed = True
+                break
+            atomic_bytes(ledger.base / "runs" / run / "space-sitemaps" / (digest(body) + ".xml"), body)
+            pages |= {canonical_url(unescape(p.decode("utf-8", "replace")))
+                      for p in re.findall(rb"<loc>\s*([^<\s]+)\s*</loc>", body)}
+        if failed:
+            # A partial count could wrongly admit a large space; decide next run.
             continue
-        atomic_bytes(ledger.base / "runs" / run / "space-sitemaps" / (digest(body) + ".xml"), body)
-        pages = sorted({canonical_url(unescape(p.decode("utf-8", "replace")))
-                        for p in re.findall(rb"<loc>\s*([^<\s]+)\s*</loc>", body)})
         archived = len(pages) <= archive["max_pages"]
-        ledger.db.execute("INSERT INTO space_archive VALUES(?,?,?,?,?,?)",
-                          (parts.hostname, space, len(pages), int(archived), sitemap, utc_now()))
+        ledger.db.execute("INSERT OR REPLACE INTO space_archive VALUES(?,?,?,?,?,?)",
+                          (host, space, len(pages), int(archived), listed, utc_now()))
         if archived:
-            adapter.archive_spaces.add((parts.hostname, space))
-            for url in pages:
+            adapter.archive_spaces.add((host, space))
+            for url in sorted(pages):
                 if adapter.in_scope(url):
                     ledger.enqueue(url, priority=3, categories=adapter.categories(url), source_role="space_page_archive")
+        elif (host, space) in adapter.archive_spaces:
+            adapter.archive_spaces.discard((host, space))
+            # Pages queued under the earlier decision are now out of scope.
+            prefix = f"https://{host}/{space}/"
+            for row in ledger.db.execute("SELECT id,url FROM requests WHERE state='pending' AND url LIKE ?", (prefix + "%",)).fetchall():
+                if not adapter.in_scope(row["url"]):
+                    ledger.db.execute("UPDATE requests SET state='excluded',error=? WHERE id=?",
+                                      ("space no longer archived: sitemap total exceeds space_page_archive.max_pages", row["id"]))
         ledger.db.commit()
     return errors
 

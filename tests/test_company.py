@@ -429,23 +429,43 @@ class WorkerTests(unittest.TestCase):
             run_company(p, tmp, fetcher=again)
             self.assertEqual([call[0] for call in again.calls], [host + "/sitemap.xml"])
 
-    def test_stop_file_interrupts_space_sitemap_reading(self):
+    def test_space_archive_counts_every_version_sitemap(self):
         with TemporaryDirectory() as tmp:
             p = load_profile("nvidia")
             p["min_free_bytes"] = 0
             p["category_roots"] = []
+            p["space_page_archive"] = {"max_pages": 2}
             host = "https://networking-docs.nvidia.com"
-            index = f"<sitemapindex><sitemap><loc>{host}/cable/__sitemaps/a/sitemap.xml</loc></sitemap></sitemapindex>".encode()
-            ledger = CompanyLedger(tmp, p)
-            (ledger.base / "STOP").touch()
-            ledger.db.close()
-            f = FakeFetcher({host + "/sitemap.xml": (index, "application/xml")})
-            result = run_company(p, tmp, fetcher=f)
-            self.assertEqual([call[0] for call in f.calls], [host + "/sitemap.xml"])
-            self.assertEqual(result["run"]["status"], "paused_stop_file")
+            old_map, new_map = host + "/ufm/__sitemaps/old/sitemap.xml", host + "/ufm/__sitemaps/new/sitemap.xml"
+            one = f"<sitemapindex><sitemap><loc>{old_map}</loc></sitemap></sitemapindex>".encode()
+            both = f"<sitemapindex><sitemap><loc>{old_map}</loc></sitemap><sitemap><loc>{new_map}</loc></sitemap></sitemapindex>".encode()
+            old = f"<urlset><url><loc>{host}/ufm/1.0/a</loc></url></urlset>".encode()
+            new = "".join(f"<url><loc>{host}/ufm/{n}</loc></url>" for n in ("", "b", "c")).join(("<urlset>", "</urlset>")).encode()
+            page = (b"<html></html>", "text/html")
+            # First seen with one small sitemap: archived.
+            run_company(p, tmp, fetcher=FakeFetcher({host + "/sitemap.xml": (one, "application/xml"), old_map: (old, "application/xml"),
+                                                    host + "/ufm/": page, host + "/ufm/1.0/a": page}))
+            # Leave an archived page queued, as if the first run had been stopped.
             check = CompanyLedger(tmp, p)
-            self.assertEqual(check.db.execute("SELECT count(*) FROM space_archive").fetchone()[0], 0)
+            check.db.execute("UPDATE requests SET state='pending' WHERE url=?", (host + "/ufm/1.0/a",)); check.db.commit(); check.db.close()
+            # The index now lists a second version: the space is re-decided on the total and dropped.
+            f = FakeFetcher({host + "/sitemap.xml": (both, "application/xml"), old_map: (old, "application/xml"),
+                             new_map: (new, "application/xml"), host + "/ufm/": page})
+            run_company(p, tmp, fetcher=f)
+            check = CompanyLedger(tmp, p)
+            row = check.db.execute("SELECT pages, archived FROM space_archive WHERE space='ufm'").fetchone()
             check.db.close()
+            self.assertEqual(tuple(row), (4, 0))
+            self.assertNotIn(host + "/ufm/b", [call[0] for call in f.calls])
+            self.assertNotIn(host + "/ufm/1.0/a", [call[0] for call in f.calls])
+            # A failed version sitemap leaves the space undecided rather than half-counted.
+            with TemporaryDirectory() as fresh:
+                g = FakeFetcher({host + "/sitemap.xml": (both, "application/xml"), old_map: (old, "application/xml"),
+                                 new_map: TimeoutError("slow"), host + "/ufm/": page})
+                run_company(p, fresh, fetcher=g)
+                check = CompanyLedger(fresh, p)
+                self.assertEqual(check.db.execute("SELECT count(*) FROM space_archive").fetchone()[0], 0)
+                check.db.close()
 
     def test_stop_file_pauses_before_next_request(self):
         with TemporaryDirectory() as tmp:
