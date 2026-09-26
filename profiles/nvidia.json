@@ -12,6 +12,8 @@
   "allowed_hosts_by_host": {"www.nvidia.cn": ["www.nvidia.cn", "nvidia.cn"], "nvidia.cn": ["www.nvidia.cn", "nvidia.cn"]},
   "space_sitemaps": [{"role": "networking_docs_spaces", "url": "https://networking-docs.nvidia.com/sitemap.xml"}],
   "page_path_regex_by_host": {"networking-docs.nvidia.com": "/[a-z0-9][a-z0-9-]*/"},
+  "space_page_archive": {"max_pages": 60},
+  "save_pages_hosts": ["networking-docs.nvidia.com"],
   "host_categories": {"networking-docs.nvidia.com": ["Networking"]},
   "sitemap_index": "https://www.nvidia.com/sitemap_index.xml",
   "sitemap_index_select": [
@@ -50,7 +52,7 @@
     {"label": "Technologies", "paths": ["/en-us/technologies"]}
   ],
   "known_gaps": [
-    "networking-docs.nvidia.com: only each product space's landing page is opened and its Download PDF manual saved; most spaces (about 190 of 235 on 2026-09-26) publish HTML only with no PDF, so their specifications are not archived.",
+    "networking-docs.nvidia.com: spaces with at most space_page_archive.max_pages sitemap pages (hardware guides: adapters, DPUs, cables, transceivers, switches) are archived page by page as HTML snapshots; larger spaces (software manuals, firmware release notes; about 39 spaces and 50,000 pages on 2026-09-26) keep landing page and Download PDF only.",
     "Research scope only: Gaming/GeForce, drivers, on-demand video, GTC sessions and other site sections are intentionally not traversed.",
     "Other NVIDIA corporate hostnames and non-indexed microsites may have separate sitemaps and remain follow-up coverage.",
     "Gated resources, account-only downloads, robots-disallowed paths and JavaScript/API-only assets are intentionally excluded.",

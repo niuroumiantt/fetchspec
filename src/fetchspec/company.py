@@ -225,6 +225,9 @@ class SupermicroAdapter:
         return parser, links
 
 
+PAGE_ASSET_SUFFIXES = {"jpg", "jpeg", "png", "svg", "gif", "webp", "mp4", "js", "css", "json", "xml", "zip", "exe", "iso", "bin", "rpm", "dmg"}
+
+
 class NvidiaAdapter:
     """NVIDIA's public product/resource site adapter.
 
@@ -236,6 +239,16 @@ class NvidiaAdapter:
     """
     def __init__(self, profile):
         self.profile = profile
+        # (host, space) pairs whose every page is archived; filled from the
+        # ledger's space_archive decisions before any scope check.
+        self.archive_spaces = set()
+
+    def archive_page(self, parts):
+        path = parts.path
+        space = path.strip("/").split("/", 1)[0]
+        if (parts.hostname, space) not in self.archive_spaces or "/__" in path:
+            return False
+        return Path(path).suffix.lower().lstrip(".") not in PAGE_ASSET_SUFFIXES
 
     def normalize(self, link, base):
         url = urljoin(base, unescape(link).strip().replace("\\/", "/"))
@@ -320,7 +333,7 @@ class NvidiaAdapter:
         # space landing page is opened; it links the full-manual PDF.
         host_pattern = self.profile.get("page_path_regex_by_host", {}).get(p.hostname)
         if host_pattern:
-            return re.fullmatch(host_pattern, p.path) is not None
+            return re.fullmatch(host_pattern, p.path) is not None or self.archive_page(p)
         # Script fragments pulled from onclick-style attributes (e.g.
         # "NVIDIAGDC.button.click(this, ...)") resolve to 404 pages.
         if re.search(r"[()$<>{}\s]|this\.", unquote(p.path + "?" + p.query)):
@@ -459,6 +472,9 @@ class CompanyLedger:
           CREATE TABLE IF NOT EXISTS runs (id TEXT PRIMARY KEY, started_at TEXT, finished_at TEXT, status TEXT, profile TEXT);
           CREATE TABLE IF NOT EXISTS exclusions (url TEXT, parent TEXT, reason TEXT, PRIMARY KEY(url,parent,reason));
           CREATE TABLE IF NOT EXISTS views (sha TEXT, request TEXT, path TEXT PRIMARY KEY, category_basis TEXT);
+          CREATE TABLE IF NOT EXISTS space_archive (
+            host TEXT, space TEXT, pages INTEGER, archived INTEGER, sitemap TEXT, decided_at TEXT,
+            PRIMARY KEY(host, space));
         """)
 
     def enqueue(self, url, *, method="GET", payload="", depth=0, priority=4, categories=(), source_role="link"):
@@ -674,6 +690,43 @@ def export_documents(ledger):
     atomic_bytes(ledger.base / "documents.jsonl", ''.join(json.dumps(r, ensure_ascii=False) + '\n' for r in rows).encode())
 
 
+def archive_small_spaces(ledger, adapter, fetcher, run, index, archive):
+    """Queue every page of documentation spaces small enough to archive whole.
+
+    Small spaces are product hardware guides (adapters, cables, transceivers,
+    switches) that publish specifications as HTML with no PDF.  Large spaces
+    are software manuals and release notes; they keep root-only treatment.
+    Each space's sitemap is read once and the decision is kept in the ledger.
+    """
+    errors = []
+    for loc in re.findall(rb"<loc>\s*([^<\s]+)\s*</loc>", index):
+        sitemap = unescape(loc.decode("utf-8", "replace"))
+        parts = urlsplit(sitemap)
+        space = parts.path.strip("/").split("/", 1)[0]
+        if not space or space.startswith("__") or "/__sitemaps/" not in parts.path:
+            continue
+        if ledger.db.execute("SELECT 1 FROM space_archive WHERE host=? AND space=?", (parts.hostname, space)).fetchone():
+            continue
+        try:
+            body, meta = fetcher.get(sitemap)
+        except Exception as exc:
+            errors.append({"url": sitemap, "error": f"{type(exc).__name__}: {str(exc)[:300]}"})
+            continue
+        atomic_bytes(ledger.base / "runs" / run / "space-sitemaps" / (digest(body) + ".xml"), body)
+        pages = sorted({canonical_url(unescape(p.decode("utf-8", "replace")))
+                        for p in re.findall(rb"<loc>\s*([^<\s]+)\s*</loc>", body)})
+        archived = len(pages) <= archive["max_pages"]
+        ledger.db.execute("INSERT INTO space_archive VALUES(?,?,?,?,?,?)",
+                          (parts.hostname, space, len(pages), int(archived), sitemap, utc_now()))
+        if archived:
+            adapter.archive_spaces.add((parts.hostname, space))
+            for url in pages:
+                if adapter.in_scope(url):
+                    ledger.enqueue(url, priority=3, categories=adapter.categories(url), source_role="space_page_archive")
+        ledger.db.commit()
+    return errors
+
+
 def enqueue_space_roots(ledger, adapter, fetcher, run):
     """Enqueue one landing page per documentation space listed in a sitemap.
 
@@ -698,6 +751,9 @@ def enqueue_space_roots(ledger, adapter, fetcher, run):
         for url in sorted(roots):
             if adapter.in_scope(url):
                 ledger.enqueue(url, priority=1, categories=adapter.categories(url), source_role=source["role"])
+        archive = ledger.profile.get("space_page_archive")
+        if archive:
+            errors += archive_small_spaces(ledger, adapter, fetcher, run, body, archive)
         ledger.db.commit()
     if errors:
         atomic_json(ledger.base / "runs" / run / "space-sitemap-errors.json", errors)
@@ -726,6 +782,9 @@ def run_company(profile, root, manifest=None, max_requests=0, recheck=False, for
         if manifest:
             import_inventory(ledger, adapter, manifest)
         import_legacy_documents(ledger, adapter)
+        if hasattr(adapter, "archive_spaces"):
+            adapter.archive_spaces = {(row[0], row[1]) for row in
+                                      ledger.db.execute("SELECT host,space FROM space_archive WHERE archived=1")}
         if recheck:
             ledger.db.execute("UPDATE requests SET state='pending',attempts=0 WHERE state!='blocked'")
         if retry_errors:
@@ -803,11 +862,17 @@ def run_company(profile, root, manifest=None, max_requests=0, recheck=False, for
                         if guess_kind(row["url"]) in FORMATS or "/products/system/datasheet/" in row["url"]:
                             raise ValueError("document URL returned HTML, not a document")
                         kind, sha = "html", digest(body)
-                        pages_since_new_document += 1
-                        save_page = profile.get("save_discovery_pages", True)
+                        # Hosts whose pages are the documentation itself keep
+                        # snapshots even when discovery pages are not saved.
+                        archive_host = urlsplit(row["url"]).hostname in profile.get("save_pages_hosts", [])
+                        save_page = profile.get("save_discovery_pages", True) or archive_host
                         path = ledger.base / "snapshots" / sha[:2] / (sha + ".html")
-                        if save_page and not path.exists():
+                        new_snapshot = save_page and not path.exists()
+                        if new_snapshot:
                             atomic_bytes(path, body)
+                        # A newly archived documentation page is new content for
+                        # the low-yield guard, like a new document.
+                        pages_since_new_document = 0 if (archive_host and new_snapshot) else pages_since_new_document + 1
                         parser, links = adapter.discover(body.decode("utf-8", "replace"), meta["final_url"])
                         if save_page:
                             ledger.db.execute("INSERT OR IGNORE INTO pages VALUES(?,?,?,?,?,?)",

@@ -25,6 +25,16 @@
 
 2026-09-26 核对：sitemap 列出 235 个空间，只有带「Download PDF」按钮（`pdf-download-action`）的空间提供整本 PDF，首轮取到约 48 个附件。抽查无按钮的空间（如 `connectx6enhw`、`nmxcswum`、`800gmma4z00ns`），首页、子页面和 `__pagetree.json` 都没有 PDF，内容只以 HTML 页面发布；页面上的 `__attachments` 多为图片。这部分不是规则漏抓，而是 fetchspec 不归档 HTML 造成的覆盖缺口。
 
+## 网络文档的 HTML 归档（2026-09-26）
+
+这类产品空间多数只发布 HTML，规格参数就在页面里。规则按空间大小区分：
+
+- `space_page_archive.max_pages: 60`：逐个读取每个空间的 sitemap，页数不超过 60 的空间（网卡、BlueField、线缆、光模块、交换机等硬件手册，约 160 个空间、1,500 页）全部页面入队并保存 HTML 快照
+- 超过 60 页的空间（UFM、Onyx、BSP、固件发布说明等软件文档，约 39 个空间、5 万页）仍只打开首页、只取 Download PDF
+- 每个空间的决定写进台账的 `space_archive` 表，以后的运行不再重读该空间的 sitemap；调整阈值后，删除对应记录即可重新判定
+- `save_pages_hosts`：只有这个主机保存 HTML 快照（`ledger/companies/nvidia/snapshots/`，索引在 `pages` 表），其他主机仍不保存页面
+- 新保存的快照计为新内容，不触发 `max_pages_without_new_document` 暂停
+
 ## 首轮范围（历史）
 
 - 站点：只选择英文（`en-*`）与中文（`zh-cn`、`zh-tw`）页面 sitemap，并展开公开 on-demand sitemap 和 GTC sitemap；索引与各 sitemap 都保留原始快照作为来源证据。其他语种站点不进入抓取队列。
