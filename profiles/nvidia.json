@@ -31,6 +31,7 @@
   "save_discovery_pages": false,
   "delay_seconds": 1.0,
   "timeout_seconds": 30,
+  "max_response_seconds": 600,
   "max_xml_bytes": 20971520,
   "max_document_bytes": 268435456,
   "min_free_bytes": 2147483648,

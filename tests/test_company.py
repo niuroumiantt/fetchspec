@@ -9,7 +9,7 @@ from urllib.error import HTTPError
 import zipfile
 
 from fetchspec.company import (CompanyLedger, NvidiaAdapter, PageLinks, SupermicroAdapter, document_kind,
-                               import_inventory, run_company)
+                               format_summary, import_inventory, progress_summary, run_company)
 from fetchspec.inventory import InventoryFetcher, load_profile, parse_sitemap, run_inventory
 from fetchspec.robots import Robots
 
@@ -241,6 +241,34 @@ class WorkerTests(unittest.TestCase):
             self.assertEqual(result["unique_document_contents"], 2)
             self.assertEqual(result["page_snapshots"], 1)
             self.assertTrue(any(call[1]["headers"].get("If-None-Match") for call in f.calls))
+
+    def test_progress_summary_reports_pace_errors_and_idle_worker(self):
+        with TemporaryDirectory() as tmp:
+            p = self.profile(); ledger = CompanyLedger(tmp, p)
+            page, doc, bad = BASE + "/en/products/a", BASE + "/a.pdf", BASE + "/b.pdf"
+            ledger.enqueue(page); ledger.db.commit(); ledger.db.close()
+            f = FakeFetcher({page: (b'<html><a href="/a.pdf">A</a><a href="/b.pdf">B</a></html>', "text/html"),
+                             doc: (PDF, "application/pdf"), bad: HTTPError(bad, 500, "boom", {}, None)})
+            run_company(p, tmp, fetcher=f)
+            check = CompanyLedger(tmp, p)
+            summary = progress_summary(check)
+            check.db.close()
+            self.assertFalse(summary["worker_active"])
+            self.assertEqual(summary["pending"], 0)
+            self.assertEqual(summary["unique_documents"], 1)
+            self.assertEqual(summary["window_observations"], 3)
+            self.assertEqual(summary["error_types"], {"HTTPError": 1})
+            self.assertIn("worker=stopped", format_summary(summary))
+
+    def test_stop_file_pauses_before_next_request(self):
+        with TemporaryDirectory() as tmp:
+            p = self.profile(); ledger = CompanyLedger(tmp, p)
+            ledger.enqueue(BASE + "/a.pdf"); ledger.db.commit(); ledger.db.close()
+            (Path(tmp) / "ledger" / "companies" / p["company_id"] / "STOP").touch()
+            f = FakeFetcher({})
+            result = run_company(p, tmp, fetcher=f)
+            self.assertEqual(result["run"]["status"], "paused_stop_file")
+            self.assertEqual([c for c in f.calls], [])
 
 
 if __name__ == "__main__":

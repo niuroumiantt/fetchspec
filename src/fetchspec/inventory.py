@@ -141,7 +141,9 @@ class InventoryFetcher:
             chunks, total = [], 0
             started = time.monotonic()
             while True:
-                if time.monotonic() - started > self.profile["timeout_seconds"] * 3:
+                # Per-read timeout catches stalls; this caps total transfer time.
+                budget = self.profile.get("max_response_seconds", self.profile["timeout_seconds"] * 3)
+                if time.monotonic() - started > budget:
                     raise TimeoutError("response wall-clock budget exceeded")
                 chunk = response.read(min(65536, cap + 1 - total))
                 if not chunk:

@@ -515,6 +515,82 @@ class CompanyLedger:
         return result
 
 
+def worker_active(base):
+    """True while another process holds this company's worker lock."""
+    lock = Path(base) / "worker.lock"
+    if not lock.exists():
+        return False
+    with lock.open("a") as stream:
+        try:
+            fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return True
+        fcntl.flock(stream, fcntl.LOCK_UN)
+        return False
+
+
+def progress_summary(ledger, window_seconds=3600):
+    """Operator view: queue, recent throughput, ETA and grouped errors.
+
+    Throughput counts observations in the trailing window, so the ETA is an
+    estimate from recent pace, not a promise of site completeness.
+    """
+    db = ledger.db
+    states = dict(db.execute("SELECT state,count(*) FROM requests GROUP BY state"))
+    recent = db.execute("SELECT id,started_at,finished_at,status FROM runs ORDER BY started_at DESC LIMIT 1").fetchone()
+    since = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(time.time() - window_seconds))
+    window = db.execute("SELECT count(*),min(observed_at),max(observed_at) FROM observations WHERE observed_at>=?", (since,)).fetchone()
+    count, first, last = window
+    rate = None
+    if count and count > 1 and first != last:
+        span = (_parse_ts(last) - _parse_ts(first))
+        rate = round(count / span * 3600, 1) if span > 0 else None
+    pending = states.get("pending", 0) + states.get("fetching", 0)
+    errors = Counter()
+    for (error,) in db.execute("SELECT error FROM requests WHERE state IN ('error','blocked')"):
+        errors[(error or "unknown").split(":")[0]] += 1
+    return {
+        "company": ledger.profile["company_id"],
+        "generated_at": utc_now(),
+        "worker_active": worker_active(ledger.base),
+        "last_run": dict(recent) if recent else None,
+        "queue": states,
+        "pending": pending,
+        "unique_documents": db.execute("SELECT count(*) FROM blobs").fetchone()[0],
+        "unique_document_bytes": db.execute("SELECT coalesce(sum(bytes),0) FROM blobs").fetchone()[0],
+        "window_seconds": window_seconds,
+        "window_observations": count,
+        "last_observation": last,
+        "requests_per_hour": rate,
+        "eta_hours": round(pending / rate, 1) if rate else None,
+        "error_types": dict(errors.most_common(10)),
+        "data_root": str(ledger.root),
+    }
+
+
+def format_summary(summary):
+    queue = summary["queue"]
+    run = summary["last_run"] or {}
+    lines = [
+        f"{summary['company']}  worker={'running' if summary['worker_active'] else 'stopped'}  last_run={run.get('status')} ({run.get('started_at', '-')})",
+        f"queue: pending={summary['pending']} done={queue.get('done', 0)} error={queue.get('error', 0)} "
+        f"blocked={queue.get('blocked', 0)} excluded={queue.get('excluded', 0)}",
+        f"documents: {summary['unique_documents']} unique, {summary['unique_document_bytes'] / 1e6:.1f} MB",
+        f"pace (last {summary['window_seconds'] // 60} min): {summary['window_observations']} requests, "
+        f"{summary['requests_per_hour'] or '-'} /h, ETA {summary['eta_hours'] if summary['eta_hours'] is not None else '-'} h",
+        f"last activity: {summary['last_observation'] or '-'}",
+    ]
+    if summary["error_types"]:
+        lines.append("errors: " + ", ".join(f"{k}={v}" for k, v in summary["error_types"].items()))
+    lines.append(f"data root: {summary['data_root']}")
+    return "\n".join(lines)
+
+
+def _parse_ts(value):
+    from datetime import datetime
+    return datetime.fromisoformat(value).timestamp()
+
+
 @contextmanager
 def company_lock(base):
     base.mkdir(parents=True, exist_ok=True)

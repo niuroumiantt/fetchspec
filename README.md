@@ -13,6 +13,8 @@ servers, a per-method breakdown, and the full list of endpoints.
 
 ## Getting started
 
+公司级抓取的启动、进度、常驻和迁移见 [docs/OPERATIONS.md](docs/OPERATIONS.md)。
+
 2026-09-23：公司级 Supermicro 批量归档与 Macmini 运行方式见 [docs/SUPERMICRO.md](docs/SUPERMICRO.md)。
 该入口支持持久队列、全部产品 sitemap、PDF/Word/Excel 内容识别和不可变原件；历史 `crawl --demo` 仍仅为小样。
 NVIDIA 首轮公司级公开产品/资源规则见 [docs/NVIDIA.md](docs/NVIDIA.md)；只获取英文与中文附件，其采集适配器与 Supermicro 共用队列、robots、内容哈希和版本台账。
