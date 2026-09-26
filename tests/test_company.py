@@ -374,6 +374,7 @@ class WorkerTests(unittest.TestCase):
             host = "https://networking-docs.nvidia.com"
             index = (f"<sitemapindex><sitemap><loc>{host}/connectx7hw/__sitemaps/a/sitemap.xml</loc></sitemap>"
                      f"<sitemap><loc>{host}/__sitemaps/b/sitemap.xml</loc></sitemap></sitemapindex>").encode()
+            p.pop("space_page_archive")
             manual = "/connectx7hw/__attachments/a_1/nvidia-connectx-7-user-manual.pdf"
             root = host + "/connectx7hw/"
             f = FakeFetcher({host + "/sitemap.xml": (index, "application/xml"),
@@ -387,6 +388,41 @@ class WorkerTests(unittest.TestCase):
             cats = check.db.execute("SELECT categories FROM requests WHERE url=?", (host + manual,)).fetchone()[0]
             check.db.close()
             self.assertIn("Networking", cats)
+
+    def test_small_spaces_are_archived_page_by_page(self):
+        with TemporaryDirectory() as tmp:
+            p = load_profile("nvidia")
+            p["min_free_bytes"] = 0
+            p["category_roots"] = []
+            p["space_page_archive"] = {"max_pages": 2}
+            host = "https://networking-docs.nvidia.com"
+            small_map, big_map = host + "/cable/__sitemaps/a/sitemap.xml", host + "/ufm/__sitemaps/b/sitemap.xml"
+            index = f"<sitemapindex><sitemap><loc>{small_map}</loc></sitemap><sitemap><loc>{big_map}</loc></sitemap></sitemapindex>".encode()
+            small = f"<urlset><url><loc>{host}/cable/</loc></url><url><loc>{host}/cable/specifications</loc></url></urlset>".encode()
+            big = "".join(f"<url><loc>{host}/ufm/{n}</loc></url>" for n in ("", "install", "cli")).join((b"<urlset>".decode(), "</urlset>")).encode()
+            spec = b'<html><title>Specs</title><img src="/cable/__attachments/a/fig.png"><a href="/cable/">Home</a></html>'
+            f = FakeFetcher({host + "/sitemap.xml": (index, "application/xml"), small_map: (small, "application/xml"),
+                             big_map: (big, "application/xml"),
+                             host + "/cable/": (b'<html><a href="/cable/specifications">Specs</a></html>', "text/html"),
+                             host + "/cable/specifications": (spec, "text/html"),
+                             host + "/ufm/": (b'<html><a href="/ufm/install">Install</a></html>', "text/html")})
+            run_company(p, tmp, fetcher=f)
+            fetched = {call[0] for call in f.calls}
+            self.assertIn(host + "/cable/specifications", fetched)
+            self.assertIn(host + "/ufm/", fetched)
+            self.assertNotIn(host + "/ufm/install", fetched)
+            self.assertNotIn(host + "/cable/__attachments/a/fig.png", fetched)
+            check = CompanyLedger(tmp, p)
+            pages = check.db.execute("SELECT count(*) FROM pages").fetchone()[0]
+            decisions = dict(check.db.execute("SELECT space, archived FROM space_archive").fetchall())
+            check.db.close()
+            self.assertEqual(decisions, {"cable": 1, "ufm": 0})
+            # Every networking-docs page is snapshotted; the small space adds its subpage.
+            self.assertEqual(pages, 3)
+            # A second run keeps the decision and does not re-read the space sitemaps.
+            again = FakeFetcher({host + "/sitemap.xml": (index, "application/xml")})
+            run_company(p, tmp, fetcher=again)
+            self.assertEqual([call[0] for call in again.calls], [host + "/sitemap.xml"])
 
     def test_stop_file_pauses_before_next_request(self):
         with TemporaryDirectory() as tmp:
