@@ -12,7 +12,7 @@ Macmini (`hermes`) 为主力抓取机。常驻源码 `/Users/hermes/code/fetchsp
 
 ## 抓取边界
 
-- 7 个产品/资料/通用 sitemap 保留全部语言条目；官网产品分类页、资料库所有可达分页、产品/解决方案相关页面继续发现附件。
+- 全部 15 个已声明子 sitemap（产品/资料/通用、图片所属页面、FAQ）保留全部语言条目；官网产品分类页、资料库所有可达分页、产品/解决方案/支持/新闻相关页面继续发现附件。英文、西班牙文、法文、德文、日文、简繁中文入口同等纳入。
 - 目标格式：PDF、DOC、DOCX、DOCM、XLS、XLSX、XLSM、XLSB。按文件内容识别，不把 HTML 错误页计为 PDF。
 - 通用部分：受限 HTTP、robots、sitemap、HTML 链接/表单解析、持久队列、条件检查、哈希归档、来源观察、报告。
 - Supermicro 特定部分：域名/路径范围、公开的 Manuals 查询表单、`spec.js` 注入的 Datasheet 按钮规则、分类入口。
@@ -20,7 +20,7 @@ Macmini (`hermes`) 为主力抓取机。常驻源码 `/Users/hermes/code/fetchsp
 - Datasheet 按钮规则来自官网 `spec.js`：`.system-blade` 页面中取 `.sku-model` 的 `rel`，排除 SRS，生成同语言公开下载地址。台账标记派生依据，不猜文件名。
 - 单连接，请求启动间隔至少 1.5 秒；同时遵守更长 Crawl-delay。robots 缺失/获取失败时除明确 404/410 外关闭抓取。
 - 遇到 429/503 或连续 10 个非 robots 错误暂停；文件最大 128 MiB，磁盘剩余不足 8 GiB 暂停。
-- FAQ/image sitemap、未知 JavaScript API、登录区、robots 排除区和无法解析入口是明确缺口。队列耗尽不等于官网全部文件已找到。
+- 未知 JavaScript API、登录区、robots 排除区、TLS 校验失败的域名和无法解析入口是明确缺口。图片 sitemap 只取页面入口、不保存图片二进制。队列耗尽不等于官网全部文件已找到。
 
 ## 目录与稳定性
 
