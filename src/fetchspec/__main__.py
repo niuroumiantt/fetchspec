@@ -49,7 +49,7 @@ def main(argv=None):
                              progress=lambda row: print(json.dumps({"ts": utc_now(), **row}, ensure_ascii=False), flush=True))
         print(json.dumps(result, ensure_ascii=False, indent=2))
         # An operator STOP is a clean exit so launchd KeepAlive does not relaunch it.
-        return 0 if result["run"]["status"] in {"frontier_exhausted_with_gaps", "paused_stop_file"} else 2
+        return 0 if result["run"]["status"] in {"frontier_exhausted_with_gaps", "paused_stop_file", "paused_low_yield"} else 2
 
     if args.command == "inventory":
         from .inventory import load_profile, run_inventory

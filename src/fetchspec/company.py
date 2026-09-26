@@ -316,6 +316,13 @@ class NvidiaAdapter:
             return False
         if not self.language_allowed(url):
             return False
+        # Pages (not documents) are limited to the declared storefront locales;
+        # regional copies repeat the same attachments.
+        page_locales = self.profile.get("page_locales")
+        if page_locales and p.hostname in {"www.nvidia.com", "nvidia.com"}:
+            first = p.path.lower().lstrip("/").split("/", 1)[0]
+            if first not in page_locales:
+                return False
         if suffix in {"jpg", "jpeg", "png", "svg", "gif", "webp", "mp4", "js", "css", "zip", "exe", "iso", "bin", "rpm", "dmg"}:
             return False
         path = p.path.lower()
@@ -679,6 +686,8 @@ def run_company(profile, root, manifest=None, max_requests=0, recheck=False, for
         ledger.db.commit()
         fetcher = fetcher or InventoryFetcher(profile)
         status, processed, consecutive_failures = "running", 0, 0
+        low_yield_limit = profile.get("max_pages_without_new_document", 0)
+        pages_since_new_document = 0
         try:
             receipts = fetcher.prepare_robots()
             atomic_json(ledger.base / "runs" / run / "robots.json", receipts)
@@ -701,6 +710,10 @@ def run_company(profile, root, manifest=None, max_requests=0, recheck=False, for
                 if max_requests and processed >= max_requests:
                     status = "paused_request_budget"
                     break
+                if low_yield_limit and pages_since_new_document >= low_yield_limit:
+                    # Many pages opened with no new document: the scope is wrong, not the pace.
+                    status = "paused_low_yield"
+                    break
                 row = ledger.db.execute("SELECT * FROM requests WHERE state='pending' ORDER BY priority,depth,first_seen LIMIT 1").fetchone()
                 if row is None:
                     status = "frontier_exhausted_with_gaps"
@@ -720,12 +733,16 @@ def run_company(profile, root, manifest=None, max_requests=0, recheck=False, for
                                              cap=profile["max_document_bytes"])
                     kind = document_kind(body, meta["final_url"], meta.get("content_type", ""))
                     if kind:
+                        known = ledger.db.execute("SELECT 1 FROM blobs WHERE sha=?", (digest(body),)).fetchone()
                         sha, _ = ledger.store_blob(body, kind)
+                        if not known:
+                            pages_since_new_document = 0
                         ledger.make_views(row["id"], sha, kind, adapter)
                     elif "html" in meta.get("content_type", "").lower() or body.lstrip().lower().startswith((b"<!doctype html", b"<html")):
                         if guess_kind(row["url"]) in FORMATS or "/products/system/datasheet/" in row["url"]:
                             raise ValueError("document URL returned HTML, not a document")
                         kind, sha = "html", digest(body)
+                        pages_since_new_document += 1
                         save_page = profile.get("save_discovery_pages", True)
                         path = ledger.base / "snapshots" / sha[:2] / (sha + ".html")
                         if save_page and not path.exists():
