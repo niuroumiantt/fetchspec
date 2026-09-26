@@ -253,6 +253,26 @@ class WorkerTests(unittest.TestCase):
             self.assertEqual(result["run"]["status"], "frontier_exhausted_with_gaps")
             self.assertEqual(result["queue"], {"error": 10})
 
+    def test_retry_errors_requeues_only_transient_failures(self):
+        with TemporaryDirectory() as tmp:
+            p = self.profile(); ledger = CompanyLedger(tmp, p)
+            slow, gone, big = (BASE + "/manuals/slow.pdf", BASE + "/manuals/gone.pdf", BASE + "/manuals/big.pdf")
+            for url in (slow, gone, big):
+                ledger.enqueue(url, priority=0)
+            ledger.db.commit(); ledger.db.close()
+            first = FakeFetcher({slow: TimeoutError("response wall-clock budget exceeded"),
+                                 gone: HTTPError(gone, 404, "Not Found", {}, None),
+                                 big: ValueError("response exceeds limit")})
+            self.assertEqual(run_company(p, tmp, fetcher=first)["queue"], {"error": 3})
+            # Without the flag a drained frontier stays drained.
+            idle = FakeFetcher({})
+            run_company(p, tmp, fetcher=idle)
+            self.assertEqual(idle.calls, [])
+            second = FakeFetcher({slow: (PDF, "application/pdf")})
+            result = run_company(p, tmp, fetcher=second, retry_errors=True)
+            self.assertEqual([call[0] for call in second.calls], [slow])
+            self.assertEqual(result["queue"], {"done": 1, "error": 2})
+
     def test_page_304_does_not_skip_attachment_check(self):
         with TemporaryDirectory() as tmp:
             p = self.profile(); ledger = CompanyLedger(tmp, p)

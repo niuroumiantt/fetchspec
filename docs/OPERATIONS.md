@@ -32,7 +32,14 @@ launchd 在崩溃、远端错误暂停或重启后自动续跑（间隔 600 秒�
 
 速度主要受抓取机到厂商站点的带宽限制：PDF 优先出队，大文件阶段每小时只有一两百个请求，
 进入 HTML 发现阶段后接近 `delay_seconds` 上限。单次传输总时长上限为 profile 的
-`max_response_seconds`（缺省为 `timeout_seconds × 3`）；超时记为 error，可在更新时用 `--recheck` 重试。
+`max_response_seconds`（缺省为 `timeout_seconds × 3`）；超时记为 error。
+
+只补失败项用 `--retry-errors`：把超时、连接/TLS 失败和 5xx 的 error 请求重新排队，
+404、robots/主机白名单拦截、HTML 冒充文档等确定性结果不重试。它与 `--recheck`（全量重排）互斥。
+
+```bash
+scripts/run-company.sh start nvidia --retry-errors
+```
 
 ## 迁移数据目录
 
