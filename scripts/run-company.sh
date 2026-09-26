@@ -40,14 +40,21 @@ case $action in
     exec tail -f "$latest" ;;
   run|start)
     mkdir -p "$log_dir"
+    # Check for a live worker before touching STOP: removing it first would
+    # cancel a pending stop and leave the old worker running.
+    if [ "$action" = start ] && cli company-status --company "$company" --summary --json | grep -q '"worker_active": true'; then
+      if [ -e "$ledger/STOP" ]; then
+        echo "$company worker is stopping (STOP pending); wait for worker=stopped, then start again"
+      else
+        echo "$company worker already running"
+      fi
+      exit 0
+    fi
     # A STOP file left over from an earlier stop would end the new run at once.
     rm -f "$ledger/STOP"
     if [ "$action" = run ]; then
       # caffeinate keeps the Mac awake only while this worker lives.
       exec caffeinate -i "$python" -m fetchspec company-crawl --company "$company" --fetch "$@"
-    fi
-    if cli company-status --company "$company" --summary --json | grep -q '"worker_active": true'; then
-      echo "$company worker already running"; exit 0
     fi
     log=$log_dir/$(date +%Y%m%d-%H%M%S).log
     nohup "$0" run "$company" "$@" >"$log" 2>&1 &
