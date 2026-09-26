@@ -58,3 +58,17 @@ scripts/run-company.sh start nvidia --retry-errors
 blob 按内容 SHA 命名，可以合并到已有数据目录。先 `stop`，确认 `status` 显示 `worker=stopped`，
 再按公司复制 `blobs/`、`library/<company>/` 和 `ledger/companies/<company>/`；
 不要覆盖目标上的 `ledger/catalog.json` 等其他公司共用文件。源目录保留到目标续跑确认后再单独处理。
+
+## 交付包（inresearch 交付协议 v1）
+
+```bash
+PYTHONPATH=src python3 -m fetchspec company-deliver --company nvidia [--task <inresearch 任务 ID>]
+```
+
+在数据目录下生成 `deliveries/<delivery_id>/`：
+
+- `manifest.json`：信封字段（`provider_id`、`delivery_id`、`task_id_or_discovery`、`collector_revision`、`items`），加上逐项的来源、获取时间、SHA、格式、完整性、使用范围和版本关系（原件 / 新版本及其取代的 SHA）
+- `SHA256SUMS`：在包目录内运行 `shasum -a 256 -c SHA256SUMS` 核验
+- `files/<2 hex>/<sha>.<kind>`：原件；同一个卷上用硬链接，跨卷时复制
+
+打包时逐个重算 SHA。缺失或不一致的文件不进包，写进 `summary` 并以退出码 1 结束。按当前语言和范围规则已不会再采集的旧内容，也不进包。已交付的 SHA 记在台账的 `deliveries` 表，下次只打包新增内容；`--include-delivered` 可以全量重打。交付不等于验收：回执和研究采用在 inresearch 端完成。
