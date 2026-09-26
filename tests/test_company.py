@@ -400,7 +400,8 @@ class WorkerTests(unittest.TestCase):
             index = f"<sitemapindex><sitemap><loc>{small_map}</loc></sitemap><sitemap><loc>{big_map}</loc></sitemap></sitemapindex>".encode()
             small = f"<urlset><url><loc>{host}/cable/</loc></url><url><loc>{host}/cable/specifications</loc></url></urlset>".encode()
             big = "".join(f"<url><loc>{host}/ufm/{n}</loc></url>" for n in ("", "install", "cli")).join((b"<urlset>".decode(), "</urlset>")).encode()
-            spec = b'<html><title>Specs</title><img src="/cable/__attachments/a/fig.png"><a href="/cable/">Home</a></html>'
+            spec = (b'<html><title>Specs</title><img src="/cable/__attachments/a/fig.png"><a href="/cable/">Home</a>'
+                    b'<button onclick="self[\'drawer-1\'].close()">x</button></html>')
             f = FakeFetcher({host + "/sitemap.xml": (index, "application/xml"), small_map: (small, "application/xml"),
                              big_map: (big, "application/xml"),
                              host + "/cable/": (b'<html><a href="/cable/specifications">Specs</a></html>', "text/html"),
@@ -412,6 +413,10 @@ class WorkerTests(unittest.TestCase):
             self.assertIn(host + "/ufm/", fetched)
             self.assertNotIn(host + "/ufm/install", fetched)
             self.assertNotIn(host + "/cable/__attachments/a/fig.png", fetched)
+            self.assertFalse([u for u in fetched if "drawer" in u])
+            adapter = NvidiaAdapter(p); adapter.archive_spaces = {("networking-docs.nvidia.com", "cable")}
+            self.assertTrue(adapter.in_scope(host + "/cable/specifications"))
+            self.assertFalse(adapter.in_scope(host + "/cable/self%5B'drawer-1'%5D.close()"))
             check = CompanyLedger(tmp, p)
             pages = check.db.execute("SELECT count(*) FROM pages").fetchone()[0]
             decisions = dict(check.db.execute("SELECT space, archived FROM space_archive").fetchall())
