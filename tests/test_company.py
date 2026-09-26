@@ -228,6 +228,18 @@ class WorkerTests(unittest.TestCase):
             self.assertEqual(states[german], "excluded")
             self.assertEqual(states[french_pdf], "excluded")
 
+    def test_stale_document_links_do_not_trip_remote_error_pause(self):
+        with TemporaryDirectory() as tmp:
+            p = self.profile(); ledger = CompanyLedger(tmp, p)
+            urls = [BASE + f"/manuals/stale-{index}.pdf" for index in range(10)]
+            for url in urls:
+                ledger.enqueue(url, priority=0)
+            ledger.db.commit(); ledger.db.close()
+            fetcher = FakeFetcher({url: HTTPError(url, 404, "Not Found", {}, None) for url in urls})
+            result = run_company(p, tmp, fetcher=fetcher)
+            self.assertEqual(result["run"]["status"], "frontier_exhausted_with_gaps")
+            self.assertEqual(result["queue"], {"error": 10})
+
     def test_page_304_does_not_skip_attachment_check(self):
         with TemporaryDirectory() as tmp:
             p = self.profile(); ledger = CompanyLedger(tmp, p)

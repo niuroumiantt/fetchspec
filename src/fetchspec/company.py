@@ -783,8 +783,15 @@ def run_company(profile, root, manifest=None, max_requests=0, recheck=False, for
                     ledger.db.execute("INSERT INTO observations(run,request,observed_at,status,sha,kind,metadata,error) VALUES(?,?,?,?,?,?,?,?)",
                                       (run, row["id"], utc_now(), code, row["latest_sha"] if unchanged else None,
                                        row["kind"] if unchanged else None, json.dumps(meta), error))
-                    if not unchanged and not blocked:
+                    # A stale sitemap entry is an expected terminal result, not
+                    # evidence that the remote service is unavailable.  Only
+                    # transport failures and 5xx responses contribute to the
+                    # circuit breaker; 429 remains an immediate pause below.
+                    retryable_failure = not isinstance(exc, HTTPError) or (code is not None and code >= 500)
+                    if not unchanged and not blocked and retryable_failure:
                         consecutive_failures += 1
+                    else:
+                        consecutive_failures = 0
                     if code in {429, 503} or consecutive_failures >= 10:
                         status = "paused_remote_errors"
                 ledger.db.commit()
