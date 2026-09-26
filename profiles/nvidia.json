@@ -50,7 +50,7 @@
     {"label": "Technologies", "paths": ["/en-us/technologies"]}
   ],
   "known_gaps": [
-    "networking-docs.nvidia.com: only each product space's landing page is opened (it links the full-manual PDF); per-page HTML documentation is not archived.",
+    "networking-docs.nvidia.com: only each product space's landing page is opened and its Download PDF manual saved; most spaces (about 190 of 235 on 2026-09-26) publish HTML only with no PDF, so their specifications are not archived.",
     "Research scope only: Gaming/GeForce, drivers, on-demand video, GTC sessions and other site sections are intentionally not traversed.",
     "Other NVIDIA corporate hostnames and non-indexed microsites may have separate sitemaps and remain follow-up coverage.",
     "Gated resources, account-only downloads, robots-disallowed paths and JavaScript/API-only assets are intentionally excluded.",

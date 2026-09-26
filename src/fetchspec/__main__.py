@@ -19,6 +19,7 @@ def main(argv=None):
     parser.add_argument("--manifest", help="Previously saved company sitemap urls.jsonl")
     parser.add_argument("--max-requests", type=int, default=0, help="Company worker request budget; 0 drains the persistent frontier")
     parser.add_argument("--recheck", action="store_true", help="Requeue known company URLs for conditional checks, retaining versions")
+    parser.add_argument("--retry-errors", action="store_true", help="Requeue failed requests whose error is transient (timeouts, connection, TLS, 5xx); 404 and robots/allowlist blocks stay")
     parser.add_argument("--force", action="store_true", help="With --recheck, omit conditional headers for a full content audit")
     parser.add_argument("--summary", action="store_true", help="company-status: short operator summary with pace and ETA")
     parser.add_argument("--json", action="store_true", help="company-status --summary: emit JSON instead of text")
@@ -42,10 +43,12 @@ def main(argv=None):
             parser.error("company-crawl requires --fetch; use inventory for metadata-only discovery")
         if args.force and not args.recheck:
             parser.error("--force requires --recheck")
+        if args.retry_errors and args.recheck:
+            parser.error("--retry-errors and --recheck are exclusive; --recheck already requeues everything")
         if args.max_requests < 0:
             parser.error("--max-requests must be nonnegative")
         result = run_company(profile, root, manifest=args.manifest, max_requests=args.max_requests,
-                             recheck=args.recheck, force=args.force,
+                             recheck=args.recheck, force=args.force, retry_errors=args.retry_errors,
                              progress=lambda row: print(json.dumps({"ts": utc_now(), **row}, ensure_ascii=False), flush=True))
         print(json.dumps(result, ensure_ascii=False, indent=2))
         # An operator STOP is a clean exit so launchd KeepAlive does not relaunch it.

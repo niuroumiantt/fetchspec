@@ -703,7 +703,22 @@ def enqueue_space_roots(ledger, adapter, fetcher, run):
         atomic_json(ledger.base / "runs" / run / "space-sitemap-errors.json", errors)
 
 
-def run_company(profile, root, manifest=None, max_requests=0, recheck=False, force=False, progress=None, fetcher=None):
+# Errors a later attempt can plausibly clear: transfer timeouts, dropped or
+# refused connections, TLS handshakes and 5xx.  4xx, robots/allowlist blocks
+# and content-type mismatches are terminal and are not retried.
+TRANSIENT_ERROR_PREFIXES = (
+    "TimeoutError:", "timeout:", "URLError:", "ConnectionError:", "ConnectionResetError:",
+    "ConnectionAbortedError:", "ConnectionRefusedError:", "RemoteDisconnected:", "IncompleteRead:",
+    "SSLError:", "OSError:", "HTTPError: HTTP Error 5", "ValueError: incomplete response",
+)
+
+
+def is_transient_error(error):
+    return bool(error) and error.startswith(TRANSIENT_ERROR_PREFIXES)
+
+
+def run_company(profile, root, manifest=None, max_requests=0, recheck=False, force=False, progress=None, fetcher=None,
+                retry_errors=False):
     ledger = CompanyLedger(root, profile)
     adapter = adapter_for(profile)
     with company_lock(ledger.base):
@@ -712,6 +727,10 @@ def run_company(profile, root, manifest=None, max_requests=0, recheck=False, for
         import_legacy_documents(ledger, adapter)
         if recheck:
             ledger.db.execute("UPDATE requests SET state='pending',attempts=0 WHERE state!='blocked'")
+        if retry_errors:
+            for failed in ledger.db.execute("SELECT id,error FROM requests WHERE state='error'").fetchall():
+                if is_transient_error(failed["error"]):
+                    ledger.db.execute("UPDATE requests SET state='pending',attempts=0 WHERE id=?", (failed["id"],))
         ledger.db.execute("UPDATE requests SET state='pending' WHERE state='fetching'")
         # Apply changed language/scope policy to an existing resumable frontier
         # before any network request. Keep records for audit; never delete them.
