@@ -726,6 +726,10 @@ def archive_small_spaces(ledger, adapter, fetcher, run, index, archive):
         known = ledger.db.execute("SELECT sitemap FROM space_archive WHERE host=? AND space=?", (host, space)).fetchone()
         if known and known[0] == listed:
             continue
+        # Reading ~240 space sitemaps takes minutes; honour an operator stop.
+        # Undecided spaces are picked up by the next run.
+        if (ledger.base / "STOP").exists():
+            break
         pages, failed = set(), False
         for sitemap in sitemaps:
             try:
