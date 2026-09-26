@@ -155,12 +155,16 @@ class SupermicroAdapter:
             return True
         if Path(p.path).suffix.lower() in {".jpg", ".jpeg", ".png", ".svg", ".gif", ".mp4", ".js", ".css", ".zip", ".exe", ".iso", ".bin", ".rpm", ".dmg"}:
             return False
-        return any(p.path.lower().startswith(prefix.lower()) for prefix in self.profile["page_prefixes"])
+        path = p.path.lower()
+        first = path.split('/')[1]
+        if first in self.profile["supported_locales"]:
+            path = '/en/' + path.split('/', 2)[-1] if path.count('/') >= 2 else '/en'
+        return any(path.startswith(prefix.lower()) for prefix in self.profile["page_prefixes"])
 
     def categories(self, url):
         path = unquote(urlsplit(url).path).lower().rstrip("/")
         # These are inferred memberships, NOT an assertion that related links belong to a product.
-        path = re.sub(r"^/(zh-tw|zh-cn|ja-jp|de-de)/", "/en/", path)
+        path = re.sub(r"^/(zh-tw|zh-cn|ja-jp|de-de|es-es|fr-fr)/", "/en/", path)
         labels = [row["label"] for row in self.profile["category_roots"]
                   if any(path == p or path.startswith(p + "/") for p in row["paths"])]
         if "/products/motherboard/" in path:
@@ -172,6 +176,7 @@ class SupermicroAdapter:
     def collection(self, url, label=""):
         value = (url + " " + label).lower()
         for name, pattern in [("pcn", r"\bpcn\b|product.change.notification"), ("datasheets", "datasheet"),
+                              ("case-studies", "case.?stud(?:y|ies)|success.?stor"),
                               ("brochures", "brochure"), ("white-papers", "white.?paper"),
                               ("solution-briefs", "solution.?brief"), ("product-guides", "product.?guide"),
                               ("compatibility-and-test", "compatib|test.report|80plus"), ("manuals", "/manual|manual")]:
@@ -216,7 +221,7 @@ class SupermicroAdapter:
         # No guessed SKU from the URL, no JavaScript evaluation, and no SRS button fabrication.
         if parser.system_blade:
             locale = urlsplit(base).path.split('/')[1]
-            locale = locale if locale in {"en", "zh-tw", "zh-cn", "ja-jp", "de-de"} else "en"
+            locale = locale if locale in self.profile["supported_locales"] else "en"
             for sku in set(parser.sku_rels):
                 if re.fullmatch(r"[a-z0-9_-]{3,180}", sku) and not sku.startswith("srs"):
                     url = f"https://www.supermicro.com/{locale}/products/system/datasheet/{sku}"
@@ -624,7 +629,10 @@ def import_inventory(ledger, adapter, manifest):
         url = adapter.normalize(item["url"], item["url"])
         if urlsplit(url).hostname in accepted_hosts and adapter.in_scope(url):
             priority = 0 if guess_kind(url) in FORMATS else (4 if "/en/" in url else 7)
+            if "/faq" in url.lower():
+                priority = 9
             ledger.enqueue(url, priority=priority, categories=adapter.categories(url), source_role="sitemap")
+            ledger.db.execute("DELETE FROM exclusions WHERE url=? AND parent='sitemap' AND reason='outside declared public product/document scope'", (url,))
         else:
             ledger.db.execute("INSERT OR IGNORE INTO exclusions VALUES(?,?,?)", (url, "sitemap", "outside declared public product/document scope"))
     for row in ledger.profile.get("discovery_entrypoints", []):
@@ -842,6 +850,9 @@ def run_company(profile, root, manifest=None, max_requests=0, recheck=False, for
                             priority = 0 if is_document else (1 if is_form else (2 if "/resources?page=" in url else 5))
                             child = ledger.enqueue(url, method=link["method"], payload=link["payload"], depth=row["depth"] + 1,
                                                    priority=priority, categories=categories)
+                            existing_doc = ledger.db.execute("SELECT latest_sha,kind FROM requests WHERE id=?", (child,)).fetchone()
+                            if existing_doc["kind"] in FORMATS and existing_doc["latest_sha"]:
+                                ledger.make_views(child, existing_doc["latest_sha"], existing_doc["kind"], adapter)
                             ledger.db.execute("""INSERT INTO edges VALUES(?,?,?,?,?,?,?) ON CONFLICT DO UPDATE SET last_seen=excluded.last_seen""",
                                               (row["id"], child, link["label"].strip()[:500], link["context"], link["original_href"][:2000], utc_now(), utc_now()))
                     else:

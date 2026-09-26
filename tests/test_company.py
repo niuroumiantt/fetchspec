@@ -159,6 +159,8 @@ class DiscoveryTests(unittest.TestCase):
         self.assertEqual(len([r for r in links if r["method"] == "POST"]), 1)
         self.assertTrue(adapter.in_scope(BASE + "/manuals/spec.xlsx?version=2"))
         self.assertFalse(adapter.in_scope("https://evil.test/spec.pdf"))
+        for path in ("/es-es/products/system/a", "/fr-fr/solutions/ai", "/zh-tw/support/manuals/a", "/en/support/faqs/faq.php?faq=1"):
+            self.assertTrue(adapter.in_scope(BASE + path), path)
 
     def test_inventory_complete_is_not_website_complete(self):
         p = load_profile("supermicro")
