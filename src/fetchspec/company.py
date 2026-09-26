@@ -719,6 +719,10 @@ def archive_small_spaces(ledger, adapter, fetcher, run, index, archive):
             continue
         if ledger.db.execute("SELECT 1 FROM space_archive WHERE host=? AND space=?", (parts.hostname, space)).fetchone():
             continue
+        # Reading ~240 space sitemaps takes minutes; honour an operator stop.
+        # Undecided spaces are picked up by the next run.
+        if (ledger.base / "STOP").exists():
+            break
         try:
             body, meta = fetcher.get(sitemap)
         except Exception as exc:
