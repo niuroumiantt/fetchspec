@@ -32,6 +32,7 @@ class DeliveryTests(unittest.TestCase):
             self.assertEqual(first["items"], 2)
             package = Path(tmp) / "deliveries" / "d1"
             manifest = json.loads((package / "manifest.json").read_text())
+            self.assertEqual(manifest["contract_version"], "1.1")
             for key in REQUIRED:
                 self.assertIn(key, manifest)
             self.assertEqual(manifest["task_id_or_discovery"], "task-1")
@@ -41,6 +42,8 @@ class DeliveryTests(unittest.TestCase):
                 body = (package / item["path"]).read_bytes()
                 self.assertEqual(hashlib.sha256(body).hexdigest(), item["sha256"])
                 self.assertEqual(item["version_relation"], {"type": "original"})
+                self.assertIn("original_filename", item["source"])
+                self.assertIn(item["source"]["language"], {"en", "zh", "en_or_unmarked"})
             sums = (package / "SHA256SUMS").read_text().splitlines()
             self.assertEqual(len(sums), 2)
             # Already delivered content is not repeated.
