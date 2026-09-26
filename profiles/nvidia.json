@@ -5,11 +5,14 @@
   "adapter": "nvidia",
   "base_url": "https://www.nvidia.com",
   "status": "research_scope_datacenter_networking_products",
-  "allowed_hosts": ["www.nvidia.com", "nvidia.com", "resources.nvidia.com", "docs.nvidia.com", "images.nvidia.com", "www.nvidia.cn", "nvidia.cn"],
-  "robots_hosts": ["www.nvidia.com", "nvidia.com", "resources.nvidia.com", "docs.nvidia.com", "images.nvidia.com", "www.nvidia.cn", "nvidia.cn"],
-  "page_hosts": ["www.nvidia.com", "nvidia.com", "www.nvidia.cn", "nvidia.cn"],
+  "allowed_hosts": ["www.nvidia.com", "nvidia.com", "resources.nvidia.com", "docs.nvidia.com", "images.nvidia.com", "www.nvidia.cn", "nvidia.cn", "networking-docs.nvidia.com"],
+  "robots_hosts": ["www.nvidia.com", "nvidia.com", "resources.nvidia.com", "docs.nvidia.com", "images.nvidia.com", "www.nvidia.cn", "nvidia.cn", "networking-docs.nvidia.com"],
+  "page_hosts": ["www.nvidia.com", "nvidia.com", "www.nvidia.cn", "nvidia.cn", "networking-docs.nvidia.com"],
   "locale_prefixes": {"www.nvidia.cn": "/", "nvidia.cn": "/"},
   "allowed_hosts_by_host": {"www.nvidia.cn": ["www.nvidia.cn", "nvidia.cn"], "nvidia.cn": ["www.nvidia.cn", "nvidia.cn"]},
+  "space_sitemaps": [{"role": "networking_docs_spaces", "url": "https://networking-docs.nvidia.com/sitemap.xml"}],
+  "page_path_regex_by_host": {"networking-docs.nvidia.com": "/[a-z0-9][a-z0-9-]*/"},
+  "host_categories": {"networking-docs.nvidia.com": ["Networking"]},
   "sitemap_index": "https://www.nvidia.com/sitemap_index.xml",
   "sitemap_index_select": [
     {"role_prefix": "locale_", "url_regex": "www\\.nvidia\\.com/zh-cn/[^/]+\\.sitemap\\.xml$"},
@@ -47,6 +50,7 @@
     {"label": "Technologies", "paths": ["/en-us/technologies"]}
   ],
   "known_gaps": [
+    "networking-docs.nvidia.com: only each product space's landing page is opened (it links the full-manual PDF); per-page HTML documentation is not archived.",
     "Research scope only: Gaming/GeForce, drivers, on-demand video, GTC sessions and other site sections are intentionally not traversed.",
     "Other NVIDIA corporate hostnames and non-indexed microsites may have separate sitemaps and remain follow-up coverage.",
     "Gated resources, account-only downloads, robots-disallowed paths and JavaScript/API-only assets are intentionally excluded.",

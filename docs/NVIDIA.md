@@ -11,6 +11,14 @@
 - `max_pages_without_new_document: 400`：连续打开 400 个页面没有新文档就以 `paused_low_yield` 暂停，提示检查范围，而不是继续跑。
 - 现有队列按新规则重新判定，范围外的记录标为 excluded 保留审计，不删除。
 
+## 网络文档（networking-docs.nvidia.com）
+
+官网网络栏目几乎不直接链接手册。NVIDIA 网络产品文档放在独立站 `networking-docs.nvidia.com`，按产品分成两百多个文档空间（网卡、交换机、光模块、线缆、BlueField 等），每个空间首页直接链接整本手册 PDF。
+
+- `space_sitemaps`：读取该站 sitemap，每个空间只把首页入队（不展开每一页）。
+- `page_path_regex_by_host`：该站只打开空间首页；`__attachments` 下的文档照常下载。
+- `host_categories`：该站文档归入 Networking。
+
 ## 首轮范围（历史）
 
 - 站点：只选择英文（`en-*`）与中文（`zh-cn`、`zh-tw`）页面 sitemap，并展开公开 on-demand sitemap 和 GTC sitemap；索引与各 sitemap 都保留原始快照作为来源证据。其他语种站点不进入抓取队列。
