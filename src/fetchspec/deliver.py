@@ -19,12 +19,12 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, unquote, urlsplit
 
 from .company import CompanyLedger, adapter_for
 from .inventory import atomic_bytes, utc_now
 
-CONTRACT_VERSION = "1.0"
+CONTRACT_VERSION = "1.1"
 PROVIDER_ID = "fetchspec"
 MIME = {
     "pdf": "application/pdf", "html": "text/html", "csv": "text/csv", "rtf": "application/rtf",
@@ -145,13 +145,24 @@ def build_delivery(profile, root, delivery_id=None, task_id=None, include_delive
         meta = json.loads(primary["metadata"] or "{}")
         content_type = (meta.get("content_type") or "").split(";")[0].strip() or MIME.get(kind, "application/octet-stream")
         target = f"files/{sha[:2]}/{sha}.{kind}"
+        parsed = urlsplit(primary["url"])
+        filename = Path(unquote(parsed.path)).name
+        query_language = (parse_qs(parsed.query).get("language") or parse_qs(parsed.query).get("lang") or [""])[0].lower()
+        path_lower = parsed.path.lower()
+        if query_language in {"zh", "zh-cn", "zh-hans", "chinese"} or "/zh-cn/" in path_lower or parsed.hostname.endswith(".cn"):
+            language = "zh"
+        elif query_language in {"en", "en-us", "en-gb", "english"} or any(f"/{locale}/" in path_lower for locale in profile.get("page_locales", [])):
+            language = "en"
+        else:
+            language = "en_or_unmarked"
         urls = sorted({row["url"] for row in in_scope})
         categories = sorted({c for row in in_scope for c in json.loads(row["categories"] or "[]")})
         item = {
             "source_item_id": f"{profile['company_id']}:{primary['id']}",
             "source": {"publisher": profile.get("company_en", profile["company_id"]), "url": primary["url"],
                        "final_url": primary["final_url"] or primary["url"], "also_seen_at": [u for u in urls if u != primary["url"]],
-                       "discovery_role": primary["source_role"], "categories": categories},
+                       "discovery_role": primary["source_role"], "categories": categories,
+                       "original_filename": filename or None, "language": language},
             "retrieved_at": primary["observed_at"] or first_seen,
             "sha256": sha,
             "bytes": src.stat().st_size,
