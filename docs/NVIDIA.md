@@ -13,7 +13,7 @@
 
 ## 中国区网络的图片/文档主机
 
-从中国区网络访问时，`images.nvidia.com` 的 robots.txt 和所有 DAM 附件都会 301 到 `images.nvidia.cn`，路径不变。`images.nvidia.cn` 列入 `allowed_hosts` 与 `robots_hosts`，只接收直接文档，不作为页面主机抓取。未列入时，该主机的 robots 记为 blocked，附件判为 `robots missing or disallowed`（2026-09-26 在 M5 上出现，8 份白皮书和 CSR 报告受影响）。
+从中国区网络访问时，`images.nvidia.com` 的 robots.txt 和所有 DAM 附件都会 301 到 `images.nvidia.cn`，路径不变。`images.nvidia.cn` 列入 `allowed_hosts` 与 `robots_hosts`，只接收直接文档，不作为页面主机抓取。未列入时，该主机的 robots 记为 blocked，附件判为 `robots missing or disallowed`（旧版错误文本，2026-09-26 在 M5 上出现，8 份白皮书和 CSR 报告受影响）。
 
 ## 网络文档（networking-docs.nvidia.com）
 

@@ -120,8 +120,13 @@ class InventoryFetcher:
         # Even robots retrieval must not follow a redirect into an arbitrary page.
         if parts.path != "/robots.txt":
             policy = self.robots.get(parts.netloc)
-            if policy is None or not policy.allowed(url):
-                raise ValueError("robots missing or disallowed")
+            # Unavailable robots is a per-run condition (a dropped connection at
+            # startup); a disallow rule is the site's decision.  Keep them apart
+            # so only the latter is recorded as a terminal block.
+            if policy is None:
+                raise ValueError("robots unavailable for host")
+            if not policy.allowed(url):
+                raise ValueError("robots disallowed")
 
     def get(self, url, *, headers=None, data=None, cap=None):
         self.check(url)
@@ -160,13 +165,25 @@ class InventoryFetcher:
                                        "etag": response.headers.get("ETag"),
                                        "last_modified": response.headers.get("Last-Modified")}
 
+    def _get_robots(self, url, attempts=3):
+        # One dropped connection must not close a whole host for the run.
+        for attempt in range(attempts):
+            try:
+                return self.get(url)
+            except (HTTPError, ValueError):
+                raise
+            except Exception:
+                if attempt == attempts - 1:
+                    raise
+                time.sleep(2 * (attempt + 1))
+
     def prepare_robots(self):
         receipts = []
         # Exact-host policies are never reused across distinct hosts.
         for host in self.profile["robots_hosts"] if "robots_hosts" in self.profile else self.profile["allowed_hosts"]:
             url = "https://" + host + "/robots.txt"
             try:
-                body, meta = self.get(url)
+                body, meta = self._get_robots(url)
             except HTTPError as exc:
                 if exc.code not in {404, 410}:
                     receipts.append({"url": url, "status": "blocked", "error": str(exc)[:300]})

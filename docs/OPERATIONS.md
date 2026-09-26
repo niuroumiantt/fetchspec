@@ -35,7 +35,19 @@ launchd 在崩溃、远端错误暂停或重启后自动续跑（间隔 600 秒�
 `max_response_seconds`（缺省为 `timeout_seconds × 3`）；超时记为 error。
 
 只补失败项用 `--retry-errors`：把超时、连接/TLS 失败和 5xx 的 error 请求重新排队，
-404、robots/主机白名单拦截、HTML 冒充文档等确定性结果不重试。它与 `--recheck`（全量重排）互斥。
+404、robots 明确禁止、主机白名单拦截、HTML 冒充文档等确定性结果不重试。它与 `--recheck`（全量重排）互斥。
+
+robots.txt 在启动时遇到断连会重试 3 次。仍取不到时，该主机的请求记为 error（`robots unavailable for host`），
+可以用 `--retry-errors` 补抓；只有 robots 明确禁止的请求才记为 blocked。旧台账里的 `robots missing or disallowed`
+没有区分这两种情况，确认主机 robots 可用后，手工把对应的 blocked 改回 pending：
+
+```bash
+sqlite3 <data>/ledger/companies/<company>/crawl.sqlite \
+  "update requests set state='pending',attempts=0 where state='blocked' and error like '%robots missing%' and url like 'https://<host>/%';"
+```
+
+停止 worker 用 `stop`（当前请求完成后退出）。急停可以直接 `kill -TERM <pid>`：worker 会把本轮记为
+`interrupted_or_setup_error` 再退出，不会留下停在 running 的记录。
 
 ```bash
 scripts/run-company.sh start nvidia --retry-errors

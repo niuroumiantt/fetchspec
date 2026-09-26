@@ -75,6 +75,26 @@ class RobotsTests(unittest.TestCase):
             f.check("https://images.nvidia.cn/cn/a.pdf")
         self.assertFalse(NvidiaAdapter(load_profile("nvidia")).in_scope("https://images.nvidia.cn/aem-dam/some-page"))
 
+    def test_robots_fetch_retries_a_dropped_connection(self):
+        from http.client import RemoteDisconnected
+        import fetchspec.inventory as inventory
+        f = InventoryFetcher(load_profile("supermicro"))
+        calls = []
+        def flaky_get(url):
+            calls.append(url)
+            if url == "https://www.supermicro.com/robots.txt" and calls.count(url) == 1:
+                raise RemoteDisconnected("Remote end closed connection without response")
+            return b"User-agent: *\nAllow: /", {"status": 200, "final_url": url}
+        f.get = flaky_get
+        sleep, inventory.time.sleep = inventory.time.sleep, lambda s: None
+        try:
+            receipts = f.prepare_robots()
+        finally:
+            inventory.time.sleep = sleep
+        self.assertEqual(receipts[0]["status"], 200)
+        self.assertEqual(calls.count("https://www.supermicro.com/robots.txt"), 2)
+        f.check(BASE + "/manuals/a.pdf")
+
     def test_optional_host_tls_failure_stays_blocked(self):
         f = InventoryFetcher(load_profile("supermicro"))
         def fake_get(url):
@@ -228,7 +248,7 @@ class WorkerTests(unittest.TestCase):
             p = self.profile(); ledger = CompanyLedger(tmp, p)
             a, b = BASE + "/a.pdf", BASE + "/wftp/a.pdf"
             ledger.enqueue(a); ledger.enqueue(b); ledger.db.commit(); ledger.db.close()
-            f = FakeFetcher({a: (b"<html>error</html>", "text/html"), b: ValueError("robots missing or disallowed")})
+            f = FakeFetcher({a: (b"<html>error</html>", "text/html"), b: ValueError("robots disallowed")})
             result = run_company(p, tmp, fetcher=f)
             self.assertEqual(result["unique_document_contents"], 0)
             self.assertEqual(result["queue"], {"blocked": 1, "error": 1})
@@ -287,6 +307,16 @@ class WorkerTests(unittest.TestCase):
             result = run_company(p, tmp, fetcher=second, retry_errors=True)
             self.assertEqual([call[0] for call in second.calls], [slow])
             self.assertEqual(result["queue"], {"done": 1, "error": 2})
+
+    def test_unavailable_robots_is_retryable_error_not_block(self):
+        with TemporaryDirectory() as tmp:
+            p = self.profile(); ledger = CompanyLedger(tmp, p)
+            doc = BASE + "/manuals/host-robots-dropped.pdf"
+            ledger.enqueue(doc, priority=0); ledger.db.commit(); ledger.db.close()
+            first = FakeFetcher({doc: ValueError("robots unavailable for host")})
+            self.assertEqual(run_company(p, tmp, fetcher=first)["queue"], {"error": 1})
+            second = FakeFetcher({doc: (PDF, "application/pdf")})
+            self.assertEqual(run_company(p, tmp, fetcher=second, retry_errors=True)["queue"], {"done": 1})
 
     def test_page_304_does_not_skip_attachment_check(self):
         with TemporaryDirectory() as tmp:

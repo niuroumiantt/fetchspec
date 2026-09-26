@@ -710,6 +710,7 @@ TRANSIENT_ERROR_PREFIXES = (
     "TimeoutError:", "timeout:", "URLError:", "ConnectionError:", "ConnectionResetError:",
     "ConnectionAbortedError:", "ConnectionRefusedError:", "RemoteDisconnected:", "IncompleteRead:",
     "SSLError:", "OSError:", "HTTPError: HTTP Error 5", "ValueError: incomplete response",
+    "ValueError: robots unavailable for host",
 )
 
 
@@ -854,7 +855,7 @@ def run_company(profile, root, manifest=None, max_requests=0, recheck=False, for
                     code = exc.code if isinstance(exc, HTTPError) else None
                     unchanged = code == 304 and bool(row["latest_sha"])
                     error = None if unchanged else f"{type(exc).__name__}: {str(exc)[:400]}"
-                    blocked = "robots" in str(exc).lower() or "allowlist" in str(exc).lower()
+                    blocked = "robots disallowed" in str(exc).lower() or "allowlist" in str(exc).lower()
                     state = "done" if unchanged else ("blocked" if blocked else "error")
                     ledger.db.execute("UPDATE requests SET state=?,last_checked=?,error=? WHERE id=?", (state, utc_now(), error, row["id"]))
                     ledger.db.execute("INSERT INTO observations(run,request,observed_at,status,sha,kind,metadata,error) VALUES(?,?,?,?,?,?,?,?)",

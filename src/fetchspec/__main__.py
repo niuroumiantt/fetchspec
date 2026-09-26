@@ -47,6 +47,14 @@ def main(argv=None):
             parser.error("--retry-errors and --recheck are exclusive; --recheck already requeues everything")
         if args.max_requests < 0:
             parser.error("--max-requests must be nonnegative")
+        # A worker launched with `nohup ... &` inherits SIGINT as ignored, and
+        # SIGTERM kills Python without cleanup.  Raise KeyboardInterrupt on
+        # both so run_company records interrupted_or_setup_error and closes.
+        import signal
+        def interrupt(signum, frame):
+            raise KeyboardInterrupt(signal.Signals(signum).name)
+        signal.signal(signal.SIGINT, interrupt)
+        signal.signal(signal.SIGTERM, interrupt)
         result = run_company(profile, root, manifest=args.manifest, max_requests=args.max_requests,
                              recheck=args.recheck, force=args.force, retry_errors=args.retry_errors,
                              progress=lambda row: print(json.dumps({"ts": utc_now(), **row}, ensure_ascii=False), flush=True))
