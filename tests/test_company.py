@@ -467,6 +467,24 @@ class WorkerTests(unittest.TestCase):
                 self.assertEqual(check.db.execute("SELECT count(*) FROM space_archive").fetchone()[0], 0)
                 check.db.close()
 
+    def test_stop_file_interrupts_space_sitemap_reading(self):
+        with TemporaryDirectory() as tmp:
+            p = load_profile("nvidia")
+            p["min_free_bytes"] = 0
+            p["category_roots"] = []
+            host = "https://networking-docs.nvidia.com"
+            index = f"<sitemapindex><sitemap><loc>{host}/cable/__sitemaps/a/sitemap.xml</loc></sitemap></sitemapindex>".encode()
+            ledger = CompanyLedger(tmp, p)
+            (ledger.base / "STOP").touch()
+            ledger.db.close()
+            f = FakeFetcher({host + "/sitemap.xml": (index, "application/xml")})
+            result = run_company(p, tmp, fetcher=f)
+            self.assertEqual([call[0] for call in f.calls], [host + "/sitemap.xml"])
+            self.assertEqual(result["run"]["status"], "paused_stop_file")
+            check = CompanyLedger(tmp, p)
+            self.assertEqual(check.db.execute("SELECT count(*) FROM space_archive").fetchone()[0], 0)
+            check.db.close()
+
     def test_stop_file_pauses_before_next_request(self):
         with TemporaryDirectory() as tmp:
             p = self.profile(); ledger = CompanyLedger(tmp, p)
