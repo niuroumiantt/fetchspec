@@ -79,6 +79,17 @@ class DiscoveryTests(unittest.TestCase):
         adapter = NvidiaAdapter(load_profile("nvidia"))
         self.assertTrue(adapter.in_scope(NVIDIA + "/en-us/data-center/h100/"))
         self.assertFalse(adapter.in_scope(NVIDIA + "/de-de/data-center/h100/"))
+        # Research scope: regional English copies and non-research sections are skipped.
+        self.assertFalse(adapter.in_scope(NVIDIA + "/en-gb/data-center/h100/"))
+        self.assertFalse(adapter.in_scope(NVIDIA + "/zh-tw/data-center/h100/"))
+        self.assertTrue(adapter.in_scope(NVIDIA + "/zh-cn/networking/"))
+        self.assertTrue(adapter.in_scope(NVIDIA + "/en-us/products/workstations/"))
+        self.assertFalse(adapter.in_scope(NVIDIA + "/en-us/geforce/news/x/"))
+        self.assertFalse(adapter.in_scope(NVIDIA + "/en-us/drivers/details/1/"))
+        self.assertFalse(adapter.in_scope(NVIDIA + "/en-us/on-demand/session/x/"))
+        self.assertFalse(adapter.in_scope(NVIDIA + "/gtc/session-catalog/"))
+        self.assertFalse(adapter.in_scope(NVIDIA + "/en-us/data-center/NVIDIAGDC.button.click(this,%20$(this))"))
+        self.assertFalse(adapter.in_scope("https://www.nvidia.cn/networking/air/this.paused%20?+this.play%28%29"))
         self.assertFalse(adapter.in_scope(NVIDIA + "/content/dam/docs/datasheet-fr.pdf"))
         self.assertFalse(adapter.in_scope(NVIDIA + "/content/dam/docs/datasheet.pdf?language=de-de"))
         self.assertTrue(adapter.in_scope(NVIDIA + "/content/dam/docs/datasheet-zh-cn.pdf"))
@@ -127,18 +138,19 @@ class DiscoveryTests(unittest.TestCase):
 
     def test_inventory_selects_published_sitemaps_from_index(self):
         p = load_profile("nvidia")
-        index = b'<sitemapindex><sitemap><loc>https://www.nvidia.com/en-us/en-us.sitemap.xml</loc></sitemap><sitemap><loc>https://www.nvidia.com/fr-fr/fr-fr.sitemap.xml</loc></sitemap><sitemap><loc>https://www.nvidia.com/zh-tw/zh-tw.sitemap.xml</loc></sitemap><sitemap><loc>https://www.nvidia.com/gtc/sitemap_sessions.xml</loc></sitemap></sitemapindex>'
+        index = b'<sitemapindex><sitemap><loc>https://www.nvidia.com/en-us/en-us.sitemap.xml</loc></sitemap><sitemap><loc>https://www.nvidia.com/fr-fr/fr-fr.sitemap.xml</loc></sitemap><sitemap><loc>https://www.nvidia.com/zh-tw/zh-tw.sitemap.xml</loc></sitemap><sitemap><loc>https://www.nvidia.com/zh-cn/zh-cn.sitemap.xml</loc></sitemap><sitemap><loc>https://www.nvidia.com/gtc/sitemap_sessions.xml</loc></sitemap></sitemapindex>'
         page = b'<urlset><url><loc>https://www.nvidia.com/en-us/data-center/a</loc></url></urlset>'
         f = FakeFetcher({p["sitemap_index"]: (index, "application/xml"),
                          "https://www.nvidia.com/en-us/en-us.sitemap.xml": (page, "application/xml"),
-                         "https://www.nvidia.com/zh-tw/zh-tw.sitemap.xml": (page, "application/xml"),
+                         "https://www.nvidia.com/zh-cn/zh-cn.sitemap.xml": (page, "application/xml"),
                          "https://www.nvidia.com/gtc/sitemap_sessions.xml": (page, "application/xml")})
         with TemporaryDirectory() as tmp:
             report = run_inventory(p, Path(tmp), fetcher=f)
         urls = {call[0] for call in f.calls}
-        self.assertIn("https://www.nvidia.com/zh-tw/zh-tw.sitemap.xml", urls)
+        self.assertIn("https://www.nvidia.com/zh-cn/zh-cn.sitemap.xml", urls)
+        self.assertNotIn("https://www.nvidia.com/zh-tw/zh-tw.sitemap.xml", urls)
         self.assertNotIn("https://www.nvidia.com/fr-fr/fr-fr.sitemap.xml", urls)
-        self.assertIn("https://www.nvidia.com/gtc/sitemap_sessions.xml", urls)
+        self.assertNotIn("https://www.nvidia.com/gtc/sitemap_sessions.xml", urls)
         self.assertEqual(report["unique_url_candidates"], 1)
 
     def test_actual_frontend_datasheet_button_rule(self):
@@ -271,6 +283,20 @@ class WorkerTests(unittest.TestCase):
             self.assertEqual(summary["window_observations"], 3)
             self.assertEqual(summary["error_types"], {"HTTPError": 1})
             self.assertIn("worker=stopped", format_summary(summary))
+
+    def test_low_yield_guard_pauses_when_pages_bring_no_new_documents(self):
+        with TemporaryDirectory() as tmp:
+            p = self.profile(); p["max_pages_without_new_document"] = 2
+            ledger = CompanyLedger(tmp, p)
+            pages = [BASE + f"/en/products/p{index}" for index in range(4)]
+            for page in pages:
+                ledger.enqueue(page)
+            ledger.db.commit(); ledger.db.close()
+            f = FakeFetcher({page: (b"<html><title>x</title></html>", "text/html") for page in pages})
+            result = run_company(p, tmp, fetcher=f)
+            self.assertEqual(result["run"]["status"], "paused_low_yield")
+            self.assertEqual(len(f.calls), 2)
+            self.assertEqual(result["queue"]["pending"], 2)
 
     def test_stop_file_pauses_before_next_request(self):
         with TemporaryDirectory() as tmp:

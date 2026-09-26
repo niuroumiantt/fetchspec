@@ -2,7 +2,16 @@
 
 本规则把 NVIDIA 公开产品网站上的 PDF、Word、PowerPoint、Excel、CSV 和 OpenDocument 文件接入公司级持久队列。只下载英文和中文资料；英文/中文页面用于发现链接，其他语言页面不抓取。HTML 页面只在内存中解析可下载链接，不写成原件或页面快照。下载原件不进 Git；执行目录由 `--out` 或 `FETCHSPEC_DATA_ROOT` 决定。
 
-## 本次首轮范围
+## 研究范围（2026-09-26 收窄）
+
+首轮按"整站覆盖"设计，剩余 2.5 万个待抓 URL 全是 HTML（GeForce 新闻、十几个地区英文站副本、on-demand 视频、驱动、GTC 议程），其中直接文档为 0，已抓页面只有约 10% 链接过 PDF。现改为按研究需求取材：
+
+- 页面只走 `en-us` 与 `zh-cn`（含 www.nvidia.cn）；地区英文站和 zh-tw 页面不再打开，附件语言规则不变。
+- 栏目只保留 data-center、networking、products、learn、technologies；sitemap 只用 en-us 与 zh-cn，去掉 on-demand 与 GTC。
+- `max_pages_without_new_document: 400`：连续打开 400 个页面没有新文档就以 `paused_low_yield` 暂停，提示检查范围，而不是继续跑。
+- 现有队列按新规则重新判定，范围外的记录标为 excluded 保留审计，不删除。
+
+## 首轮范围（历史）
 
 - 站点：只选择英文（`en-*`）与中文（`zh-cn`、`zh-tw`）页面 sitemap，并展开公开 on-demand sitemap 和 GTC sitemap；索引与各 sitemap 都保留原始快照作为来源证据。其他语种站点不进入抓取队列。
 - 语言：默认/无语言标记的官方 DAM 附件视为英文；明确标注英文或中文的附件允许下载；路径、文件名或语言参数明确标注为其他语种的附件排除。现有数据不会因规则更新而删除。
