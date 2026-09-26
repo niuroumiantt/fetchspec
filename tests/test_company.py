@@ -223,6 +223,7 @@ class WorkerTests(unittest.TestCase):
             p = load_profile("nvidia")
             p["min_free_bytes"] = 0
             p["category_roots"] = []
+            p["space_sitemaps"] = []
             ledger = CompanyLedger(tmp, p)
             english = NVIDIA + "/en-us/data-center/h100/"
             german = NVIDIA + "/de-de/data-center/h100/"
@@ -297,6 +298,28 @@ class WorkerTests(unittest.TestCase):
             self.assertEqual(result["run"]["status"], "paused_low_yield")
             self.assertEqual(len(f.calls), 2)
             self.assertEqual(result["queue"]["pending"], 2)
+
+    def test_space_sitemap_enqueues_only_space_roots_and_their_manual(self):
+        with TemporaryDirectory() as tmp:
+            p = load_profile("nvidia")
+            p["min_free_bytes"] = 0
+            p["category_roots"] = []
+            host = "https://networking-docs.nvidia.com"
+            index = (f"<sitemapindex><sitemap><loc>{host}/connectx7hw/__sitemaps/a/sitemap.xml</loc></sitemap>"
+                     f"<sitemap><loc>{host}/__sitemaps/b/sitemap.xml</loc></sitemap></sitemapindex>").encode()
+            manual = "/connectx7hw/__attachments/a_1/nvidia-connectx-7-user-manual.pdf"
+            root = host + "/connectx7hw/"
+            f = FakeFetcher({host + "/sitemap.xml": (index, "application/xml"),
+                             root: (f'<html><a href="{manual}">PDF</a><a href="/connectx7hw/interfaces">Next</a></html>'.encode(), "text/html"),
+                             host + manual: (PDF, "application/pdf")})
+            result = run_company(p, tmp, fetcher=f)
+            fetched = [call[0] for call in f.calls]
+            self.assertEqual(fetched, [host + "/sitemap.xml", root, host + manual])
+            self.assertEqual(result["unique_document_contents"], 1)
+            check = CompanyLedger(tmp, p)
+            cats = check.db.execute("SELECT categories FROM requests WHERE url=?", (host + manual,)).fetchone()[0]
+            check.db.close()
+            self.assertIn("Networking", cats)
 
     def test_stop_file_pauses_before_next_request(self):
         with TemporaryDirectory() as tmp:

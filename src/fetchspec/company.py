@@ -316,6 +316,11 @@ class NvidiaAdapter:
             return False
         if not self.language_allowed(url):
             return False
+        # Documentation hosts organised as one space per product: only the
+        # space landing page is opened; it links the full-manual PDF.
+        host_pattern = self.profile.get("page_path_regex_by_host", {}).get(p.hostname)
+        if host_pattern:
+            return re.fullmatch(host_pattern, p.path) is not None
         # Script fragments pulled from onclick-style attributes (e.g.
         # "NVIDIAGDC.button.click(this, ...)") resolve to 404 pages.
         if re.search(r"[()$<>{}\s]|this\.", unquote(p.path + "?" + p.query)):
@@ -356,6 +361,8 @@ class NvidiaAdapter:
             parts = path.split("/", 2)
             if len(parts) > 2 and re.fullmatch(r"[a-z]{2}-[a-z]{2}", parts[1]):
                 path = "/en-us/" + parts[2]
+        if host in self.profile.get("host_categories", {}):
+            return sorted(set(self.profile["host_categories"][host]))
         labels = [row["label"] for row in self.profile.get("category_roots", [])
                   if any(path == prefix.rstrip("/").lower() or
                          path.startswith(prefix.rstrip("/").lower() + "/")
@@ -667,6 +674,35 @@ def export_documents(ledger):
     atomic_bytes(ledger.base / "documents.jsonl", ''.join(json.dumps(r, ensure_ascii=False) + '\n' for r in rows).encode())
 
 
+def enqueue_space_roots(ledger, adapter, fetcher, run):
+    """Enqueue one landing page per documentation space listed in a sitemap.
+
+    Space sitemaps list every page; only the root is needed because it links
+    the full-manual attachment. The sitemap body is kept as source evidence.
+    """
+    errors = []
+    for source in ledger.profile.get("space_sitemaps", []):
+        try:
+            body, meta = fetcher.get(source["url"])
+        except Exception as exc:
+            # An unavailable space index must not stop the rest of the frontier.
+            errors.append({"url": source["url"], "error": f"{type(exc).__name__}: {str(exc)[:300]}"})
+            continue
+        atomic_bytes(ledger.base / "runs" / run / "space-sitemaps" / (digest(body) + ".xml"), body)
+        roots = set()
+        for loc in re.findall(rb"<loc>\s*([^<\s]+)\s*</loc>", body):
+            parts = urlsplit(unescape(loc.decode("utf-8", "replace")))
+            space = parts.path.strip("/").split("/", 1)[0]
+            if space and not space.startswith("__"):
+                roots.add(urlunsplit((parts.scheme, parts.netloc, "/" + space + "/", "", "")))
+        for url in sorted(roots):
+            if adapter.in_scope(url):
+                ledger.enqueue(url, priority=1, categories=adapter.categories(url), source_role=source["role"])
+        ledger.db.commit()
+    if errors:
+        atomic_json(ledger.base / "runs" / run / "space-sitemap-errors.json", errors)
+
+
 def run_company(profile, root, manifest=None, max_requests=0, recheck=False, force=False, progress=None, fetcher=None):
     ledger = CompanyLedger(root, profile)
     adapter = adapter_for(profile)
@@ -696,6 +732,7 @@ def run_company(profile, root, manifest=None, max_requests=0, recheck=False, for
             receipts = fetcher.prepare_robots()
             atomic_json(ledger.base / "runs" / run / "robots.json", receipts)
             atomic_json(ledger.base / "runs" / run / "profile.json", profile)
+            enqueue_space_roots(ledger, adapter, fetcher, run)
             evidence_url = profile.get("adapter_evidence", {}).get("datasheet_button_source")
             if evidence_url and isinstance(fetcher, InventoryFetcher):
                 evidence, evidence_meta = fetcher.get(evidence_url)
