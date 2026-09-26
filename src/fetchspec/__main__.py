@@ -10,7 +10,7 @@ from .store import default_data_root
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Declarative official-site spec fetch for inresearch")
-    parser.add_argument("command", choices=["list", "validate", "crawl", "where", "inventory", "company-crawl", "company-status"])
+    parser.add_argument("command", choices=["list", "validate", "crawl", "where", "inventory", "company-crawl", "company-status", "company-deliver"])
     parser.add_argument("--company", default="supermicro", help="Company inventory profile (not a legacy demo rule)")
     parser.add_argument("--rule", help="Path or rule_id (filename stem)")
     parser.add_argument("--demo", action="store_true", help="Only rules marked demo=true")
@@ -21,9 +21,22 @@ def main(argv=None):
     parser.add_argument("--recheck", action="store_true", help="Requeue known company URLs for conditional checks, retaining versions")
     parser.add_argument("--retry-errors", action="store_true", help="Requeue failed requests whose error is transient (timeouts, connection, TLS, 5xx); 404 and robots/allowlist blocks stay")
     parser.add_argument("--force", action="store_true", help="With --recheck, omit conditional headers for a full content audit")
+    parser.add_argument("--delivery-id", help="company-deliver: package id (default fetchspec-<company>-<UTC time>)")
+    parser.add_argument("--task", help="company-deliver: inresearch supply task id; omitted means discovery")
+    parser.add_argument("--include-delivered", action="store_true", help="company-deliver: repeat content already in an earlier package")
+    parser.add_argument("--manifest-only", action="store_true", help="company-deliver: write manifest and SHA256SUMS without files")
     parser.add_argument("--summary", action="store_true", help="company-status: short operator summary with pace and ETA")
     parser.add_argument("--json", action="store_true", help="company-status --summary: emit JSON instead of text")
     args = parser.parse_args(argv)
+
+    if args.command == "company-deliver":
+        from .deliver import build_delivery
+        from .inventory import load_profile
+        result = build_delivery(load_profile(args.company), Path(args.out or default_data_root()).expanduser(),
+                                delivery_id=args.delivery_id, task_id=args.task,
+                                include_delivered=args.include_delivered, with_files=not args.manifest_only)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0 if not (result["missing_file"] or result["sha_mismatch"]) else 1
 
     if args.command in {"company-crawl", "company-status"}:
         from .company import CompanyLedger, format_summary, progress_summary, run_company

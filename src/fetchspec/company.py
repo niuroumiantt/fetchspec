@@ -253,6 +253,10 @@ class NvidiaAdapter:
         space = path.strip("/").split("/", 1)[0]
         if (parts.hostname, space) not in self.archive_spaces or "/__" in path:
             return False
+        # onclick/script fragments such as self['drawer-…'].close() resolve
+        # against the page path and are not pages.
+        if re.search(r"[()$<>{}\[\]'\"\s]|this\.|self\[", unquote(path + "?" + parts.query)):
+            return False
         return Path(path).suffix.lower().lstrip(".") not in PAGE_ASSET_SUFFIXES
 
     def normalize(self, link, base):
