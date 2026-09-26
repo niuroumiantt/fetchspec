@@ -316,6 +316,10 @@ class NvidiaAdapter:
             return False
         if not self.language_allowed(url):
             return False
+        # Script fragments pulled from onclick-style attributes (e.g.
+        # "NVIDIAGDC.button.click(this, ...)") resolve to 404 pages.
+        if re.search(r"[()$<>{}\s]|this\.", unquote(p.path + "?" + p.query)):
+            return False
         # Pages (not documents) are limited to the declared storefront locales;
         # regional copies repeat the same attachments.
         page_locales = self.profile.get("page_locales")

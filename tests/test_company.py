@@ -88,6 +88,8 @@ class DiscoveryTests(unittest.TestCase):
         self.assertFalse(adapter.in_scope(NVIDIA + "/en-us/drivers/details/1/"))
         self.assertFalse(adapter.in_scope(NVIDIA + "/en-us/on-demand/session/x/"))
         self.assertFalse(adapter.in_scope(NVIDIA + "/gtc/session-catalog/"))
+        self.assertFalse(adapter.in_scope(NVIDIA + "/en-us/data-center/NVIDIAGDC.button.click(this,%20$(this))"))
+        self.assertFalse(adapter.in_scope("https://www.nvidia.cn/networking/air/this.paused%20?+this.play%28%29"))
         self.assertFalse(adapter.in_scope(NVIDIA + "/content/dam/docs/datasheet-fr.pdf"))
         self.assertFalse(adapter.in_scope(NVIDIA + "/content/dam/docs/datasheet.pdf?language=de-de"))
         self.assertTrue(adapter.in_scope(NVIDIA + "/content/dam/docs/datasheet-zh-cn.pdf"))
