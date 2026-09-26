@@ -60,6 +60,21 @@ class RobotsTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 f.check(url)
 
+    def test_nvidia_image_host_follows_china_region_redirect(self):
+        # From China-region networks images.nvidia.com 301s robots.txt and
+        # every DAM asset to images.nvidia.cn.
+        f = InventoryFetcher(load_profile("nvidia"))
+        def fake_get(url):
+            return b"User-agent: *\nDisallow: /cn", {"status": 200, "final_url": url.replace("images.nvidia.com", "images.nvidia.cn")}
+        f.get = fake_get
+        receipts = {r["url"]: r["status"] for r in f.prepare_robots()}
+        self.assertEqual(receipts["https://images.nvidia.com/robots.txt"], 200)
+        self.assertEqual(receipts["https://images.nvidia.cn/robots.txt"], 200)
+        f.check("https://images.nvidia.cn/aem-dam/Solutions/documents/FY2024-NVIDIA-Corporate-Sustainability-Report.pdf")
+        with self.assertRaises(ValueError):
+            f.check("https://images.nvidia.cn/cn/a.pdf")
+        self.assertFalse(NvidiaAdapter(load_profile("nvidia")).in_scope("https://images.nvidia.cn/aem-dam/some-page"))
+
     def test_optional_host_tls_failure_stays_blocked(self):
         f = InventoryFetcher(load_profile("supermicro"))
         def fake_get(url):
