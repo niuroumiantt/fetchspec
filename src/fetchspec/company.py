@@ -18,7 +18,7 @@ import shutil
 import sqlite3
 import time
 from urllib.error import HTTPError
-from urllib.parse import quote, unquote, urlencode, urljoin, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, quote, unquote, urlencode, urljoin, urlsplit, urlunsplit
 import zipfile
 
 from .inventory import (FORMATS, InventoryFetcher, atomic_bytes, atomic_json,
@@ -43,7 +43,13 @@ def document_kind(body, url, content_type=""):
         with zipfile.ZipFile(io.BytesIO(body)) as archive:
             names = set(archive.namelist())
             if "[Content_Types].xml" not in names:
-                return None
+                try:
+                    mimetype = archive.read("mimetype")
+                except (KeyError, OSError, zipfile.BadZipFile):
+                    return None
+                return {b"application/vnd.oasis.opendocument.text": "odt",
+                        b"application/vnd.oasis.opendocument.spreadsheet": "ods",
+                        b"application/vnd.oasis.opendocument.presentation": "odp"}.get(mimetype)
             info = archive.getinfo("[Content_Types].xml")
             if info.file_size > 2 * 1024 * 1024:
                 raise ValueError("oversize Office content types")
@@ -54,12 +60,20 @@ def document_kind(body, url, content_type=""):
                 return "xlsb"
             if "xl/workbook.xml" in names:
                 return "xlsm" if b"macroEnabled" in types else "xlsx"
+            if "ppt/presentation.xml" in names:
+                return "pptm" if b"macroEnabled" in types else "pptx"
     if body.startswith(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"):
         if "WordDocument".encode("utf-16le") in body:
             return "doc"
         if any(name.encode("utf-16le") in body for name in ("Workbook", "Book")):
             return "xls"
+        if "PowerPoint Document".encode("utf-16le") in body:
+            return "ppt"
         raise ValueError("unidentified or encrypted OLE document")
+    if body.startswith(b"{\\rtf"):
+        return "rtf"
+    if Path(urlsplit(url).path).suffix.lower() == ".csv" and not body.lstrip().lower().startswith((b"<!doctype html", b"<html")):
+        return "csv"
     return None
 
 
@@ -134,7 +148,8 @@ class SupermicroAdapter:
 
     def in_scope(self, url):
         p = urlsplit(url)
-        if p.hostname not in self.profile["allowed_hosts"] or p.scheme != "https" or p.port not in (None, 443):
+        allowed = self.profile.get("allowed_hosts_by_host", {}).get(p.hostname, self.profile["allowed_hosts"])
+        if p.hostname not in allowed or p.scheme != "https" or p.port not in (None, 443):
             return False
         if guess_kind(url) in FORMATS or "/products/system/datasheet/" in p.path.lower():
             return True
@@ -172,7 +187,7 @@ class SupermicroAdapter:
             href = row["href"].strip()
             candidates = [href] if not href.lower().startswith(("javascript:", "mailto:", "tel:", "#")) and row["label"] != "onclick" else []
             # Extract actual literal document URLs; never evaluate JavaScript.
-            candidates += re.findall(r"['\"]([^'\"<>\s]+\.(?:pdf|docx?|xlsx?|docm|xlsm|xlsb)(?:\?[^'\"<>\s]*)?)['\"]", href, re.I)
+            candidates += re.findall(r"['\"]([^'\"<>\s]+\.(?:pdf|docx?|dotx?|xlsx?|xltx?|xlsm?|xlsb|csv|pptx?|pptm|ppsx?|potx?|rtf|odt|ods|odp)(?:\?[^'\"<>\s]*)?)['\"]", href, re.I)
             candidates += re.findall(r"['\"]([^'\"<>\s]*/products/system/datasheet/[^'\"<>\s]+)['\"]", href, re.I)
             for candidate in candidates:
                 try:
@@ -208,6 +223,194 @@ class SupermicroAdapter:
                     links.append({"url": url, "method": "GET", "payload": "", "label": "Manufacturer spec.js Datasheet button",
                                   "context": "page_body", "original_href": "derived:spec.js:.system-blade/.sku-model@rel=" + sku})
         return parser, links
+
+
+class NvidiaAdapter:
+    """NVIDIA's public product/resource site adapter.
+
+    The shared worker owns robots, retries, the SQLite frontier and
+    content-addressed storage.  This adapter only describes NVIDIA's public
+    URL shape, first-level product groupings and document-purpose labels.
+    It intentionally refuses gated paths and does not attempt form/API
+    submission or JavaScript execution.
+    """
+    def __init__(self, profile):
+        self.profile = profile
+
+    def normalize(self, link, base):
+        url = urljoin(base, unescape(link).strip().replace("\\/", "/"))
+        parts = urlsplit(url)
+        if parts.hostname in self.profile["allowed_hosts"] and parts.scheme == "http":
+            parts = parts._replace(scheme="https")
+        tracking = {"accessToken", "cid", "eid", "hstc", "jso", "link", "lx", "ncid", "nvid", "ref", "srsltid", "wcmmode"}
+        pairs = [(key, value) for key, value in parse_qsl(parts.query, keep_blank_values=True)
+                 if key not in tracking and not key.lower().startswith("utm")]
+        parts = parts._replace(path=quote(parts.path, safe="/%:@!$&'()*+,;=-._~"),
+                               query=urlencode(pairs, doseq=True))
+        return canonical_url(urlunsplit(parts))
+
+    def _excluded(self, url):
+        value = url.lower()
+        return any(token.lower() in value for token in self.profile.get("path_exclude", []))
+
+    def language_allowed(self, url):
+        """Keep English and Chinese; reject explicit other-language variants.
+
+        NVIDIA's unmarked DAM URLs are predominantly canonical English assets.
+        Localized variants are identified by locale path, a language suffix, or
+        an explicit language query parameter. No translation is inferred from
+        PDF contents during acquisition.
+        """
+        parts = urlsplit(url)
+        path = unquote(parts.path).lower()
+        segments = [segment for segment in path.split("/") if segment]
+        target_locales = {"en", "en-us", "en-gb", "en-au", "en-in", "en-sg", "en-eu", "en-me",
+                          "en-my", "en-ph", "en-sa", "en-ua", "en-am", "zh", "zh-cn", "zh-tw",
+                          "scn", "tcn"}
+        non_target_locales = {"cs-cz", "da-dk", "de-at", "de-ch", "de-de", "es-es", "fi-fi",
+                              "fr-be", "fr-fr", "it-it", "nb-no", "nl-nl", "pl-pl", "ro-ro",
+                              "sv-se", "tr-tr", "es-la", "pt-br", "ja-jp", "ko-kr", "he-il",
+                              "id-id", "vi-vn", "th-th", "ar-sa", "ru-am", "uk-ua", "es-ar",
+                              "es-cl", "es-mx", "es-py", "de", "es", "fr", "it", "nl", "pl",
+                              "pt", "ja", "jp", "ko", "kr", "ru", "uk", "ar", "th", "vi",
+                              "id", "da", "fi", "sv", "no", "nb", "cs", "ro", "tr", "he"}
+        # Locale-prefixed website paths are unambiguous. nvidia.cn's bare root
+        # is its Chinese storefront; /en-us/ is the English storefront.
+        if parts.hostname in {"www.nvidia.com", "nvidia.com"} and segments:
+            first = segments[0]
+            if re.fullmatch(r"[a-z]{2}-[a-z]{2}", first) and first not in target_locales:
+                return False
+        if parts.hostname in {"www.nvidia.cn", "nvidia.cn"} and segments:
+            first = segments[0]
+            if re.fullmatch(r"[a-z]{2}-[a-z]{2}", first) and first not in target_locales:
+                return False
+        language_values = {value.lower().replace("_", "-") for key, value in parse_qsl(parts.query, keep_blank_values=True)
+                           if key.lower() in {"lang", "language", "locale", "hl"}}
+        if any(value in non_target_locales or (re.fullmatch(r"[a-z]{2}-[a-z]{2}", value) and value not in target_locales)
+               for value in language_values):
+            return False
+        suffix = Path(path).suffix
+        if suffix:
+            stem = path[:-len(suffix)]
+            match = re.search(r"(?:[-_.])([a-z]{2}(?:-[a-z]{2})?|scn|tcn)$", stem)
+            if match:
+                marker = match.group(1)
+                if marker in non_target_locales or (re.fullmatch(r"[a-z]{2}-[a-z]{2}", marker) and marker not in target_locales):
+                    return False
+        return True
+
+    def in_scope(self, url):
+        p = urlsplit(url)
+        allowed_hosts = self.profile.get("allowed_hosts_by_host", {}).get(p.hostname, self.profile["allowed_hosts"])
+        if p.hostname not in allowed_hosts or p.scheme != "https" or p.port not in (None, 443):
+            return False
+        if self._excluded(url):
+            return False
+        suffix = Path(p.path).suffix.lower().lstrip(".")
+        if suffix in FORMATS:
+            return self.language_allowed(url)
+        # Documents on official secondary hosts are in scope, but their HTML
+        # navigation is not crawled as a separate website.
+        page_hosts = set(self.profile.get("page_hosts", ["www.nvidia.com", "nvidia.com"]))
+        if p.hostname not in page_hosts:
+            return False
+        if not self.language_allowed(url):
+            return False
+        if suffix in {"jpg", "jpeg", "png", "svg", "gif", "webp", "mp4", "js", "css", "zip", "exe", "iso", "bin", "rpm", "dmg"}:
+            return False
+        path = p.path.lower()
+        locale_prefix = self.profile.get("locale_prefixes", {}).get(p.hostname)
+        if locale_prefix == "/":
+            first, _, rest = path.lstrip("/").partition("/")
+            path = "/en-us/" + rest if first in {"zh-cn", "zh-tw", "en-us"} else "/en-us" + path
+        elif locale_prefix and path.startswith(locale_prefix.lower() + "/"):
+            path = "/en-us/" + path[len(locale_prefix) + 1:]
+        elif p.hostname in {"www.nvidia.com", "nvidia.com"}:
+            parts = path.split("/", 2)
+            if len(parts) > 2 and re.fullmatch(r"[a-z]{2}-[a-z]{2}", parts[1]):
+                path = "/en-us/" + parts[2]
+        return any(path == prefix.rstrip("/").lower() or path.startswith(prefix.rstrip("/").lower() + "/")
+                   for prefix in self.profile.get("page_prefixes", []))
+
+    def categories(self, url):
+        path = unquote(urlsplit(url).path).lower().rstrip("/")
+        host = urlsplit(url).hostname
+        locale_prefix = self.profile.get("locale_prefixes", {}).get(host)
+        if locale_prefix == "/":
+            first, _, rest = path.lstrip("/").partition("/")
+            path = "/en-us/" + rest if first in {"zh-cn", "zh-tw", "en-us"} else "/en-us" + path
+        elif locale_prefix and path.startswith(locale_prefix.lower() + "/"):
+            path = "/en-us/" + path[len(locale_prefix) + 1:]
+        elif urlsplit(url).hostname in {"www.nvidia.com", "nvidia.com"}:
+            parts = path.split("/", 2)
+            if len(parts) > 2 and re.fullmatch(r"[a-z]{2}-[a-z]{2}", parts[1]):
+                path = "/en-us/" + parts[2]
+        labels = [row["label"] for row in self.profile.get("category_roots", [])
+                  if any(path == prefix.rstrip("/").lower() or
+                         path.startswith(prefix.rstrip("/").lower() + "/")
+                         for prefix in row["paths"])]
+        return sorted(set(labels))
+
+    def collection(self, url, label=""):
+        value = (url + " " + label).lower()
+        for name, pattern in [
+                ("pcn", r"\bpcn\b|product.change.notification"),
+                ("datasheets", r"datasheet|data.sheet|technical.brief|specification"),
+                ("brochures", r"brochure"),
+                ("white-papers", r"white.?paper"),
+                ("solution-briefs", r"solution.?brief|reference.?architecture"),
+                ("case-studies", r"case.?stud(?:y|ies)|success.?stor"),
+                ("product-guides", r"product.?guide|quick.?start|getting.?started"),
+                ("manuals", r"manual|user.?guide|installation|release.?notes"),
+                ("presentations", r"presentation|webinar|on.?demand"),
+        ]:
+            if re.search(pattern, value):
+                return name
+        return "other-documents"
+
+    def discover(self, html, base):
+        parser = PageLinks()
+        parser.feed(html)
+        links = []
+        seen = set()
+        for row in parser.links:
+            href = row["href"].strip()
+            candidates = []
+            if href and not href.lower().startswith(("javascript:", "mailto:", "tel:", "#")):
+                candidates.append(href)
+            # Keep literal asset references embedded in attributes/scripts, but
+            # never evaluate JavaScript or synthesize a guessed document URL.
+            candidates += re.findall(r"['\"]([^'\"<>\s]+\.(?:pdf|docx?|docm|dotx?|dotm|xlsx?|xltx?|xlsm?|xlsb|csv|pptx?|pptm|ppsx?|ppsm|potx?|potm|rtf|odt|ods|odp)(?:\?[^'\"<>\s]*)?)['\"]", href, re.I)
+            for candidate in candidates:
+                try:
+                    url = self.normalize(candidate, base)
+                except ValueError:
+                    continue
+                if not self.in_scope(url) or url in seen:
+                    continue
+                seen.add(url)
+                links.append({**row, "url": url, "method": "GET", "payload": "", "original_href": href})
+        for candidate in re.findall(r"['\"]((?:https?://|/)[^'\"<>\s]+\.(?:pdf|docx?|docm|dotx?|dotm|xlsx?|xltx?|xlsm?|xlsb|csv|pptx?|pptm|ppsx?|ppsm|potx?|potm|rtf|odt|ods|odp)(?:\?[^'\"<>\s]*)?)['\"]",
+                                    html.replace("\\/", "/"), re.I):
+            try:
+                url = self.normalize(candidate, base)
+            except ValueError:
+                continue
+            if not self.in_scope(url) or url in seen:
+                continue
+            seen.add(url)
+            links.append({"url": url, "label": "document literal", "context": "document_literal",
+                          "original_href": candidate, "method": "GET", "payload": ""})
+        return parser, links
+
+
+def adapter_for(profile):
+    name = profile.get("adapter", "supermicro")
+    if name == "supermicro":
+        return SupermicroAdapter(profile)
+    if name == "nvidia":
+        return NvidiaAdapter(profile)
+    raise ValueError("unsupported company adapter: " + str(name))
 
 
 class CompanyLedger:
@@ -290,12 +493,14 @@ class CompanyLedger:
         db = self.db
         states = dict(db.execute("SELECT state,count(*) FROM requests GROUP BY state"))
         kinds = dict(db.execute("SELECT kind,count(*) FROM blobs GROUP BY kind"))
+        document_kinds = sorted(FORMATS)
+        placeholders = ",".join("?" for _ in document_kinds)
         recent = db.execute("SELECT * FROM runs ORDER BY started_at DESC LIMIT 1").fetchone()
         result = {"company": self.profile["company_id"], "generated_at": utc_now(),
                   "run": dict(recent) if recent else None, "queue": states,
                   "unique_document_contents": sum(kinds.values()), "document_types": kinds,
                   "unique_document_bytes": db.execute("SELECT coalesce(sum(bytes),0) FROM blobs").fetchone()[0],
-                  "document_source_requests": db.execute("SELECT count(*) FROM requests WHERE kind IN ('pdf','doc','docx','docm','xls','xlsx','xlsm','xlsb')").fetchone()[0],
+                  "document_source_requests": db.execute(f"SELECT count(*) FROM requests WHERE kind IN ({placeholders})", document_kinds).fetchone()[0],
                   "page_snapshots": db.execute("SELECT count(*) FROM pages").fetchone()[0],
                   "excluded_links": db.execute("SELECT count(*) FROM exclusions").fetchone()[0],
                   "failed_samples": [dict(r) for r in db.execute("SELECT url,state,error FROM requests WHERE state IN ('error','blocked') LIMIT 15")],
@@ -305,8 +510,85 @@ class CompanyLedger:
         if result["run"]:
             result["run"].pop("profile")
             result["current_run_successful_document_responses"] = db.execute(
-                "SELECT count(*) FROM observations WHERE run=? AND kind IN ('pdf','doc','docx','docm','xls','xlsx','xlsm','xlsb') AND status=200", (recent["id"],)).fetchone()[0]
+                f"SELECT count(*) FROM observations WHERE run=? AND kind IN ({placeholders}) AND status=200",
+                (recent["id"], *document_kinds)).fetchone()[0]
         return result
+
+
+def worker_active(base):
+    """True while another process holds this company's worker lock."""
+    lock = Path(base) / "worker.lock"
+    if not lock.exists():
+        return False
+    with lock.open("a") as stream:
+        try:
+            fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return True
+        fcntl.flock(stream, fcntl.LOCK_UN)
+        return False
+
+
+def progress_summary(ledger, window_seconds=3600):
+    """Operator view: queue, recent throughput, ETA and grouped errors.
+
+    Throughput counts observations in the trailing window, so the ETA is an
+    estimate from recent pace, not a promise of site completeness.
+    """
+    db = ledger.db
+    states = dict(db.execute("SELECT state,count(*) FROM requests GROUP BY state"))
+    recent = db.execute("SELECT id,started_at,finished_at,status FROM runs ORDER BY started_at DESC LIMIT 1").fetchone()
+    since = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(time.time() - window_seconds))
+    window = db.execute("SELECT count(*),min(observed_at),max(observed_at) FROM observations WHERE observed_at>=?", (since,)).fetchone()
+    count, first, last = window
+    rate = None
+    if count and count > 1 and first != last:
+        span = (_parse_ts(last) - _parse_ts(first))
+        rate = round(count / span * 3600, 1) if span > 0 else None
+    pending = states.get("pending", 0) + states.get("fetching", 0)
+    errors = Counter()
+    for (error,) in db.execute("SELECT error FROM requests WHERE state IN ('error','blocked')"):
+        errors[(error or "unknown").split(":")[0]] += 1
+    return {
+        "company": ledger.profile["company_id"],
+        "generated_at": utc_now(),
+        "worker_active": worker_active(ledger.base),
+        "last_run": dict(recent) if recent else None,
+        "queue": states,
+        "pending": pending,
+        "unique_documents": db.execute("SELECT count(*) FROM blobs").fetchone()[0],
+        "unique_document_bytes": db.execute("SELECT coalesce(sum(bytes),0) FROM blobs").fetchone()[0],
+        "window_seconds": window_seconds,
+        "window_observations": count,
+        "last_observation": last,
+        "requests_per_hour": rate,
+        "eta_hours": round(pending / rate, 1) if rate else None,
+        "error_types": dict(errors.most_common(10)),
+        "data_root": str(ledger.root),
+    }
+
+
+def format_summary(summary):
+    queue = summary["queue"]
+    run = summary["last_run"] or {}
+    lines = [
+        f"{summary['company']}  worker={'running' if summary['worker_active'] else 'stopped'}  last_run={run.get('status')} ({run.get('started_at', '-')})",
+        f"queue: pending={summary['pending']} done={queue.get('done', 0)} error={queue.get('error', 0)} "
+        f"blocked={queue.get('blocked', 0)} excluded={queue.get('excluded', 0)}",
+        f"documents: {summary['unique_documents']} unique, {summary['unique_document_bytes'] / 1e6:.1f} MB",
+        f"pace (last {summary['window_seconds'] // 60} min): {summary['window_observations']} requests, "
+        f"{summary['requests_per_hour'] or '-'} /h, ETA {summary['eta_hours'] if summary['eta_hours'] is not None else '-'} h",
+        f"last activity: {summary['last_observation'] or '-'}",
+    ]
+    if summary["error_types"]:
+        lines.append("errors: " + ", ".join(f"{k}={v}" for k, v in summary["error_types"].items()))
+    lines.append(f"data root: {summary['data_root']}")
+    return "\n".join(lines)
+
+
+def _parse_ts(value):
+    from datetime import datetime
+    return datetime.fromisoformat(value).timestamp()
 
 
 @contextmanager
@@ -318,19 +600,21 @@ def company_lock(base):
 
 
 def import_inventory(ledger, adapter, manifest):
+    accepted_hosts = set(ledger.profile["allowed_hosts"])
     for line in Path(manifest).read_text().splitlines():
         item = json.loads(line)
         url = adapter.normalize(item["url"], item["url"])
-        if adapter.in_scope(url):
+        if urlsplit(url).hostname in accepted_hosts and adapter.in_scope(url):
             priority = 0 if guess_kind(url) in FORMATS else (4 if "/en/" in url else 7)
             ledger.enqueue(url, priority=priority, categories=adapter.categories(url), source_role="sitemap")
         else:
             ledger.db.execute("INSERT OR IGNORE INTO exclusions VALUES(?,?,?)", (url, "sitemap", "outside declared public product/document scope"))
-    for row in ledger.profile["discovery_entrypoints"]:
+    for row in ledger.profile.get("discovery_entrypoints", []):
         ledger.enqueue(row["url"], priority=1, source_role=row["role"])
-    for row in ledger.profile["category_roots"]:
+    base_url = ledger.profile.get("base_url", "https://www.supermicro.com").rstrip("/")
+    for row in ledger.profile.get("category_roots", []):
         for path in row["paths"]:
-            ledger.enqueue("https://www.supermicro.com" + path, priority=2, categories=[row["label"]], source_role="vendor_category_entry")
+            ledger.enqueue(base_url + path, priority=2, categories=[row["label"]], source_role="vendor_category_entry")
     ledger.db.commit()
 
 
@@ -374,7 +658,7 @@ def export_documents(ledger):
 
 def run_company(profile, root, manifest=None, max_requests=0, recheck=False, force=False, progress=None, fetcher=None):
     ledger = CompanyLedger(root, profile)
-    adapter = SupermicroAdapter(profile)
+    adapter = adapter_for(profile)
     with company_lock(ledger.base):
         if manifest:
             import_inventory(ledger, adapter, manifest)
@@ -382,6 +666,14 @@ def run_company(profile, root, manifest=None, max_requests=0, recheck=False, for
         if recheck:
             ledger.db.execute("UPDATE requests SET state='pending',attempts=0 WHERE state!='blocked'")
         ledger.db.execute("UPDATE requests SET state='pending' WHERE state='fetching'")
+        # Apply changed language/scope policy to an existing resumable frontier
+        # before any network request. Keep records for audit; never delete them.
+        for candidate in ledger.db.execute("SELECT id,url FROM requests WHERE state='pending'").fetchall():
+            if not adapter.in_scope(candidate["url"]):
+                reason = "excluded by current language or public-scope policy"
+                ledger.db.execute("UPDATE requests SET state='excluded',error=? WHERE id=?", (reason, candidate["id"]))
+                ledger.db.execute("INSERT OR IGNORE INTO exclusions VALUES(?,?,?)", (candidate["url"], "policy-refresh", reason))
+        ledger.db.commit()
         run = utc_now().replace(":", "").replace("+", "_")
         ledger.db.execute("INSERT INTO runs VALUES(?,?,NULL,'running',?)", (run, utc_now(), json.dumps(profile)))
         ledger.db.commit()
@@ -434,12 +726,14 @@ def run_company(profile, root, manifest=None, max_requests=0, recheck=False, for
                         if guess_kind(row["url"]) in FORMATS or "/products/system/datasheet/" in row["url"]:
                             raise ValueError("document URL returned HTML, not a document")
                         kind, sha = "html", digest(body)
+                        save_page = profile.get("save_discovery_pages", True)
                         path = ledger.base / "snapshots" / sha[:2] / (sha + ".html")
-                        if not path.exists():
+                        if save_page and not path.exists():
                             atomic_bytes(path, body)
                         parser, links = adapter.discover(body.decode("utf-8", "replace"), meta["final_url"])
-                        ledger.db.execute("INSERT OR IGNORE INTO pages VALUES(?,?,?,?,?,?)",
-                                          (row["id"], sha, str(path.relative_to(ledger.root)), ''.join(parser.title)[:1000], json.dumps(parser.breadcrumbs), utc_now()))
+                        if save_page:
+                            ledger.db.execute("INSERT OR IGNORE INTO pages VALUES(?,?,?,?,?,?)",
+                                              (row["id"], sha, str(path.relative_to(ledger.root)), ''.join(parser.title)[:1000], json.dumps(parser.breadcrumbs), utc_now()))
                         seen_links = set()
                         for link in links:
                             url = link["url"]

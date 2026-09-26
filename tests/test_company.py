@@ -8,8 +8,8 @@ import unittest
 from urllib.error import HTTPError
 import zipfile
 
-from fetchspec.company import (CompanyLedger, PageLinks, SupermicroAdapter, document_kind,
-                               import_inventory, run_company)
+from fetchspec.company import (CompanyLedger, NvidiaAdapter, PageLinks, SupermicroAdapter, document_kind,
+                               format_summary, import_inventory, progress_summary, run_company)
 from fetchspec.inventory import InventoryFetcher, load_profile, parse_sitemap, run_inventory
 from fetchspec.robots import Robots
 
@@ -17,6 +17,7 @@ from fetchspec.robots import Robots
 PDF = b"%PDF-1.4\nfixture one\n%%EOF\n"
 PDF2 = b"%PDF-1.4\nfixture changed revision\n%%EOF\n"
 BASE = "https://www.supermicro.com"
+NVIDIA = "https://www.nvidia.com"
 
 
 class FakeFetcher:
@@ -74,6 +75,24 @@ class RobotsTests(unittest.TestCase):
 
 
 class DiscoveryTests(unittest.TestCase):
+    def test_nvidia_adapter_scope_categories_and_documents(self):
+        adapter = NvidiaAdapter(load_profile("nvidia"))
+        self.assertTrue(adapter.in_scope(NVIDIA + "/en-us/data-center/h100/"))
+        self.assertFalse(adapter.in_scope(NVIDIA + "/de-de/data-center/h100/"))
+        self.assertFalse(adapter.in_scope(NVIDIA + "/content/dam/docs/datasheet-fr.pdf"))
+        self.assertFalse(adapter.in_scope(NVIDIA + "/content/dam/docs/datasheet.pdf?language=de-de"))
+        self.assertTrue(adapter.in_scope(NVIDIA + "/content/dam/docs/datasheet-zh-cn.pdf"))
+        self.assertTrue(adapter.in_scope("https://www.nvidia.cn/zh-cn/data-center/h100/"))
+        self.assertTrue(adapter.in_scope(NVIDIA + "/content/dam/en-zz/Solutions/Data-Center/a100/a.pdf"))
+        self.assertFalse(adapter.in_scope(NVIDIA + "/content/gated/a.pdf"))
+        self.assertFalse(adapter.in_scope(NVIDIA + "/en-us/data-center/h100/hero.jpg"))
+        self.assertEqual(adapter.categories(NVIDIA + "/en-us/data-center/h100/"), ["Data Center & AI"])
+        self.assertEqual(adapter.categories("https://www.nvidia.cn/zh-cn/data-center/h100/"), ["Data Center & AI"])
+        self.assertEqual(adapter.normalize("/content/dam/a.pdf?ncid=tracking&utm_source=x&version=2", NVIDIA + "/en-us/data-center/h100/"),
+                         NVIDIA + "/content/dam/a.pdf?version=2")
+        _, links = adapter.discover('<main><a href="/content/dam/a.pdf">Datasheet</a></main>', NVIDIA + "/en-us/data-center/h100/")
+        self.assertTrue(any(row["url"] == NVIDIA + "/content/dam/a.pdf" for row in links))
+
     def test_sitemap_loc_not_image_loc(self):
         kind, rows = parse_sitemap(b'<urlset xmlns:image="urn:image"><url><loc>https://www.supermicro.com/en/products/a</loc><image:image><image:loc>https://www.supermicro.com/a.jpg</image:loc></image:image></url></urlset>')
         self.assertEqual(kind, "urlset")
@@ -105,6 +124,22 @@ class DiscoveryTests(unittest.TestCase):
             self.assertEqual(report["unique_url_candidates"], 1)
             self.assertFalse(report["website_coverage_complete"])
             self.assertEqual(report["downloaded_product_documents_this_run"], 0)
+
+    def test_inventory_selects_published_sitemaps_from_index(self):
+        p = load_profile("nvidia")
+        index = b'<sitemapindex><sitemap><loc>https://www.nvidia.com/en-us/en-us.sitemap.xml</loc></sitemap><sitemap><loc>https://www.nvidia.com/fr-fr/fr-fr.sitemap.xml</loc></sitemap><sitemap><loc>https://www.nvidia.com/zh-tw/zh-tw.sitemap.xml</loc></sitemap><sitemap><loc>https://www.nvidia.com/gtc/sitemap_sessions.xml</loc></sitemap></sitemapindex>'
+        page = b'<urlset><url><loc>https://www.nvidia.com/en-us/data-center/a</loc></url></urlset>'
+        f = FakeFetcher({p["sitemap_index"]: (index, "application/xml"),
+                         "https://www.nvidia.com/en-us/en-us.sitemap.xml": (page, "application/xml"),
+                         "https://www.nvidia.com/zh-tw/zh-tw.sitemap.xml": (page, "application/xml"),
+                         "https://www.nvidia.com/gtc/sitemap_sessions.xml": (page, "application/xml")})
+        with TemporaryDirectory() as tmp:
+            report = run_inventory(p, Path(tmp), fetcher=f)
+        urls = {call[0] for call in f.calls}
+        self.assertIn("https://www.nvidia.com/zh-tw/zh-tw.sitemap.xml", urls)
+        self.assertNotIn("https://www.nvidia.com/fr-fr/fr-fr.sitemap.xml", urls)
+        self.assertIn("https://www.nvidia.com/gtc/sitemap_sessions.xml", urls)
+        self.assertEqual(report["unique_url_candidates"], 1)
 
     def test_actual_frontend_datasheet_button_rule(self):
         a = SupermicroAdapter(load_profile("supermicro"))
@@ -171,6 +206,28 @@ class WorkerTests(unittest.TestCase):
             self.assertEqual(result["unique_document_contents"], 0)
             self.assertEqual(result["queue"], {"blocked": 1, "error": 1})
 
+    def test_nvidia_language_policy_excludes_existing_frontier_before_fetch(self):
+        with TemporaryDirectory() as tmp:
+            p = load_profile("nvidia")
+            p["min_free_bytes"] = 0
+            p["category_roots"] = []
+            ledger = CompanyLedger(tmp, p)
+            english = NVIDIA + "/en-us/data-center/h100/"
+            german = NVIDIA + "/de-de/data-center/h100/"
+            french_pdf = NVIDIA + "/content/dam/datasheet-fr.pdf"
+            ledger.enqueue(english, priority=0)
+            ledger.enqueue(german, priority=0)
+            ledger.enqueue(french_pdf, priority=0)
+            ledger.db.commit(); ledger.db.close()
+            f = FakeFetcher({english: (b'<html><a href="/content/dam/datasheet-fr.pdf">French</a></html>', "text/html")})
+            run_company(p, tmp, fetcher=f)
+            self.assertEqual([call[0] for call in f.calls if call[0] != english], [])
+            check = CompanyLedger(tmp, p)
+            states = {row["url"]: row["state"] for row in check.db.execute("SELECT url,state FROM requests")}
+            check.db.close()
+            self.assertEqual(states[german], "excluded")
+            self.assertEqual(states[french_pdf], "excluded")
+
     def test_stale_document_links_do_not_trip_remote_error_pause(self):
         with TemporaryDirectory() as tmp:
             p = self.profile(); ledger = CompanyLedger(tmp, p)
@@ -196,6 +253,34 @@ class WorkerTests(unittest.TestCase):
             self.assertEqual(result["unique_document_contents"], 2)
             self.assertEqual(result["page_snapshots"], 1)
             self.assertTrue(any(call[1]["headers"].get("If-None-Match") for call in f.calls))
+
+    def test_progress_summary_reports_pace_errors_and_idle_worker(self):
+        with TemporaryDirectory() as tmp:
+            p = self.profile(); ledger = CompanyLedger(tmp, p)
+            page, doc, bad = BASE + "/en/products/a", BASE + "/a.pdf", BASE + "/b.pdf"
+            ledger.enqueue(page); ledger.db.commit(); ledger.db.close()
+            f = FakeFetcher({page: (b'<html><a href="/a.pdf">A</a><a href="/b.pdf">B</a></html>', "text/html"),
+                             doc: (PDF, "application/pdf"), bad: HTTPError(bad, 500, "boom", {}, None)})
+            run_company(p, tmp, fetcher=f)
+            check = CompanyLedger(tmp, p)
+            summary = progress_summary(check)
+            check.db.close()
+            self.assertFalse(summary["worker_active"])
+            self.assertEqual(summary["pending"], 0)
+            self.assertEqual(summary["unique_documents"], 1)
+            self.assertEqual(summary["window_observations"], 3)
+            self.assertEqual(summary["error_types"], {"HTTPError": 1})
+            self.assertIn("worker=stopped", format_summary(summary))
+
+    def test_stop_file_pauses_before_next_request(self):
+        with TemporaryDirectory() as tmp:
+            p = self.profile(); ledger = CompanyLedger(tmp, p)
+            ledger.enqueue(BASE + "/a.pdf"); ledger.db.commit(); ledger.db.close()
+            (Path(tmp) / "ledger" / "companies" / p["company_id"] / "STOP").touch()
+            f = FakeFetcher({})
+            result = run_company(p, tmp, fetcher=f)
+            self.assertEqual(result["run"]["status"], "paused_stop_file")
+            self.assertEqual([c for c in f.calls], [])
 
 
 if __name__ == "__main__":

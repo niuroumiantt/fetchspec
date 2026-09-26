@@ -20,16 +20,22 @@ def main(argv=None):
     parser.add_argument("--max-requests", type=int, default=0, help="Company worker request budget; 0 drains the persistent frontier")
     parser.add_argument("--recheck", action="store_true", help="Requeue known company URLs for conditional checks, retaining versions")
     parser.add_argument("--force", action="store_true", help="With --recheck, omit conditional headers for a full content audit")
+    parser.add_argument("--summary", action="store_true", help="company-status: short operator summary with pace and ETA")
+    parser.add_argument("--json", action="store_true", help="company-status --summary: emit JSON instead of text")
     args = parser.parse_args(argv)
 
     if args.command in {"company-crawl", "company-status"}:
-        from .company import CompanyLedger, run_company
-        from .inventory import load_profile
+        from .company import CompanyLedger, format_summary, progress_summary, run_company
+        from .inventory import load_profile, utc_now
         profile = load_profile(args.company)
         root = Path(args.out or default_data_root()).expanduser()
         if args.command == "company-status":
             ledger = CompanyLedger(root, profile)
-            print(json.dumps(ledger.report(), ensure_ascii=False, indent=2))
+            if args.summary:
+                summary = progress_summary(ledger)
+                print(json.dumps(summary, ensure_ascii=False, indent=2) if args.json else format_summary(summary))
+            else:
+                print(json.dumps(ledger.report(), ensure_ascii=False, indent=2))
             ledger.db.close()
             return 0
         if not args.fetch:
@@ -40,9 +46,10 @@ def main(argv=None):
             parser.error("--max-requests must be nonnegative")
         result = run_company(profile, root, manifest=args.manifest, max_requests=args.max_requests,
                              recheck=args.recheck, force=args.force,
-                             progress=lambda row: print(json.dumps(row, ensure_ascii=False), flush=True))
+                             progress=lambda row: print(json.dumps({"ts": utc_now(), **row}, ensure_ascii=False), flush=True))
         print(json.dumps(result, ensure_ascii=False, indent=2))
-        return 0 if result["run"]["status"] == "frontier_exhausted_with_gaps" else 2
+        # An operator STOP is a clean exit so launchd KeepAlive does not relaunch it.
+        return 0 if result["run"]["status"] in {"frontier_exhausted_with_gaps", "paused_stop_file"} else 2
 
     if args.command == "inventory":
         from .inventory import load_profile, run_inventory

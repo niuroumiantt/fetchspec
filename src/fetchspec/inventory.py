@@ -22,7 +22,10 @@ from .catalog import ROOT
 from .robots import Robots
 
 USER_AGENT = "InResearchFetchspec/0.2 (+https://github.com/niuroumiantt/fetchspec)"
-FORMATS = {"pdf", "doc", "docx", "xls", "xlsx", "docm", "xlsm", "xlsb"}
+FORMATS = {"pdf", "doc", "docx", "docm", "dot", "dotx", "dotm",
+           "xls", "xlsx", "xlsm", "xlsb", "xlt", "xltx", "xltm", "csv",
+           "ppt", "pptx", "pptm", "pps", "ppsx", "ppsm", "pot", "potx", "potm",
+           "rtf", "odt", "ods", "odp"}
 
 
 def utc_now():
@@ -111,7 +114,8 @@ class InventoryFetcher:
 
     def check(self, url):
         parts = urlsplit(canonical_url(url))
-        if parts.hostname not in self.profile["allowed_hosts"] or parts.scheme != "https" or parts.port not in (None, 443):
+        allowed_hosts = self.profile.get("allowed_hosts_by_host", {}).get(parts.hostname, self.profile["allowed_hosts"])
+        if parts.hostname not in allowed_hosts or parts.scheme != "https" or parts.port not in (None, 443):
             raise ValueError("redirect or URL outside HTTPS host allowlist")
         # Even robots retrieval must not follow a redirect into an arbitrary page.
         if parts.path != "/robots.txt":
@@ -137,7 +141,9 @@ class InventoryFetcher:
             chunks, total = [], 0
             started = time.monotonic()
             while True:
-                if time.monotonic() - started > self.profile["timeout_seconds"] * 3:
+                # Per-read timeout catches stalls; this caps total transfer time.
+                budget = self.profile.get("max_response_seconds", self.profile["timeout_seconds"] * 3)
+                if time.monotonic() - started > budget:
                     raise TimeoutError("response wall-clock budget exceeded")
                 chunk = response.read(min(65536, cap + 1 - total))
                 if not chunk:
@@ -157,7 +163,7 @@ class InventoryFetcher:
     def prepare_robots(self):
         receipts = []
         # Exact-host policies are never reused across distinct hosts.
-        for host in self.profile["allowed_hosts"]:
+        for host in self.profile["robots_hosts"] if "robots_hosts" in self.profile else self.profile["allowed_hosts"]:
             url = "https://" + host + "/robots.txt"
             try:
                 body, meta = self.get(url)
@@ -174,7 +180,7 @@ class InventoryFetcher:
             self.robots[host] = Robots(body.decode("utf-8", "replace"), USER_AGENT)
             receipts.append({"url": url, "text": body.decode("utf-8", "replace"), **meta})
         if not self.robots:
-            raise ValueError("robots unavailable for every allowed host: " + str(receipts))
+            raise ValueError("robots unavailable for every declared robots host: " + str(receipts))
         return receipts
 
 
@@ -207,6 +213,34 @@ def run_inventory(profile, data_root, fetcher=None, progress=None):
         return summary
     found, root_sources = {}, []
     sources = [{"role": "sitemap_index", "url": profile["sitemap_index"]}] + profile["sitemaps"]
+    source_keys = {(row["role"], row["url"]) for row in sources}
+    index_body = None
+    for source in sources:
+        if source["role"] == "sitemap_index":
+            try:
+                index_body, _ = fetcher.get(source["url"])
+            except Exception:
+                index_body = None
+            break
+    index_errors = []
+    # Traverse only index entries explicitly selected by a profile. This keeps
+    # scope reviewable while supporting the vendor's published sitemap topology.
+    for selector in profile.get("sitemap_index_select", []):
+        try:
+            if index_body is None:
+                raise ValueError("sitemap index unavailable")
+            _, index_rows = parse_sitemap(index_body)
+            for index_row in index_rows:
+                url = index_row["loc"]
+                if re.search(selector["url_regex"], url, re.I):
+                    item = {"role": selector["role_prefix"] + urlsplit(url).path.strip("/").split("/")[-1].replace(".sitemap.xml", ""), "url": url}
+                    key = (item["role"], item["url"])
+                    if key not in source_keys:
+                        sources.append(item)
+                        source_keys.add(key)
+        except Exception as exc:
+            index_errors.append({"role": selector["role_prefix"], "url": profile["sitemap_index"],
+                                 "error": type(exc).__name__, "detail": str(exc)[:300]})
     for source in sources:
         try:
             body, meta = fetcher.get(source["url"])
@@ -241,11 +275,15 @@ def run_inventory(profile, data_root, fetcher=None, progress=None):
     rows = sorted(found.values(), key=lambda item: item["url"])
     body = "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows).encode()
     atomic_bytes(run / "urls.jsonl", body)
-    selected = {r["url"] for r in profile["sitemaps"]}
-    summary.update(status="sitemaps_complete" if not summary["errors"] else "sitemaps_incomplete",
+    selected = {r["url"] for r in sources}
+    selected_urls = {r["url"] for r in sources}
+    selected_errors = [error for error in summary["errors"] if error.get("url") in selected_urls]
+    summary["index_selection_errors"] = index_errors
+    summary["unselected_index_sitemaps"] = [u for u in root_sources if u not in selected_urls]
+    summary.update(status="sitemaps_complete" if not selected_errors and not index_errors else "sitemaps_incomplete",
                    finished_at=utc_now(), unique_url_candidates=len(rows),
                    kind_hints=dict(Counter(r["kind_hint"] for r in rows)),
-                   additional_sitemaps_not_traversed=[u for u in root_sources if u not in selected],
+                   additional_sitemaps_not_traversed=summary["unselected_index_sitemaps"],
                    url_manifest=str((run / "urls.jsonl").relative_to(data_root)),
                    url_manifest_sha256=hashlib.sha256(body).hexdigest(),
                    report_path=str(run / "status.json"), website_coverage_complete=False)
