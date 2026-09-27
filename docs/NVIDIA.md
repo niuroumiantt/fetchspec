@@ -18,6 +18,10 @@ inresearch 的 `manage.py product-catalog import --input <catalog.json> --archiv
 
 以下 `company-crawl` / `profiles/nvidia.json` 保留旧附件专项任务兼容，其收窄范围不作为产品清单覆盖规则。
 
+## 官方动态规格组件
+
+GeForce 50 系列正文把规格放在官方脚本组件的数据常量里。目录抓取结束后运行 PYTHONPATH=src python3 -m fetchspec.nvidia_components --out /Users/m5/Downloads/tempfetch：只获取已归档产品页明确引用的官方组件，读取受限 JSON 字面量，不执行下载的 JavaScript；只把页面 staticColumns 明确展示的型号入库，不把组件中历史对比选项当成当前系列产品。组件原件、SHA、引用它的产品页和字段原文保留；状态为部分字段提取，完整规格与性能条件仍待核对。与目录 worker 共用排他锁，重复执行复用已验证快照。
+
 ## 旧附件任务范围（2026-09-26 收窄）
 
 首轮按"整站覆盖"设计，剩余 2.5 万个待抓 URL 全是 HTML（GeForce 新闻、十几个地区英文站副本、on-demand 视频、驱动、GTC 议程），其中直接文档为 0，已抓页面只有约 10% 链接过 PDF。现改为按研究需求取材：
