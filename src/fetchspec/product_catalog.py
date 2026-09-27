@@ -148,6 +148,8 @@ def parse_page(body, url):
             rows = native_table(node)
             # The vendor's own heading or field names must establish relevance.
             relevant = bool(re.search(r'specification|\bspecs\b|technical|GPU Memory|Form Factor|Memory Bandwidth', context + ' ' + node.text(), re.I))
+            labels = {r[0]['text'].lower() for r in rows if r}
+            relevant = relevant or len(labels & {'gpu', 'cpu', 'memory', 'storage', 'power', 'ai performance', 'dimensions', 'weight'}) >= 2
             notes = []
             # Sibling footnotes can qualify sparsity, peak performance and scope.
             descendants = {id(n) for n in node.walk()}
@@ -353,6 +355,14 @@ def export(db, base):
                             and (urlsplit(l['url']).hostname or '').endswith(('.nvidia.com', '.nvidia.cn'))],
             'extraction_status': 'native_tables_extracted' if any(t['is_specification'] for t in page['tables']) else 'specification_search_pending'}
     frontier = [dict(r) for r in db.execute('SELECT * FROM frontier ORDER BY depth,url')]
+    if db.execute("SELECT 1 FROM sqlite_master WHERE name='component_products'").fetchone():
+        native_models = {re.sub(r'^NVIDIA\s+', '', e['name']).casefold() for e in entities.values()
+                         if e['kind'] == 'named_product' and e['tables']}
+        for row in db.execute('SELECT payload FROM component_products'):
+            product = json.loads(row[0])
+            if re.sub(r'^NVIDIA\s+', '', product['name']).casefold() not in native_models:
+                entities[product['id']] = product
+        pages.extend(json.loads(row[0]) for row in db.execute('SELECT payload FROM component_sources'))
     counts = Counter(e['kind'] for e in entities.values())
     bundle = {'schema_version': 1, 'company_id': 'nvidia', 'generated_at': utc_now(),
         'coverage': {'complete': False, 'directory_url': 'https://www.nvidia.com/en-us/products/',
