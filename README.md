@@ -1,5 +1,7 @@
 # fetchspec
 
+NVIDIA 当前采用产品优先入口：`PYTHONPATH=src python3 -m fetchspec.product_catalog --out /Users/m5/Downloads/tempfetch --max-pages 220 --reparse`。先清点官方目录，再保留每个产品自身的规格表与 HTML 快照，交付结构化产品库。旧附件任务继续兼容，规则与缺口见 [NVIDIA](docs/NVIDIA.md)。
+
 Fetch, parse, and inspect OpenAPI / Swagger specifications right in the browser.
 
 `fetchspec` is a small Vite + React + TypeScript app. Give it a spec URL (or

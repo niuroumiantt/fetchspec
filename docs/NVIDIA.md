@@ -1,8 +1,24 @@
 # NVIDIA 公司级 Fetchspec 规则
 
-本规则把 NVIDIA 公开产品网站上的 PDF、Word、PowerPoint、Excel、CSV 和 OpenDocument 文件接入公司级持久队列。只下载英文和中文资料；英文/中文页面用于发现链接，其他语言页面不抓取。HTML 页面只在内存中解析可下载链接，不写成原件或页面快照。下载原件不进 Git；执行目录由 `--out` 或 `FETCHSPEC_DATA_ROOT` 决定。
+现行目标（2026-09-27）：建立 NVIDIA 官方产品规格数据库。先从官方产品目录发现产品，再按各产品自己的官方参数目录寻找 HTML/PDF/Office 资料。英文与中文保留；页面快照和附件都是证据载体，产品数、规格覆盖与下载文件数分别计量。原件不进 Git；本轮原件放在 M5，结构化数据直交 AWS 的 inresearch.ai，Spark 不参与。
 
-## 研究范围（2026-09-26 收窄）
+## 产品优先入口
+
+```sh
+PYTHONPATH=src python3 -m fetchspec.product_catalog --out /Users/m5/Downloads/tempfetch --max-pages 220 --reparse
+```
+
+以官方 `/en-us/products/` 为入口，逐目录扩展产品/规格链接，排除新闻、案例、招聘。复用公共 InventoryFetcher 的 robots、白名单、超时和响应大小限制；最多三个请求在途，起始请求遵守至少一秒及 robots Crawl-delay。重复启动续跑持久 frontier；`--reparse` 校验并重用快照，不重复下载；`--refresh` 显式重新观察并保留旧版。
+
+`blobs/<SHA前2位>/<SHA>.html` 保存不可变页面；`product-catalog/nvidia/discovery.sqlite3` 保存发现队列、目录关系和版本观察；`catalog.json` 为结构化交付。原厂规格表保留分组、字段、配置列、合并单元格和脚注，上下标保留标记。不同产品不硬套同一模板，不猜缺值、不自动把整柜参数换成单卡参数。
+
+型号页、系列/平台、软件服务分开；型号识别待复核，官网列出不等于确认在售。目录数量不是 SKU 数，frontier 耗尽不等于全公司产品穷尽。动态规格、PDF 定向抽取、独立文档站和配置拆分仍待补齐。英文目录先建身份基线，中文资料关联同一产品；其他语种不采集。
+
+inresearch 的 `manage.py product-catalog import --input <catalog.json> --archive-root <原件根>` 核验快照后入私有 SQLite；`product-catalog publish` 用 NVIDIA 专用凭证交 AWS。`/product-catalog.html` 直接用结构化数据展示、筛选、并排核查和导出 CSV；原文只在核查时打开。规格提取不自动成为正式研究采用。
+
+以下 `company-crawl` / `profiles/nvidia.json` 保留旧附件专项任务兼容，其收窄范围不作为产品清单覆盖规则。
+
+## 旧附件任务范围（2026-09-26 收窄）
 
 首轮按"整站覆盖"设计，剩余 2.5 万个待抓 URL 全是 HTML（GeForce 新闻、十几个地区英文站副本、on-demand 视频、驱动、GTC 议程），其中直接文档为 0，已抓页面只有约 10% 链接过 PDF。现改为按研究需求取材：
 
@@ -62,4 +78,4 @@
 
 ## 当前已知边界
 
-这是一轮 NVIDIA 英文/中文公开范围采集，不宣称全站完整：其他 NVIDIA 官方主机/微站、gated 资源和仅由 API 返回的文件仍需单独核对。语言标记依赖官方 URL 路径、文件名和查询参数；未标记附件按 NVIDIA 官方默认英文处理。HTML 页面只用于内存中的链接发现，磁盘目录只新增识别为允许文档类型的附件。采集完成后才进入阅读、字段提炼、Spark 交付和 `inresearch.ai` 采用流程；采集台账本身不是研究事实库。
+旧附件专项任务不宣称全站完整；格式/语言检查继续生效。现行产品优先流程与 M5→AWS 分工以上方入口为准，官方产品页面需要保存快照，规格定向提取不以全文阅读完成为前提。独立官方主机、未索引微站和动态资料仍需补齐；gated、登录和 robots 禁止路径不访问。采集台账本身不是正式研究事实库。
