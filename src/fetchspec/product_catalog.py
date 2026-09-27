@@ -212,6 +212,47 @@ def identifier(url):
     return 'nvidia-' + hashlib.sha256(url.encode()).hexdigest()[:20]
 
 
+def product_identifier(name):
+    """Stable product identity independent of the page that currently links it."""
+    key = ' '.join(name.casefold().split())
+    return 'nvidia-' + hashlib.sha256(('nvidia-product:' + key).encode()).hexdigest()[:20]
+
+
+def section_products(page):
+    """Extract explicitly named products and datasheet entry points by vendor section."""
+    sections = {}
+    for link in page.get('links', []):
+        section = ' '.join(link.get('section', '').split())
+        label = ' '.join(link.get('label', '').split())
+        if not section.startswith('NVIDIA ') or not label or not MODEL.match(section.removeprefix('NVIDIA ')):
+            continue
+        if not re.search(r'\b(?:DPU|Processor|GPU|CPU|Adapter|Switch|Series|Platform|System)\b', section, re.I):
+            continue
+        # Only a card/portfolio "Explore …" link creates an entity. FAQ links,
+        # articles, datasheet callouts and marketing headings add evidence only
+        # after that official product-card identity is established.
+        if not re.match(r'^Explore\s+', label, re.I):
+            continue
+        name = section if section.lower().startswith('nvidia ') else 'NVIDIA ' + section
+        entry = sections.setdefault(name, {'name': name, 'resources': []})
+        url = link.get('url', '')
+        if ((urlsplit(url).hostname or '').endswith(('.nvidia.com', '.nvidia.cn'))
+                and re.search(r'datasheet|specification|product brief|whitepaper', label + ' ' + url, re.I)):
+            entry['resources'].append({'url': url, 'label': label, 'kind': 'official_resource_page',
+                                       'access_status': 'not_checked'})
+    for link in page.get('links', []):
+        section = ' '.join(link.get('section', '').split())
+        label = ' '.join(link.get('label', '').split())
+        url = link.get('url', '')
+        if (section in sections and (urlsplit(url).hostname or '').endswith(('.nvidia.com', '.nvidia.cn'))
+                and re.search(r'datasheet|specification|product brief|whitepaper', label + ' ' + url, re.I)):
+            sections[section]['resources'].append({'url': url, 'label': label, 'kind': 'official_resource_page',
+                                                   'access_status': 'not_checked'})
+    for item in sections.values():
+        item['resources'] = list({r['url']: r for r in item['resources']}.values())
+    return list(sections.values())
+
+
 def enqueue_links(db, row, data):
     for link in data['links']:
         if not page_allowed(link['url']) or link['url'] == row['url']:
@@ -228,15 +269,15 @@ def enqueue_links(db, row, data):
                        (link['url'], row['depth'] + 1, row['url'], category, label))
 
 
-def collect(root, *, max_pages=200, refresh=False, reparse=False):
+def collect(root, *, max_pages=200, refresh=False, reparse=False, incremental=False):
     base = Path(root).expanduser() / 'product-catalog' / 'nvidia'
     base.mkdir(parents=True, exist_ok=True)
     with (base / 'worker.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        return _collect(root, max_pages=max_pages, refresh=refresh, reparse=reparse)
+        return _collect(root, max_pages=max_pages, refresh=refresh, reparse=reparse, incremental=incremental)
 
 
-def _collect(root, *, max_pages=200, refresh=False, reparse=False):
+def _collect(root, *, max_pages=200, refresh=False, reparse=False, incremental=False):
     root = Path(root).expanduser()
     base = root / 'product-catalog' / 'nvidia'
     base.mkdir(parents=True, exist_ok=True)
@@ -245,11 +286,18 @@ def _collect(root, *, max_pages=200, refresh=False, reparse=False):
     db.executescript('''CREATE TABLE IF NOT EXISTS frontier(url TEXT PRIMARY KEY, depth INTEGER, parent TEXT, category TEXT, label TEXT, state TEXT DEFAULT 'pending', error TEXT);
     CREATE TABLE IF NOT EXISTS pages(url TEXT PRIMARY KEY, sha TEXT, observed_at TEXT, payload TEXT);
     CREATE TABLE IF NOT EXISTS history(url TEXT, sha TEXT, observed_at TEXT, PRIMARY KEY(url,sha));
-    CREATE TABLE IF NOT EXISTS memberships(url TEXT, parent TEXT, category TEXT, label TEXT, PRIMARY KEY(url,parent,category));''')
+    CREATE TABLE IF NOT EXISTS memberships(url TEXT, parent TEXT, category TEXT, label TEXT, PRIMARY KEY(url,parent,category));
+    CREATE TABLE IF NOT EXISTS product_map(id TEXT PRIMARY KEY,name TEXT,parent_id TEXT,source_sha256 TEXT,source_url TEXT,kind TEXT,change_status TEXT,observed_at TEXT);
+    CREATE TABLE IF NOT EXISTS product_map_events(event_id INTEGER PRIMARY KEY AUTOINCREMENT,product_id TEXT,observed_at TEXT,status TEXT,source_sha256 TEXT,payload TEXT);''')
+    baseline = {r['id']: dict(r) for r in db.execute('SELECT id,name,parent_id,source_sha256 FROM product_map')}
     seed = 'https://www.nvidia.com/en-us/products/'
     db.execute('INSERT OR IGNORE INTO frontier(url,depth,parent,category,label) VALUES(?,0,?,?,?)', (seed, '', '', 'NVIDIA Products'))
     if refresh:
         db.execute("UPDATE frontier SET state='pending',error=NULL")
+    elif incremental:
+        # Revalidate only the company directory and its official category pages.
+        # Product/source pages are touched only when newly linked or on --refresh.
+        db.execute("UPDATE frontier SET state='pending',error=NULL WHERE depth<=2 AND state IN ('done','failed')")
     for existing in db.execute('SELECT url FROM frontier').fetchall():
         if existing['url'] != seed and not page_allowed(existing['url']):
             db.execute("UPDATE frontier SET state='excluded' WHERE url=?", (existing['url'],))
@@ -329,18 +377,18 @@ def _collect(root, *, max_pages=200, refresh=False, reparse=False):
             db.execute("UPDATE frontier SET state='failed',error=? WHERE url=?", (str(exc)[:300], row['url']))
             print(json.dumps({'error': str(exc)[:200], 'url': row['url']}), flush=True)
         db.commit()
-        export(db, base)
-    result = export(db, base)
+        export(db, base, baseline)
+    result = export(db, base, baseline)
     pool.shutdown()
     db.close()
     return result
 
 
-def export(db, base):
+def export(db, base, baseline=None):
     pages = [json.loads(r[0]) for r in db.execute('SELECT payload FROM pages ORDER BY url')]
     entities = {}
     for page in pages:
-        if page['depth'] == 0 or not page['heading'] or not page_allowed(page['source_url']):
+        if page.get('depth', 1) == 0 or not page.get('heading') or not page_allowed(page['source_url']):
             continue
         url = page['source_url']
         key = identifier(url)
@@ -363,7 +411,61 @@ def export(db, base):
             if re.sub(r'^NVIDIA\s+', '', product['name']).casefold() not in native_models:
                 entities[product['id']] = product
         pages.extend(json.loads(row[0]) for row in db.execute('SELECT payload FROM component_sources'))
-    counts = Counter(e['kind'] for e in entities.values())
+    # Split explicitly named model sections from a platform/family page. Keep
+    # the official page as identity evidence and represent non-file datasheet
+    # links as resource entry points (not as downloaded attachments).
+    expanded = dict(entities)
+    for page in pages:
+        if page.get('depth', 1) == 0 or not page.get('heading') or not page_allowed(page['source_url']):
+            continue
+        parent_id = identifier(page['source_url'])
+        parent = expanded.get(parent_id)
+        if not parent:
+            continue
+        for child in section_products(page):
+            product_id = product_identifier(child['name'])
+            candidate = {
+                'id': product_id, 'name': child['name'], 'category': parent['category'],
+                'categories': parent['categories'], 'kind': 'named_product',
+                'availability': 'not_verified', 'identity_status': 'official_product_section_observed',
+                'parent_id': parent_id, 'product_url': page['source_url'],
+                'source_url': page['source_url'], 'source_sha256': page['sha256'],
+                'observed_at': page['observed_at'], 'tables': [], 'attachments': [],
+                'official_resources': child['resources'],
+                'official_pages': [{'url': page['source_url'], 'sha256': page['sha256']}],
+                '_parent_depth': page.get('depth', 99),
+                'extraction_status': 'specification_search_pending'}
+            old_child = expanded.get(product_id)
+            if old_child:
+                resources = {r['url']: r for r in old_child.get('official_resources', [])}
+                resources.update({r['url']: r for r in candidate['official_resources']})
+                candidate['official_resources'] = list(resources.values())
+                page_refs = {r['url']: r for r in old_child.get('official_pages', [])}
+                page_refs.update({r['url']: r for r in candidate['official_pages']})
+                candidate['official_pages'] = list(page_refs.values())
+                if old_child.get('_parent_depth', 99) < candidate['_parent_depth']:
+                    candidate.update(parent_id=old_child['parent_id'], product_url=old_child['product_url'],
+                                     source_url=old_child['source_url'], source_sha256=old_child['source_sha256'],
+                                     observed_at=old_child['observed_at'], category=old_child['category'],
+                                     categories=old_child['categories'], _parent_depth=old_child['_parent_depth'])
+            expanded[product_id] = candidate
+    for product in expanded.values():
+        product.pop('_parent_depth', None)
+    previous = baseline if baseline is not None else {r['id']: dict(r) for r in db.execute('SELECT id,name,parent_id,source_sha256 FROM product_map')}
+    changes = Counter()
+    for product in expanded.values():
+        old = previous.get(product['id'])
+        status = 'new' if old is None else ('changed' if old['source_sha256'] != product['source_sha256'] or old['name'] != product['name'] or old['parent_id'] != product.get('parent_id') else 'unchanged')
+        product['map_change_status'] = status
+        changes[status] += 1
+        db.execute('INSERT OR REPLACE INTO product_map VALUES(?,?,?,?,?,?,?,?)',
+                   (product['id'], product['name'], product.get('parent_id'), product['source_sha256'],
+                    product['source_url'], product['kind'], status, product['observed_at']))
+        if status != 'unchanged':
+            db.execute('INSERT INTO product_map_events(product_id,observed_at,status,source_sha256,payload) SELECT ?,?,?,?,? WHERE NOT EXISTS (SELECT 1 FROM product_map_events WHERE product_id=? AND source_sha256=? AND status=?)',
+                       (product['id'], product['observed_at'], status, product['source_sha256'], json.dumps(product, ensure_ascii=False), product['id'], product['source_sha256'], status))
+    db.commit()
+    counts = Counter(e['kind'] for e in expanded.values())
     bundle = {'schema_version': 1, 'company_id': 'nvidia', 'generated_at': utc_now(),
         'coverage': {'complete': False, 'directory_url': 'https://www.nvidia.com/en-us/products/',
             'directory_entries': sum(r['depth'] == 1 for r in frontier), 'pages_observed': len(pages),
@@ -372,7 +474,9 @@ def export(db, base):
             'limitations': ['官网目录入口不等于全部具体 SKU；产品身份、配置拆分和在售状态仍需核对。',
                 '仅从官方目录和产品相关链接扩展；未解析的动态表格、PDF 及独立文档站规格保留待提取。',
                 '参数保留官方表格、列名、合并单元格和脚注；尚未自动映射跨产品通用字段。']},
-        'products': list(entities.values()), 'sources': pages, 'frontier': frontier}
+        'product_map': {'policy': 'Products absent from a partial observation are retained; removal requires an explicit, completed official-directory comparison and review.',
+            'changes': dict(changes), 'entries': len(expanded)},
+        'products': list(expanded.values()), 'sources': pages, 'frontier': frontier}
     atomic_json(base / 'catalog.json', bundle)
     return bundle['coverage']
 
@@ -382,11 +486,14 @@ def main(argv=None):
     ap.add_argument('--out', default='~/.local/share/fetchspec')
     ap.add_argument('--max-pages', type=int, default=200)
     ap.add_argument('--refresh', action='store_true')
+    ap.add_argument('--incremental', action='store_true', help='Revalidate only the official directory and category pages; retain all known product entries')
     ap.add_argument('--reparse', action='store_true', help='Re-extract existing snapshots without downloading them again')
     args = ap.parse_args(argv)
     if args.max_pages < 1:
         ap.error('--max-pages must be positive')
-    print(json.dumps(collect(args.out, max_pages=args.max_pages, refresh=args.refresh, reparse=args.reparse), ensure_ascii=False, indent=2))
+    if args.refresh and args.incremental:
+        ap.error('--refresh and --incremental are mutually exclusive')
+    print(json.dumps(collect(args.out, max_pages=args.max_pages, refresh=args.refresh, reparse=args.reparse, incremental=args.incremental), ensure_ascii=False, indent=2))
 
 
 if __name__ == '__main__':

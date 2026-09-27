@@ -1,5 +1,5 @@
 import unittest
-from fetchspec.product_catalog import parse_page, entity_kind, page_allowed
+from fetchspec.product_catalog import parse_page, entity_kind, page_allowed, section_products
 
 
 class ProductCatalogTests(unittest.TestCase):
@@ -40,6 +40,18 @@ class ProductCatalogTests(unittest.TestCase):
         self.assertEqual(len(data['links']), 1)
         self.assertEqual(data['links'][0]['role'], 'model_navigation')
         self.assertEqual(entity_kind('GeForce RTX 4070 Family', ''), 'family_or_directory')
+
+    def test_platform_sections_become_distinct_products_with_resource_entry_points(self):
+        page = {'links': [
+            {'section': 'NVIDIA BlueField-4 DPU', 'label': 'Explore BlueField-4 DPUs', 'url': 'https://resources.nvidia.com/en-us/bluefield-4-datasheet'},
+            {'section': 'NVIDIA BlueField-4 STX Storage Processor', 'label': 'Explore BlueField-4 STX Storage Processors', 'url': 'https://resources.nvidia.com/en-us/stx-datasheet'},
+            {'section': 'NVIDIA BlueField-3 DPU', 'label': 'Explore BlueField-3 DPUs', 'url': 'https://resources.nvidia.com/en-us/bluefield-3-datasheet'},
+            {'section': 'NVIDIA Vera CPU Accelerates AI-Native Storage in BlueField-4 STX', 'label': 'Read the Blog', 'url': 'https://www.nvidia.com/en-us/bluefield-blog'},
+        ]}
+        products = section_products(page)
+        self.assertEqual([p['name'] for p in products], [
+            'NVIDIA BlueField-4 DPU', 'NVIDIA BlueField-4 STX Storage Processor', 'NVIDIA BlueField-3 DPU'])
+        self.assertTrue(all(len(p['resources']) == 1 for p in products))
 
 
 if __name__ == '__main__':

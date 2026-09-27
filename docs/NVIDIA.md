@@ -10,6 +10,8 @@ PYTHONPATH=src python3 -m fetchspec.product_catalog --out /Users/m5/Downloads/te
 
 以官方 `/en-us/products/` 为入口，逐目录扩展产品/规格链接，排除新闻、案例、招聘。复用公共 InventoryFetcher 的 robots、白名单、超时和响应大小限制；最多三个请求在途，起始请求遵守至少一秒及 robots Crawl-delay。重复启动续跑持久 frontier；`--reparse` 校验并重用快照，不重复下载；`--refresh` 显式重新观察并保留旧版。
 
+产品地图不是附件清单：发现页的明确产品区块可以把一个 family/platform 拆成多个稳定 ID 的具体产品，登记 `parent_id`、官方产品页快照、分类和该产品自己指向的规格资源入口。无 `.pdf` 后缀的官方 datasheet landing page 只登记为 `official_resource_page`，确认返回文件/公开直链后才算附件，不把入口当成下载成功。增量日常用 `--incremental`，仅条件重查目录与官网分类页（frontier 深度 ≤2），由新链接扩展新增项；已知产品来源不扫。`--refresh` 是人工要求的完整复核。未出现在部分扫描里的旧产品保留，不判下架；下架须完成目录比较并复核。
+
 `blobs/<SHA前2位>/<SHA>.html` 保存不可变页面；`product-catalog/nvidia/discovery.sqlite3` 保存发现队列、目录关系和版本观察；`catalog.json` 为结构化交付。原厂规格表保留分组、字段、配置列、合并单元格和脚注，上下标保留标记。不同产品不硬套同一模板，不猜缺值、不自动把整柜参数换成单卡参数。
 
 型号页、系列/平台、软件服务分开；型号识别待复核，官网列出不等于确认在售。目录数量不是 SKU 数，frontier 耗尽不等于全公司产品穷尽。动态规格、PDF 定向抽取、独立文档站和配置拆分仍待补齐。英文目录先建身份基线，中文资料关联同一产品；其他语种不采集。
