@@ -8,13 +8,13 @@
 PYTHONPATH=src python3 -m fetchspec.product_catalog --out /Users/m5/Downloads/tempfetch --max-pages 220 --reparse
 ```
 
-以官方 `/en-us/products/` 为入口，逐目录扩展产品/规格链接，排除新闻、案例、招聘。复用公共 InventoryFetcher 的 robots、白名单、超时和响应大小限制；最多三个请求在途，起始请求遵守至少一秒及 robots Crawl-delay。重复启动续跑持久 frontier；`--reparse` 校验并重用快照，不重复下载；`--refresh` 显式重新观察并保留旧版。
+以官方 `/en-us/products/` 和英文、中文产品目录/系列页为入口。英文站点 sitemap 使用 `/en-us/`，`www.nvidia.cn` 的中文 sitemap 使用根路径；两者只用于筛选产品目录 URL 候选，不把新闻等全站 URL 算入产品总数。每轮增量先快照/对账官方 sitemap，再把产品路径新 URL 入队，依据 `lastmod` 变化重查已知页；请求使用 ETag / Last-Modified 条件头，304 时校验并复用不可变快照。sitemap 不完整时不判 URL 缺失；完整 sitemap 中缺少某 URL 也只标待核对，不能自动判产品下架。复用公共 InventoryFetcher 的 robots、白名单、超时和响应大小限制；最多三个请求在途，起始请求遵守至少一秒及 robots Crawl-delay。重复启动续跑持久 frontier；`--reparse` 校验并重用快照，不重复下载；`--refresh` 显式重新观察并保留旧版。
 
 产品地图不是附件清单：发现页的明确产品区块可以把一个 family/platform 拆成多个稳定 ID 的具体产品，登记 `parent_id`、官方产品页快照、分类和该产品自己指向的规格资源入口。无 `.pdf` 后缀的官方 datasheet landing page 只登记为 `official_resource_page`，确认返回文件/公开直链后才算附件，不把入口当成下载成功。增量日常用 `--incremental`，仅条件重查目录与官网分类页（frontier 深度 ≤2），由新链接扩展新增项；已知产品来源不扫。`--refresh` 是人工要求的完整复核。未出现在部分扫描里的旧产品保留，不判下架；下架须完成目录比较并复核。
 
-`blobs/<SHA前2位>/<SHA>.html` 保存不可变页面；`product-catalog/nvidia/discovery.sqlite3` 保存发现队列、目录关系和版本观察；`catalog.json` 为结构化交付。原厂规格表保留分组、字段、配置列、合并单元格和脚注，上下标保留标记。不同产品不硬套同一模板，不猜缺值、不自动把整柜参数换成单卡参数。
+`blobs/<SHA前2位>/<SHA>.html` 保存不可变页面；`product-catalog/nvidia/discovery.sqlite3` 保存发现队列、官网产品路径 sitemap 台账、目录关系和版本观察；`catalog.json` 为结构化交付，来源只传 SHA/URL/快照路径等核查收据和原厂规格表，避免重复传输 HTML 正文/链接；`product-sitemap.json` 是我们自己的公司产品图（产品/系列、官网类别、父级关系、来源 SHA、规格状态与 sitemap 对账证据），不是 NVIDIA 的 XML sitemap。原厂规格表保留分组、字段、配置列、合并单元格和脚注，上下标保留标记。路径相同的 nvidia.com 英/中文页与 nvidia.cn 中文页合并到同一页面身份，来源快照分别保留。不同产品不硬套同一模板，不猜缺值、不自动把整柜参数换成单卡参数。
 
-型号页、系列/平台、软件服务分开；型号识别待复核，官网列出不等于确认在售。目录数量不是 SKU 数，frontier 耗尽不等于全公司产品穷尽。动态规格、PDF 定向抽取、独立文档站和配置拆分仍待补齐。英文目录先建身份基线，中文资料关联同一产品；其他语种不采集。
+型号页、系列/平台、软件服务分开；型号识别待复核，官网列出不等于确认在售。目录数量不是 SKU 数，frontier 耗尽不等于全公司产品穷尽。动态规格、PDF 定向抽取、独立文档站和配置拆分仍待补齐。仅采英文与中文来源；官方中文站 `www.nvidia.cn` 的根路径纳入，其他地区语言不采集。
 
 inresearch 的 `manage.py product-catalog import --input <catalog.json> --archive-root <原件根>` 核验快照后入私有 SQLite；`product-catalog publish` 用 NVIDIA 专用凭证交 AWS。`/product-catalog.html` 直接用结构化数据展示、筛选、并排核查和导出 CSV；原文只在核查时打开。规格提取不自动成为正式研究采用。
 

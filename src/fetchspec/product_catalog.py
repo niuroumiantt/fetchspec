@@ -19,7 +19,7 @@ import time
 from urllib.error import HTTPError
 from urllib.parse import urljoin, urlsplit, urlunsplit
 
-from .inventory import InventoryFetcher, atomic_bytes, atomic_json, utc_now
+from .inventory import InventoryFetcher, atomic_bytes, atomic_json, load_profile, run_inventory, utc_now
 
 
 @dataclass
@@ -188,11 +188,87 @@ def page_allowed(url):
     p = urlsplit(url)
     if p.hostname not in {'www.nvidia.com', 'www.nvidia.cn'} or p.query:
         return False
-    if not p.path.startswith(('/en-us/', '/zh-cn/')):
+    # www.nvidia.cn publishes its zh-CN sitemap with root-relative paths
+    # (e.g. /networking/products/), unlike nvidia.com/zh-cn/.
+    if p.hostname == 'www.nvidia.com' and not p.path.startswith(('/en-us/', '/zh-cn/')):
         return False
     if re.search(r'/(blogs?|news|events?|industries|case-studies|customer-stories|customer-success|research|careers|support|download|drivers|on-demand|gtc|privacy|about-nvidia|buy|shop|training|launchpad|contact|forums|community-portal|foundation|where-to-buy)(/|$)', p.path):
         return False
     return not Path(p.path).suffix or p.path.endswith(('.html', '.htm'))
+
+
+def sitemap_product_category(url):
+    """Return a provisional product-led category only for official catalog paths."""
+    p = urlsplit(url)
+    path = p.path
+    if p.hostname == 'www.nvidia.com':
+        path = re.sub(r'^/(?:en-us|zh-cn)(?=/)', '', path)
+    rules = [
+        (r'^/geforce/(?:graphics-cards|laptops)(?:/|$)', 'Gaming and Creating'),
+        (r'^/networking/(?:products|data-processing-unit)(?:/|$)', 'Networking'),
+        (r'^/data-center/products(?:/|$)', 'Data Center'),
+        (r'^/autonomous-machines/embedded-systems(?:/|$)', 'Embedded Systems'),
+        (r'^/design-visualization/(?:products|workstations)(?:/|$)', 'Professional Workstations'),
+        (r'^/software(?:/|$)|^/ai-data-science/products(?:/|$)', 'Software'),
+        (r'^/shield(?:/|$)', 'Gaming and Creating'),
+        (r'^/products(?:/|$)', 'NVIDIA Products'),
+    ]
+    return next((category for pattern, category in rules if re.search(pattern, path, re.I)), None)
+
+
+def sync_product_sitemap(root, db):
+    """Seed only product-family URL candidates; preserve omissions for review."""
+    base = Path(root).expanduser()
+    latest = base / 'ledger/companies/nvidia/inventory/latest-attempt.json'
+    if not latest.is_file():
+        return {'status': 'not_observed', 'candidate_urls': 0, 'new': 0, 'changed': 0, 'unchanged': 0}
+    summary = json.loads(latest.read_text())
+    if summary.get('status') != 'sitemaps_complete':
+        last_complete = latest.parent / 'latest-complete-sitemaps.json'
+        if last_complete.is_file():
+            candidate_summary = json.loads(last_complete.read_text())
+            if candidate_summary.get('status') == 'sitemaps_complete':
+                summary = candidate_summary
+    manifest = (base / summary['url_manifest']).resolve()
+    if not manifest.is_relative_to(base.resolve()) or not manifest.is_file():
+        raise ValueError('official sitemap manifest is missing or outside the data root')
+    db.execute('''CREATE TABLE IF NOT EXISTS product_sitemap_urls(
+        url TEXT PRIMARY KEY, category TEXT NOT NULL, lastmod TEXT, role_data TEXT,
+        state TEXT NOT NULL, observed_at TEXT NOT NULL)''')
+    changes = Counter()
+    for line in manifest.read_text().splitlines():
+        item = json.loads(line)
+        url = item.get('url', '')
+        category = sitemap_product_category(url) if page_allowed(url) else None
+        if not category:
+            continue
+        lastmods = sorted({s.get('lastmod_claim', '') for s in item.get('sources', []) if s.get('lastmod_claim')})
+        lastmod = '|'.join(lastmods)
+        roles = sorted({s.get('role', '') for s in item.get('sources', []) if s.get('role')})
+        old = db.execute('SELECT * FROM product_sitemap_urls WHERE url=?', (url,)).fetchone()
+        state = 'new' if old is None else ('changed' if old['lastmod'] != lastmod and lastmod else 'unchanged')
+        changes[state] += 1
+        page = db.execute('SELECT payload FROM pages WHERE url=?', (url,)).fetchone()
+        db.execute('INSERT OR REPLACE INTO product_sitemap_urls VALUES(?,?,?,?,?,?)',
+                   (url, category, lastmod, json.dumps(roles), 'observed' if page else 'queued', utc_now()))
+        if page and state == 'unchanged':
+            continue
+        if page and state == 'new':
+            continue
+        parent = 'official-sitemap:' + category.casefold().replace(' ', '-')
+        db.execute('INSERT OR IGNORE INTO frontier(url,depth,parent,category,label) VALUES(?,?,?,?,?)',
+                   (url, 1, parent, category, 'Official sitemap product candidate'))
+        pending = db.execute('SELECT state FROM frontier WHERE url=?', (url,)).fetchone()
+        if not page and pending and pending['state'] == 'excluded':
+            db.execute("UPDATE frontier SET state='pending',error=NULL,category=?,label=? WHERE url=?",
+                       (category, 'Official sitemap product candidate', url))
+        if state == 'changed':
+            db.execute("UPDATE frontier SET state='pending',error=NULL WHERE url=?", (url,))
+    db.commit()
+    return {'status': summary.get('status'), 'run_id': summary.get('run_id'),
+        'candidate_urls': sum(changes.values()), 'new': changes['new'], 'changed': changes['changed'],
+        'unchanged': changes['unchanged'], 'lastmod_absent': sum(1 for row in db.execute('SELECT lastmod FROM product_sitemap_urls') if not row['lastmod']),
+        'source_sitemaps': summary.get('sitemaps', []), 'observed_at': summary.get('finished_at')}
 
 
 MODEL = re.compile(r'\b(?:[ABHLV]\d{2,3}[A-Z]*|GB\d{3}|GH\d{3}|RTX\s*(?:PRO\s*)?\d{3,4}|GeForce\s+(?:RTX|GTX)\s*\d+|ConnectX[-– ]?\d+|BlueField[-– ]?\d+|Quantum[-– ]?\d+|Spectrum[-– ]?\d+|DGX\s+(?:Spark|Station|[ABH]\d+)|Jetson\s+(?:AGX|Orin|Thor|Nano|TX\d)|SHIELD\s+TV)\b', re.I)
@@ -210,6 +286,31 @@ def entity_kind(heading, url):
 
 def identifier(url):
     return 'nvidia-' + hashlib.sha256(url.encode()).hexdigest()[:20]
+
+
+def website_page_identity(url):
+    """Collapse exact EN/zh-CN URL-path counterparts across NVIDIA official hosts."""
+    p = urlsplit(url)
+    path = re.sub(r'^/(?:en-us|zh-cn)(?=/)', '', p.path)
+    return identifier(urlunsplit(('https', 'www.nvidia.com', path.rstrip('/') or '/', '', '')))
+
+
+def identity_path(url):
+    p = urlsplit(url)
+    return re.sub(r'^/(?:en-us|zh-cn)(?=/)', '', p.path).rstrip('/') or '/'
+
+
+def source_receipt(page):
+    """Compact delivery receipt; full HTML and parsed links stay on M5 blobs."""
+    http = page.get('http', {})
+    return {key: page[key] for key in ('source_url', 'requested_url', 'sha256', 'snapshot_path',
+        'observed_at', 'heading', 'title', 'canonical', 'category', 'parent_url', 'depth', 'kind') if key in page} | {
+        'http': {key: http[key] for key in ('status', 'final_url', 'content_type', 'etag', 'last_modified') if key in http}}
+
+
+def sitemap_entry_for_page(page, sitemap_rows):
+    """Resolve official sitemap evidence through the requested or final URL."""
+    return sitemap_rows.get(page.get('requested_url')) or sitemap_rows.get(page.get('source_url'))
 
 
 def product_identifier(name):
@@ -289,6 +390,13 @@ def _collect(root, *, max_pages=200, refresh=False, reparse=False, incremental=F
     CREATE TABLE IF NOT EXISTS memberships(url TEXT, parent TEXT, category TEXT, label TEXT, PRIMARY KEY(url,parent,category));
     CREATE TABLE IF NOT EXISTS product_map(id TEXT PRIMARY KEY,name TEXT,parent_id TEXT,source_sha256 TEXT,source_url TEXT,kind TEXT,change_status TEXT,observed_at TEXT);
     CREATE TABLE IF NOT EXISTS product_map_events(event_id INTEGER PRIMARY KEY AUTOINCREMENT,product_id TEXT,observed_at TEXT,status TEXT,source_sha256 TEXT,payload TEXT);''')
+    if incremental:
+        inventory_report = run_inventory(load_profile('nvidia'), root)
+        print(json.dumps({'stage': 'official_website_sitemap', 'status': inventory_report.get('status'),
+            'candidate_urls': inventory_report.get('unique_url_candidates'),
+            'reconciliation': inventory_report.get('reconciliation', {})}, ensure_ascii=False), flush=True)
+    sitemap_summary = sync_product_sitemap(root, db)
+    print(json.dumps({'stage': 'official_product_sitemap', **{k: v for k, v in sitemap_summary.items() if k != 'source_sitemaps'}}, ensure_ascii=False), flush=True)
     baseline = {r['id']: dict(r) for r in db.execute('SELECT id,name,parent_id,source_sha256 FROM product_map')}
     seed = 'https://www.nvidia.com/en-us/products/'
     db.execute('INSERT OR IGNORE INTO frontier(url,depth,parent,category,label) VALUES(?,0,?,?,?)', (seed, '', '', 'NVIDIA Products'))
@@ -385,23 +493,65 @@ def _collect(root, *, max_pages=200, refresh=False, reparse=False, incremental=F
 
 
 def export(db, base, baseline=None):
+    seed = 'https://www.nvidia.com/en-us/products/'
     pages = [json.loads(r[0]) for r in db.execute('SELECT payload FROM pages ORDER BY url')]
+    sitemap_rows = {}
+    if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='product_sitemap_urls'").fetchone():
+        sitemap_rows = {r['url']: dict(r) for r in db.execute('SELECT * FROM product_sitemap_urls')}
+    inventory_summary = None
+    inventory_path = base.parent.parent / 'ledger/companies/nvidia/inventory/latest-attempt.json'
+    if inventory_path.is_file():
+        try:
+            inventory_summary = json.loads(inventory_path.read_text())
+        except (OSError, json.JSONDecodeError):
+            inventory_summary = None
     entities = {}
+    known_id_by_path = {}
+    for known in db.execute('SELECT id,source_url FROM product_map'):
+        if known['source_url'] and urlsplit(known['source_url']).hostname in {'www.nvidia.com', 'www.nvidia.cn'}:
+            known_id_by_path.setdefault(identity_path(known['source_url']), known['id'])
     for page in pages:
         if page.get('depth', 1) == 0 or not page.get('heading') or not page_allowed(page['source_url']):
             continue
         url = page['source_url']
-        key = identifier(url)
-        if key in entities:
-            continue
+        key = known_id_by_path.get(identity_path(url), website_page_identity(url))
         categories = sorted({r[0] for r in db.execute('SELECT category FROM memberships WHERE url=?', (page['requested_url'],))} | {page['category']})
-        entities[key] = {'id': key, 'name': page['heading'], 'category': ' / '.join(c for c in categories if c), 'categories': categories,
+        candidate = {'id': key, 'name': page['heading'], 'category': ' / '.join(c for c in categories if c), 'categories': categories,
             'kind': entity_kind(page['heading'], url), 'availability': 'not_verified', 'identity_status': 'official_page_observed',
             'source_url': url, 'source_sha256': page['sha256'], 'observed_at': page['observed_at'],
             'tables': [t for t in page['tables'] if t['is_specification']],
             'attachments': [l for l in page['links'] if re.search(r'\.(pdf|docx?|pptx?|xlsx?)(?:$|\?)', l['url'], re.I)
                             and (urlsplit(l['url']).hostname or '').endswith(('.nvidia.com', '.nvidia.cn'))],
-            'extraction_status': 'native_tables_extracted' if any(t['is_specification'] for t in page['tables']) else 'specification_search_pending'}
+            'extraction_status': 'native_tables_extracted' if any(t['is_specification'] for t in page['tables']) else 'specification_search_pending',
+            'official_pages': [{'url': url, 'sha256': page['sha256']} ]}
+        # Match by the requested source URL first: language/legacy paths may
+        # redirect to a canonical URL that is not itself in the XML sitemap.
+        sitemap_entry = sitemap_entry_for_page(page, sitemap_rows)
+        candidate['website_sitemap'] = {'matched': sitemap_entry is not None,
+            'roles': json.loads(sitemap_entry['role_data']) if sitemap_entry else [],
+            'lastmod_claims': sitemap_entry['lastmod'].split('|') if sitemap_entry and sitemap_entry['lastmod'] else [],
+            'candidate_status': sitemap_entry['state'] if sitemap_entry else 'not_a_product_path'}
+        old = entities.get(key)
+        if old is None:
+            entities[key] = candidate
+        else:
+            old['official_pages'] = list({p['url']: p for p in old.get('official_pages', []) + candidate['official_pages']}.values())
+            old['categories'] = sorted(set(old.get('categories', []) + candidate['categories']))
+            old['category'] = ' / '.join(old['categories'])
+            old['tables'] = list({hashlib.sha256(json.dumps(t, sort_keys=True, ensure_ascii=False).encode()).hexdigest(): t
+                                  for t in old['tables'] + candidate['tables']}.values())
+            old['attachments'] = list({a['url']: a for a in old['attachments'] + candidate['attachments']}.values())
+            sitemap = old['website_sitemap']
+            sitemap['matched'] = sitemap['matched'] or candidate['website_sitemap']['matched']
+            sitemap['roles'] = sorted(set(sitemap['roles'] + candidate['website_sitemap']['roles']))
+            sitemap['lastmod_claims'] = sorted(set(sitemap['lastmod_claims'] + candidate['website_sitemap']['lastmod_claims']))
+            # Prefer the English page as display identity while retaining both source snapshots.
+            if url.startswith('https://www.nvidia.com/en-us/'):
+                for field in ('name', 'source_url', 'source_sha256', 'observed_at', 'kind', 'extraction_status'):
+                    old[field] = candidate[field]
+            if not old['tables'] and candidate['tables']:
+                old['tables'] = candidate['tables']
+            old['extraction_status'] = 'native_tables_extracted' if old['tables'] else 'specification_search_pending'
     frontier = [dict(r) for r in db.execute('SELECT * FROM frontier ORDER BY depth,url')]
     if db.execute("SELECT 1 FROM sqlite_master WHERE name='component_products'").fetchone():
         native_models = {re.sub(r'^NVIDIA\s+', '', e['name']).casefold() for e in entities.values()
@@ -418,7 +568,7 @@ def export(db, base, baseline=None):
     for page in pages:
         if page.get('depth', 1) == 0 or not page.get('heading') or not page_allowed(page['source_url']):
             continue
-        parent_id = identifier(page['source_url'])
+        parent_id = known_id_by_path.get(identity_path(page['source_url']), website_page_identity(page['source_url']))
         parent = expanded.get(parent_id)
         if not parent:
             continue
@@ -433,6 +583,10 @@ def export(db, base, baseline=None):
                 'observed_at': page['observed_at'], 'tables': [], 'attachments': [],
                 'official_resources': child['resources'],
                 'official_pages': [{'url': page['source_url'], 'sha256': page['sha256']}],
+                'website_sitemap': {'matched': page['source_url'] in sitemap_rows,
+                    'roles': json.loads(sitemap_rows[page['source_url']]['role_data']) if page['source_url'] in sitemap_rows else [],
+                    'lastmod_claims': sitemap_rows[page['source_url']]['lastmod'].split('|') if page['source_url'] in sitemap_rows and sitemap_rows[page['source_url']]['lastmod'] else [],
+                    'candidate_status': sitemap_rows[page['source_url']]['state'] if page['source_url'] in sitemap_rows else 'not_a_product_path'},
                 '_parent_depth': page.get('depth', 99),
                 'extraction_status': 'specification_search_pending'}
             old_child = expanded.get(product_id)
@@ -466,18 +620,33 @@ def export(db, base, baseline=None):
                        (product['id'], product['observed_at'], status, product['source_sha256'], json.dumps(product, ensure_ascii=False), product['id'], product['source_sha256'], status))
     db.commit()
     counts = Counter(e['kind'] for e in expanded.values())
+    sitemap_matched = sum(bool(e.get('website_sitemap', {}).get('matched')) for e in expanded.values())
+    sitemap_info = {'status': inventory_summary.get('status'), 'run_id': inventory_summary.get('run_id'),
+        'observed_at': inventory_summary.get('finished_at'), 'candidate_urls': inventory_summary.get('unique_url_candidates'),
+        'product_path_candidates': len(sitemap_rows), 'matched_catalog_sources': sitemap_matched,
+        'product_sitemaps_complete': False, 'whole_website_inventory_complete': False,
+        'sitemap_sources': [{'role': s.get('role'), 'url': s.get('url'), 'entries': s.get('entries'), 'sha256': s.get('sha256')}
+                            for s in (inventory_summary or {}).get('sitemaps', [])]}
     bundle = {'schema_version': 1, 'company_id': 'nvidia', 'generated_at': utc_now(),
         'coverage': {'complete': False, 'directory_url': 'https://www.nvidia.com/en-us/products/',
-            'directory_entries': sum(r['depth'] == 1 for r in frontier), 'pages_observed': len(pages),
+            'directory_entries': sum(r['depth'] == 1 and r['parent'] == seed for r in frontier), 'pages_observed': len(pages),
             'pending_pages': sum(r['state'] == 'pending' for r in frontier), 'failed_pages': sum(r['state'] == 'failed' for r in frontier),
             'entity_counts': dict(counts), 'with_spec_tables': sum(bool(e['tables']) for e in entities.values()),
+            'website_sitemap': sitemap_info,
             'limitations': ['官网目录入口不等于全部具体 SKU；产品身份、配置拆分和在售状态仍需核对。',
                 '仅从官方目录和产品相关链接扩展；未解析的动态表格、PDF 及独立文档站规格保留待提取。',
                 '参数保留官方表格、列名、合并单元格和脚注；尚未自动映射跨产品通用字段。']},
         'product_map': {'policy': 'Products absent from a partial observation are retained; removal requires an explicit, completed official-directory comparison and review.',
             'changes': dict(changes), 'entries': len(expanded)},
-        'products': list(expanded.values()), 'sources': pages, 'frontier': frontier}
+        'products': list(expanded.values()), 'sources': [source_receipt(page) for page in pages], 'frontier': frontier}
     atomic_json(base / 'catalog.json', bundle)
+    atomic_json(base / 'product-sitemap.json', {'schema_version': 1, 'company_id': 'nvidia',
+        'generated_at': bundle['generated_at'], 'directory_url': bundle['coverage']['directory_url'],
+        'coverage': sitemap_info, 'entries': [{'product_id': e['id'], 'name': e['name'],
+            'parent_id': e.get('parent_id'), 'category': e['category'], 'entity_kind': e['kind'],
+            'source_url': e['source_url'], 'source_sha256': e['source_sha256'],
+            'map_change_status': e.get('map_change_status'), 'extraction_status': e['extraction_status'],
+            'website_sitemap': e.get('website_sitemap', {})} for e in expanded.values()]})
     return bundle['coverage']
 
 
