@@ -28,6 +28,9 @@ class ProductCatalogTests(unittest.TestCase):
         self.assertFalse(page_allowed('https://evil.example/en-us/h200/'))
         self.assertFalse(page_allowed('https://www.nvidia.com/en-us/about-nvidia/news/'))
         self.assertTrue(page_allowed('https://www.nvidia.cn/networking/products/data-processing-unit/'))
+        self.assertTrue(page_allowed('https://developer.nvidia.com/riva'))
+        self.assertTrue(page_allowed('https://networking-docs.nvidia.com/software/lts-releases'))
+        self.assertFalse(page_allowed('https://developer.nvidia.com/blog/unrelated/'))
         self.assertFalse(page_allowed('https://www.nvidia.com/fr-fr/geforce/'))
         self.assertEqual(sitemap_product_category('https://www.nvidia.cn/networking/products/data-processing-unit/'), 'Networking')
         self.assertEqual(sitemap_product_category('https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5090/'), 'Gaming and Creating')
@@ -82,11 +85,13 @@ class ProductCatalogTests(unittest.TestCase):
             db = sqlite3.connect(':memory:')
             db.row_factory = sqlite3.Row
             db.executescript('CREATE TABLE frontier(url TEXT PRIMARY KEY,depth INTEGER,parent TEXT,category TEXT,label TEXT,state TEXT DEFAULT "pending",error TEXT); CREATE TABLE pages(url TEXT PRIMARY KEY,payload TEXT);')
+            db.execute('INSERT INTO frontier VALUES(?,?,?,?,?,?,?)', (rows[0]['url'], 1, '', '', '', 'failed', 'redirect or URL outside HTTPS host allowlist'))
             result = sync_product_sitemap(root, db)
             self.assertEqual(result['candidate_urls'], 1)
             self.assertEqual(result['new'], 1)
             self.assertEqual(db.execute('SELECT count(*) FROM frontier').fetchone()[0], 1)
             self.assertIn('Networking', db.execute('SELECT category FROM frontier').fetchone()[0])
+            self.assertEqual(db.execute('SELECT state FROM frontier').fetchone()[0], 'pending')
 
     def test_delivery_source_receipt_omits_duplicate_html_and_links(self):
         receipt = source_receipt({'source_url': 'https://www.nvidia.com/en-us/data-center/h200/',
