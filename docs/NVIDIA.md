@@ -14,6 +14,14 @@ PYTHONPATH=src python3 -m fetchspec.product_catalog --out /Users/m5/Downloads/te
 
 `blobs/<SHA前2位>/<SHA>.html` 保存不可变页面；`product-catalog/nvidia/discovery.sqlite3` 保存发现队列、官网产品路径 sitemap 台账、目录关系和版本观察；`catalog.json` 为结构化交付，来源只传 SHA/URL/快照路径等核查收据和原厂规格表，避免重复传输 HTML 正文/链接；`product-sitemap.json` 是我们自己的公司产品图（产品/系列、官网类别、父级关系、来源 SHA、规格状态与 sitemap 对账证据），不是 NVIDIA 的 XML sitemap。原厂规格表保留分组、字段、配置列、合并单元格和脚注，上下标保留标记。路径相同的 nvidia.com 英/中文页与 nvidia.cn 中文页合并到同一页面身份，来源快照分别保留。不同产品不硬套同一模板，不猜缺值、不自动把整柜参数换成单卡参数。
 
+### 同一产品的多来源归并与提取优先级
+
+官网可能在系列页、型号详情页、产品对比页、PDF datasheet 和脚本组件中重复发布同一型号。先按稳定产品身份归并这些来源，产品保留一个主规格来源和其余官方证据链接；不把同一产品计成多个型号，也不重复下载内容相同的载体。主来源依次优先：该型号官方详情页中的原生规格表；明确列出该型号的官方系列/对比表；可机器读取的官方 PDF/Office 参数表；官方静态数据组件；图片或扫描件 OCR。精确型号页胜过通用 compare 页面。备用来源继续保留，发生冲突时分别记来源、观察时间和原始版本，不静默覆盖。
+
+能直接读取的 HTML 表格/DOM 或官方静态数据应先于 OCR：通常更快、字段与配置列更完整、可保留脚注，也容易稳定重跑。OCR 只在原厂内容确实以图像/扫描发布且没有可读 HTML、文本 PDF 或结构化组件时使用；OCR 值须保存页码/区域和低置信度标记，不得伪装成原生规格表。
+
+系列/对比表的列可能分别代表不同具体型号。若表头明确命名型号，采集器将每个型号列拆成独立产品规格记录，保留列内字段和值、系列 `parent_id`、来源 URL/SHA 和原表脚注。型号页和系列表命中同一产品时合并到同一 ID，选择更具体的型号/系列参数页为主来源，其他页只作为辅助证据。GeForce RTX 家族的型号参数列不能只留在一个“系列”记录里，也不能让动态 JS 地址代替产品来源。
+
 型号页、系列/平台、软件服务分开；型号识别待复核，官网列出不等于确认在售。目录数量不是 SKU 数，frontier 耗尽不等于全公司产品穷尽。动态规格、PDF 定向抽取、独立文档站和配置拆分仍待补齐。仅采英文与中文来源；官方中文站 `www.nvidia.cn` 的根路径纳入，其他地区语言不采集。
 
 inresearch 的 `manage.py product-catalog import --input <catalog.json> --archive-root <原件根>` 核验快照后入私有 SQLite；`product-catalog publish` 用 NVIDIA 专用凭证交 AWS。`/product-catalog.html` 直接用结构化数据展示、筛选、并排核查和导出 CSV；原文只在核查时打开。规格提取不自动成为正式研究采用。
@@ -22,7 +30,7 @@ inresearch 的 `manage.py product-catalog import --input <catalog.json> --archiv
 
 ## 官方动态规格组件
 
-GeForce 50 系列正文把规格放在官方脚本组件的数据常量里。目录抓取结束后运行 PYTHONPATH=src python3 -m fetchspec.nvidia_components --out /Users/m5/Downloads/tempfetch：只获取已归档产品页明确引用的官方组件，读取受限 JSON 字面量，不执行下载的 JavaScript；只把页面 staticColumns 明确展示的型号入库，不把组件中历史对比选项当成当前系列产品。组件原件、SHA、引用它的产品页和字段原文保留；状态为部分字段提取，完整规格与性能条件仍待核对。与目录 worker 共用排他锁，重复执行复用已验证快照。
+GeForce 页面可能嵌有官方脚本组件，但若已采集的型号/系列页含原生规格表，应优先使用这些页面，组件仅作补充。确需组件时运行 PYTHONPATH=src python3 -m fetchspec.nvidia_components --out /Users/m5/Downloads/tempfetch：只获取已归档产品页明确引用的官方组件，读取受限 JSON 字面量，不执行下载的 JavaScript；只把页面 staticColumns 明确展示的型号入库，不把组件中历史对比选项当成当前系列产品。组件原件、SHA、引用它的产品页和字段原文保留；状态为部分字段提取，完整规格与性能条件仍待核对。产品主来源不得指向 JS 文件，应回指型号/系列页，并把组件登记为独立支持证据。与目录 worker 共用排他锁，重复执行复用已验证快照。
 
 ## 旧附件任务范围（2026-09-26 收窄）
 
