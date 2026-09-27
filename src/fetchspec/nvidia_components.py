@@ -88,7 +88,7 @@ def _run(root, base, *, refresh=False):
     for page, url, columns in candidates:
         if url in seen: continue
         seen.add(url)
-        source = next((json.loads(r[0]) for r in db.execute('SELECT payload FROM component_sources')
+        source = next((json.loads(r[0]) for r in db.execute('SELECT payload FROM component_sources ORDER BY rowid DESC')
                        if json.loads(r[0])['requested_url'] == url), None)
         if source and not refresh:
             body = (root / source['snapshot_path']).read_bytes()
