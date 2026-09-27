@@ -35,6 +35,12 @@ class ProductCatalogTests(unittest.TestCase):
         data = parse_page(b'<h1><span>G</span>eForce RTX 5090</h1>', 'https://www.nvidia.com/en-us/geforce/')
         self.assertEqual(data['heading'], 'GeForce RTX 5090')
 
+    def test_model_navigation_is_evidence_even_when_body_is_dynamic(self):
+        data = parse_page(b'<nav><a href="/en-us/geforce/graphics-cards/50-series/rtx-5090/">RTX 5090</a><a href="/en-us/news/">News</a></nav><h1>GeForce RTX 50 Series</h1>', 'https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/')
+        self.assertEqual(len(data['links']), 1)
+        self.assertEqual(data['links'][0]['role'], 'model_navigation')
+        self.assertEqual(entity_kind('GeForce RTX 4070 Family', ''), 'family_or_directory')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -164,6 +164,18 @@ def parse_page(body, url):
         tables.append({'index': len(tables) + 1, 'section': grid['section'], 'rows': grid['rows'],
             'is_specification': True, 'method': 'nvidia_official_spec_grid',
             'text': '\n'.join(' | '.join(c['text'] for c in r) for r in grid['rows']), 'notes': '\n'.join(dict.fromkeys(grid['notes']))})
+    # Product family sites list individual models in their official navigation,
+    # sometimes before H1 while the body only embeds a dynamic comparison grid.
+    # Read only explicit model links within product paths, not all site chrome.
+    if urlsplit(url).path.rstrip('/') != '/en-us/products':
+        seen = {link['url'] for link in links}
+        for anchor in root.walk('a'):
+            link = normalized(anchor.attrs.get('href', ''), url)
+            if (link and link not in seen and page_allowed(link)
+                    and re.search(r'/(data-center|networking|geforce/(graphics-cards|laptops)|products|design-visualization|autonomous-machines)/', urlsplit(link).path)
+                    and (MODEL.search(anchor.text()) or MODEL.search(re.sub(r'[-_/]', ' ', link)))):
+                links.append({'url': link, 'label': anchor.text(), 'section': 'Official product navigation', 'role': 'model_navigation'})
+                seen.add(link)
     canonical = next((normalized(n.attrs.get('href', ''), url) for n in root.walk('link')
                       if n.attrs.get('rel') == 'canonical'), None)
     return {'heading': heading, 'title': title, 'canonical': canonical, 'links': links,
@@ -185,7 +197,7 @@ MODEL = re.compile(r'\b(?:[ABHLV]\d{2,3}[A-Z]*|GB\d{3}|GH\d{3}|RTX\s*(?:PRO\s*)?
 
 
 def entity_kind(heading, url):
-    if re.search(r'\b(?:Series|Platform|Architecture)\b', heading, re.I):
+    if re.search(r'\b(?:Series|Family|Platform|Architecture)\b', heading, re.I):
         return 'family_or_directory'
     if MODEL.search(heading):
         return 'named_product'
