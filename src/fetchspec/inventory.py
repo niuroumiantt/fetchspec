@@ -229,13 +229,43 @@ def run_inventory(profile, data_root, fetcher=None, progress=None):
         atomic_json(run / "status.json", summary)
         return summary
     found, root_sources = {}, []
+    # Durable URL-level baseline. Sitemap omissions are observations, not
+    # deletion evidence, so absent records remain preserved for review.
+    state_path = base / "current_state.json"
+    try:
+        prior_state = json.loads(state_path.read_text()) if state_path.exists() else {"urls": {}}
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError("existing sitemap state is unreadable; inspect before continuing") from exc
+    complete_path = base / "latest-complete-sitemaps.json"
+    if complete_path.is_file():
+        try:
+            complete = json.loads(complete_path.read_text())
+            if complete.get("status") == "sitemaps_complete" and prior_state.get("run_id") != complete.get("run_id"):
+                manifest_path = (Path(data_root) / complete["url_manifest"]).resolve()
+                if manifest_path.is_relative_to(Path(data_root).resolve()) and manifest_path.is_file():
+                    restored_urls = {}
+                    for line in manifest_path.read_text().splitlines():
+                        item = json.loads(line)
+                        fingerprint = hashlib.sha256(json.dumps(item.get("sources", []), sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+                        restored_urls[item["url"]] = {"kind_hint": item.get("kind_hint", "page_or_download_endpoint"),
+                            "source_fingerprint": fingerprint, "sources": item.get("sources", []),
+                            "last_seen_run": complete["run_id"], "last_seen_at": complete.get("finished_at"), "status": "observed"}
+                    restored_sitemaps = {s["url"]: {"sha256": s.get("sha256"), "etag": s.get("etag"),
+                        "last_modified": s.get("last_modified"), "entries": s.get("entries"), "snapshot": s.get("snapshot"),
+                        "observed_at": s.get("observed_at")} for s in complete.get("sitemaps", [])}
+                    prior_state = {"run_id": complete["run_id"], "urls": restored_urls,
+                                   "sitemaps": restored_sitemaps, "status": "sitemaps_complete"}
+        except (OSError, KeyError, json.JSONDecodeError):
+            pass
     sources = [{"role": "sitemap_index", "url": profile["sitemap_index"]}] + profile["sitemaps"]
     source_keys = {(row["role"], row["url"]) for row in sources}
     index_body = None
+    index_meta = None
+    source_state = dict(prior_state.get("sitemaps", {}))
     for source in sources:
         if source["role"] == "sitemap_index":
             try:
-                index_body, _ = fetcher.get(source["url"])
+                index_body, index_meta = fetcher.get(source["url"])
             except Exception:
                 index_body = None
             break
@@ -260,7 +290,26 @@ def run_inventory(profile, data_root, fetcher=None, progress=None):
                                  "error": type(exc).__name__, "detail": str(exc)[:300]})
     for source in sources:
         try:
-            body, meta = fetcher.get(source["url"])
+            prior_source = prior_state.get("sitemaps", {}).get(source["url"], {})
+            validators = {}
+            if prior_source.get("etag"):
+                validators["If-None-Match"] = prior_source["etag"]
+            if prior_source.get("last_modified"):
+                validators["If-Modified-Since"] = prior_source["last_modified"]
+            try:
+                if source["role"] == "sitemap_index" and index_body is not None:
+                    body, meta = index_body, index_meta
+                else:
+                    body, meta = fetcher.get(source["url"], headers=validators)
+            except HTTPError as exc:
+                if exc.code != 304 or not prior_source.get("snapshot"):
+                    raise
+                cached_snapshot = (Path(data_root) / prior_source["snapshot"]).resolve()
+                body = cached_snapshot.read_bytes()
+                if hashlib.sha256(body).hexdigest() != prior_source.get("sha256"):
+                    raise ValueError("cached sitemap snapshot integrity failure")
+                meta = {"final_url": source["url"], "status": 304, "content_type": "application/xml",
+                        "etag": prior_source.get("etag"), "last_modified": prior_source.get("last_modified")}
             digest = hashlib.sha256(body).hexdigest()
             snapshot = base / "snapshots" / (digest + ".xml")
             if not snapshot.exists():
@@ -283,6 +332,9 @@ def run_inventory(profile, data_root, fetcher=None, progress=None):
             entry = {**source, **meta, "entries": len(rows), "sha256": digest,
                      "snapshot": str(snapshot.relative_to(data_root)), "observed_at": utc_now()}
             summary["sitemaps"].append(entry)
+            source_state[source["url"]] = {"sha256": digest, "etag": meta.get("etag"),
+                "last_modified": meta.get("last_modified"), "observed_at": entry["observed_at"], "entries": len(rows),
+                "snapshot": str(snapshot.relative_to(data_root))}
             if progress:
                 progress(entry)
         except Exception as exc:
@@ -290,11 +342,30 @@ def run_inventory(profile, data_root, fetcher=None, progress=None):
         atomic_json(run / "status.json", summary)
     # Persist every origin; do not merge language variants or distinct query strings.
     rows = sorted(found.values(), key=lambda item: item["url"])
-    body = "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows).encode()
-    atomic_bytes(run / "urls.jsonl", body)
-    selected = {r["url"] for r in sources}
+    previous_urls = prior_state.get("urls", {})
+    now_urls, changes = {}, Counter()
+    for item in rows:
+        url = item["url"]
+        fingerprint = hashlib.sha256(json.dumps(item["sources"], sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+        old = previous_urls.get(url)
+        status = "new" if old is None else ("changed" if old.get("source_fingerprint") != fingerprint else "unchanged")
+        item["map_status"] = status
+        changes[status] += 1
+        now_urls[url] = {"kind_hint": item["kind_hint"], "source_fingerprint": fingerprint,
+                         "sources": item["sources"], "last_seen_run": run_id,
+                         "last_seen_at": utc_now(), "status": status}
     selected_urls = {r["url"] for r in sources}
     selected_errors = [error for error in summary["errors"] if error.get("url") in selected_urls]
+    observation_complete = not selected_errors and not index_errors
+    for url in sorted(set(previous_urls) - set(now_urls)):
+        if observation_complete:
+            now_urls[url] = {**previous_urls[url], "status": "absent_from_sitemap",
+                             "absence_observed_run": run_id, "absence_observed_at": utc_now()}
+            changes["absent_from_sitemap"] += 1
+        else:
+            now_urls[url] = {**previous_urls[url], "status": "not_observed_due_to_incomplete_sitemap_run"}
+    body = "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows).encode()
+    atomic_bytes(run / "urls.jsonl", body)
     summary["index_selection_errors"] = index_errors
     summary["unselected_index_sitemaps"] = [u for u in root_sources if u not in selected_urls]
     summary.update(status="sitemaps_complete" if not selected_errors and not index_errors else "sitemaps_incomplete",
@@ -304,9 +375,15 @@ def run_inventory(profile, data_root, fetcher=None, progress=None):
                    url_manifest=str((run / "urls.jsonl").relative_to(data_root)),
                    url_manifest_sha256=hashlib.sha256(body).hexdigest(),
                    report_path=str(run / "status.json"), website_coverage_complete=False)
+    summary["reconciliation"] = {"new": changes["new"], "changed": changes["changed"],
+        "unchanged": changes["unchanged"], "absent_from_sitemap": changes["absent_from_sitemap"],
+        "absence_is_not_deletion": True, "previous_run": prior_state.get("run_id")}
+    atomic_json(state_path, {"schema_version": 1, "company_id": company, "run_id": run_id,
+        "status": summary["status"], "observed_at": summary["finished_at"], "sitemaps": source_state, "urls": now_urls,
+        "reconciliation": summary["reconciliation"]})
     atomic_json(run / "status.json", summary)
     # Keep last successful and last attempted pointers separate.
     atomic_json(base / "latest-attempt.json", summary)
-    if not summary["errors"]:
+    if summary["status"] == "sitemaps_complete":
         atomic_json(base / "latest-complete-sitemaps.json", summary)
     return summary

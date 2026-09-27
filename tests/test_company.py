@@ -173,6 +173,58 @@ class DiscoveryTests(unittest.TestCase):
             self.assertFalse(report["website_coverage_complete"])
             self.assertEqual(report["downloaded_product_documents_this_run"], 0)
 
+    def test_inventory_reconciliation_is_durable_and_does_not_delete_absent_urls(self):
+        p = load_profile("supermicro")
+        p["sitemaps"] = [{"role": "test", "url": BASE + "/sitemap.xml"}]
+        index = b'<sitemapindex><sitemap><loc>https://www.supermicro.com/sitemap.xml</loc></sitemap></sitemapindex>'
+        first = b'<urlset><url><loc>https://www.supermicro.com/en/products/a</loc></url><url><loc>https://www.supermicro.com/en/products/b</loc></url></urlset>'
+        second = b'<urlset><url><loc>https://www.supermicro.com/en/products/a</loc></url></urlset>'
+        with TemporaryDirectory() as tmp:
+            run_inventory(p, Path(tmp), fetcher=FakeFetcher({p["sitemap_index"]: (index, "application/xml"), BASE + "/sitemap.xml": (first, "application/xml")}))
+            report = run_inventory(p, Path(tmp), fetcher=FakeFetcher({p["sitemap_index"]: (index, "application/xml"), BASE + "/sitemap.xml": (second, "application/xml")}))
+            state = json.loads((Path(tmp) / "ledger/companies/supermicro/inventory/current_state.json").read_text())
+            self.assertEqual(report["reconciliation"]["new"], 0)
+            self.assertEqual(report["reconciliation"]["unchanged"], 1)
+            self.assertEqual(report["reconciliation"]["absent_from_sitemap"], 1)
+            missing = state["urls"]["https://www.supermicro.com/en/products/b"]
+            self.assertEqual(missing["status"], "absent_from_sitemap")
+            self.assertTrue(report["reconciliation"]["absence_is_not_deletion"])
+
+    def test_inventory_reuses_verified_snapshot_on_http_304(self):
+        p = load_profile("supermicro")
+        p["sitemaps"] = [{"role": "test", "url": BASE + "/sitemap.xml"}]
+        index = b'<sitemapindex><sitemap><loc>https://www.supermicro.com/sitemap.xml</loc></sitemap></sitemapindex>'
+        page = b'<urlset><url><loc>https://www.supermicro.com/en/products/a</loc></url></urlset>'
+        with TemporaryDirectory() as tmp:
+            run_inventory(p, Path(tmp), fetcher=FakeFetcher({p["sitemap_index"]: (index, "application/xml"), BASE + "/sitemap.xml": (page, "application/xml")}))
+            class NotModifiedFetcher:
+                def prepare_robots(self): return []
+                def get(self, url, headers=None, **kwargs):
+                    if url == p["sitemap_index"]:
+                        return index, {"status": 200, "final_url": url, "content_type": "application/xml"}
+                    self.validators = headers
+                    raise HTTPError(url, 304, "Not Modified", {}, None)
+            f = NotModifiedFetcher()
+            report = run_inventory(p, Path(tmp), fetcher=f)
+            self.assertIn('If-None-Match', f.validators)
+            self.assertEqual(report["reconciliation"]["unchanged"], 1)
+            self.assertEqual(report["status"], "sitemaps_complete")
+
+    def test_incomplete_inventory_never_marks_omissions_and_recovers_last_complete(self):
+        p = load_profile("supermicro")
+        p["sitemaps"] = [{"role": "test", "url": BASE + "/sitemap.xml"}]
+        index = b'<sitemapindex><sitemap><loc>https://www.supermicro.com/sitemap.xml</loc></sitemap></sitemapindex>'
+        page = b'<urlset><url><loc>https://www.supermicro.com/en/products/a</loc></url><url><loc>https://www.supermicro.com/en/products/b</loc></url></urlset>'
+        with TemporaryDirectory() as tmp:
+            run_inventory(p, Path(tmp), fetcher=FakeFetcher({p["sitemap_index"]: (index, "application/xml"), BASE + "/sitemap.xml": (page, "application/xml")}))
+            failed = HTTPError(BASE + "/sitemap.xml", 503, "Unavailable", {}, None)
+            partial = run_inventory(p, Path(tmp), fetcher=FakeFetcher({p["sitemap_index"]: (index, "application/xml"), BASE + "/sitemap.xml": failed}))
+            self.assertEqual(partial["status"], "sitemaps_incomplete")
+            self.assertEqual(partial["reconciliation"]["absent_from_sitemap"], 0)
+            state = json.loads((Path(tmp) / "ledger/companies/supermicro/inventory/current_state.json").read_text())
+            self.assertEqual(len(state["urls"]), 2)
+            self.assertNotIn("absent_from_sitemap", {row["status"] for row in state["urls"].values()})
+
     def test_inventory_selects_published_sitemaps_from_index(self):
         p = load_profile("nvidia")
         index = b'<sitemapindex><sitemap><loc>https://www.nvidia.com/en-us/en-us.sitemap.xml</loc></sitemap><sitemap><loc>https://www.nvidia.com/fr-fr/fr-fr.sitemap.xml</loc></sitemap><sitemap><loc>https://www.nvidia.com/zh-tw/zh-tw.sitemap.xml</loc></sitemap><sitemap><loc>https://www.nvidia.com/zh-cn/zh-cn.sitemap.xml</loc></sitemap><sitemap><loc>https://www.nvidia.com/gtc/sitemap_sessions.xml</loc></sitemap></sitemapindex>'
