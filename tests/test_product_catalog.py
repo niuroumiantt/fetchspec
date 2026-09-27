@@ -108,5 +108,60 @@ class ProductCatalogTests(unittest.TestCase):
         self.assertIs(sitemap_entry_for_page(page, {entry['url']: entry}), entry)
 
 
+    def test_official_comparison_columns_become_model_records(self):
+        from fetchspec.product_catalog import export, product_identifier, model_source_rank
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            base = root / 'product-catalog/nvidia'
+            base.mkdir(parents=True)
+            inventory = root / 'ledger/companies/nvidia/inventory'
+            inventory.mkdir(parents=True)
+            (inventory / 'latest-attempt.json').write_text(json.dumps({'status': 'sitemaps_complete',
+                'run_id': 'fixture', 'finished_at': '2026-09-28T00:00:00+00:00',
+                'unique_url_candidates': 1, 'sitemaps': []}))
+            db = sqlite3.connect(base / 'discovery.sqlite3')
+            db.row_factory = sqlite3.Row
+            db.executescript('''CREATE TABLE pages(url TEXT PRIMARY KEY,sha TEXT,observed_at TEXT,payload TEXT);
+              CREATE TABLE product_map(id TEXT PRIMARY KEY,name TEXT,parent_id TEXT,source_sha256 TEXT,source_url TEXT,kind TEXT,change_status TEXT,observed_at TEXT);
+              CREATE TABLE product_map_events(event_id INTEGER PRIMARY KEY AUTOINCREMENT,product_id TEXT,observed_at TEXT,status TEXT,source_sha256 TEXT,payload TEXT);
+              CREATE TABLE frontier(url TEXT PRIMARY KEY,depth INTEGER,parent TEXT,category TEXT,label TEXT,state TEXT,error TEXT);
+              CREATE TABLE memberships(url TEXT,parent TEXT,category TEXT,label TEXT);
+              CREATE TABLE product_sitemap_urls(url TEXT PRIMARY KEY,category TEXT,lastmod TEXT,role_data TEXT,state TEXT,observed_at TEXT);''')
+            url = 'https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5070-family/'
+            sha = 'a' * 64
+            cell = lambda text: {'text': text, 'colspan': 1, 'rowspan': 1, 'header': False}
+            rows = [[cell(''), cell(''), cell('GeForce RTX 5070 Ti'), cell('GeForce RTX 5070')],
+                    [cell('GPU Engine Specs:'), cell('NVIDIA CUDA Cores'), cell('8960'), cell('6144')],
+                    [cell('Memory Specs:'), cell('Standard Memory Config'), cell('16 GB GDDR7'), cell('12 GB GDDR7')]]
+            table = {'index': 1, 'section': 'GeForce RTX 5070 Family', 'rows': rows,
+                     'is_specification': True, 'notes': 'Official footnote', 'method': 'html_table'}
+            compare_rows = [[cell(''), cell('GeForce RTX 5070 Ti'), cell('GeForce RTX 5070')],
+                [cell('GPU Engine Specs:'), cell(''), cell('')],
+                [cell('NVIDIA CUDA Cores'), cell('8960'), cell('6144')],
+                [cell('Standard Memory Config'), cell('16 GB GDDR7'), cell('12 GB GDDR7')]]
+            compare = {'index': 2, 'section': 'Compare 50 Series Specs', 'rows': compare_rows,
+                       'is_specification': True, 'notes': 'Official footnote', 'method': 'html_table'}
+            page = {'heading': 'GeForce RTX 5070 Family', 'title': 'Family', 'canonical': url,
+                    'links': [], 'tables': [table, compare], 'text': '', 'source_url': url,
+                    'requested_url': url, 'sha256': sha, 'snapshot_path': 'blobs/aa/a.html',
+                    'observed_at': '2026-09-28T00:00:00+00:00', 'category': 'Gaming and Creating',
+                    'parent_url': '', 'depth': 1, 'kind': 'family_or_directory',
+                    'http': {'status': 200, 'final_url': url, 'content_type': 'text/html'}}
+            db.execute('INSERT INTO pages VALUES(?,?,?,?)', (url, sha, page['observed_at'], json.dumps(page)))
+            coverage = export(db, base)
+            products = json.loads((base / 'catalog.json').read_text())['products']
+            self.assertEqual(coverage['entity_counts']['named_product'], 2)
+            self.assertGreater(model_source_rank(url), model_source_rank('https://www.nvidia.com/en-us/geforce/graphics-cards/compare/'))
+            for model, cuda, memory in [('NVIDIA GeForce RTX 5070 Ti', '8960', '16 GB GDDR7'),
+                                        ('NVIDIA GeForce RTX 5070', '6144', '12 GB GDDR7')]:
+                product = next(p for p in products if p['name'] == model)
+                self.assertEqual(product['id'], product_identifier(model))
+                values = {row[0]['text']: row[1]['text'] for row in product['tables'][0]['rows']}
+                self.assertEqual(values.get('NVIDIA CUDA Cores'), cuda, repr(values))
+                self.assertEqual(values.get('Standard Memory Config'), memory, repr(values))
+                self.assertIn('Official footnote', product['tables'][0]['notes'])
+                self.assertEqual(len(product['tables']), 1)
+
+
 if __name__ == '__main__':
     unittest.main()

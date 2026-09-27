@@ -334,6 +334,20 @@ def product_identifier(name):
     return 'nvidia-' + hashlib.sha256(('nvidia-product:' + key).encode()).hexdigest()[:20]
 
 
+def model_source_rank(url):
+    """Prefer a model/family specification page over a generic comparison page."""
+    path = urlsplit(url).path.casefold()
+    if '/compare/' in path:
+        return 0
+    if re.search(r'/rtx-\d{3,4}/?$', path) or re.search(r'/rtx-pro-\d{4}/?$', path):
+        return 4
+    if re.search(r'/rtx-\d{4}-family/?$', path):
+        return 3
+    if '/50-series/' in path:
+        return 2
+    return 1
+
+
 def section_products(page):
     """Extract explicitly named products and datasheet entry points by vendor section."""
     sections = {}
@@ -577,6 +591,114 @@ def export(db, base, baseline=None):
             if not old['tables'] and candidate['tables']:
                 old['tables'] = candidate['tables']
             old['extraction_status'] = 'native_tables_extracted' if old['tables'] else 'specification_search_pending'
+    # Some official portfolio pages expose several shipping models as columns
+    # in one native specification table (for example RTX 5070 Ti / RTX 5070).
+    # Split those columns into model records while preserving each source row,
+    # the source page, and the parent family relationship.
+    for page in pages:
+        if not page.get('heading') or not page_allowed(page.get('source_url', '')):
+            continue
+        parent_id = known_id_by_path.get(identity_path(page['source_url']), website_page_identity(page['source_url']))
+        parent = entities.get(parent_id)
+        if not parent:
+            continue
+        for table in page.get('tables', []):
+            if not table.get('is_specification') or not table.get('rows'):
+                continue
+            header = table['rows'][0]
+            model_columns = [(index, ' '.join(cell.get('text', '').split()))
+                for index, cell in enumerate(header)
+                if entity_kind(' '.join(cell.get('text', '').split()), '') == 'named_product'
+                and MODEL.search(cell.get('text', ''))]
+            if not model_columns:
+                continue
+            # The first explicit model header determines how many leading
+            # columns are labels. NVIDIA uses both one-label and
+            # section+parameter two-label layouts.
+            first_model_column = model_columns[0][0]
+            for column, model in model_columns:
+                name = model if model.lower().startswith('nvidia ') else 'NVIDIA ' + model
+                normalized_name = re.sub(r'^NVIDIA\s+', '', name).casefold()
+                existing = next((p for p in entities.values()
+                    if p['kind'] == 'named_product'
+                    and re.sub(r'^NVIDIA\s+', '', p['name']).casefold() == normalized_name), None)
+                child_id = existing['id'] if existing else product_identifier(name)
+                rows = []
+                for source_row in table['rows'][1:]:
+                    if column >= len(source_row):
+                        continue
+                    value = source_row[column]
+                    label = next((cell for cell in reversed(source_row[:first_model_column]) if cell.get('text', '').strip()), None)
+                    if not label or not value.get('text', '').strip():
+                        continue
+                    rows.append([label, value])
+                if not rows:
+                    continue
+                child = {'id': child_id, 'name': name, 'category': parent['category'],
+                    'categories': parent['categories'], 'kind': 'named_product',
+                    'availability': 'not_verified', 'identity_status': 'official_comparison_column',
+                    'parent_id': parent_id, 'product_url': page['source_url'],
+                    'source_url': page['source_url'], 'source_sha256': page['sha256'],
+                    'observed_at': page['observed_at'], 'tables': [{**table, 'rows': rows,
+                        'section': model + ' — official comparison-table specifications'}],
+                    'attachments': [], 'official_pages': [{'url': page['source_url'], 'sha256': page['sha256']}],
+                    'website_sitemap': {'matched': page['source_url'] in sitemap_rows,
+                        'roles': json.loads(sitemap_rows[page['source_url']]['role_data']) if page['source_url'] in sitemap_rows else [],
+                        'lastmod_claims': sitemap_rows[page['source_url']]['lastmod'].split('|') if page['source_url'] in sitemap_rows and sitemap_rows[page['source_url']]['lastmod'] else [],
+                        'candidate_status': sitemap_rows[page['source_url']]['state'] if page['source_url'] in sitemap_rows else 'not_a_product_path'},
+                    'extraction_status': 'native_tables_extracted'}
+                if existing:
+                    child['official_pages'] = list({r['url']: r for r in existing.get('official_pages', []) + child['official_pages']}.values())
+                    child['attachments'] = list({r['url']: r for r in existing.get('attachments', []) + child['attachments']}.values())
+                    child['tables'] = list({hashlib.sha256(json.dumps({'rows': t['rows'], 'notes': t.get('notes', '')}, sort_keys=True, ensure_ascii=False).encode()).hexdigest(): t
+                        for t in existing['tables'] + child['tables']}.values())
+                    if model_source_rank(existing['source_url']) > model_source_rank(child['source_url']):
+                        for field in ('source_url', 'source_sha256', 'observed_at', 'product_url', 'parent_id', 'website_sitemap'):
+                            if field in existing:
+                                child[field] = existing[field]
+                entities[child_id] = child
+    # The current GeForce 50-series component schema exposes several child
+    # models only as a JavaScript comparison grid. Prefer already-collected
+    # official per-model HTML tables when present, and correct earlier
+    # component-only records whose citation pointed at the JS asset.
+    for component_id, row in list(db.execute('SELECT id,payload FROM component_products')) if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='component_products'").fetchone() else []:
+        product = json.loads(row)
+        matching = next((e for e in entities.values()
+            if e['kind'] == 'named_product'
+            and re.sub(r'^NVIDIA\s+', '', e['name']).casefold() == re.sub(r'^NVIDIA\s+', '', product['name']).casefold()
+            and e['tables']), None)
+        if matching:
+            matching['identity_status'] = 'official_model_page_and_component_observed'
+            matching['attachments'] = list({a['url']: a for a in matching.get('attachments', []) + product.get('attachments', [])}.values())
+            matching['official_pages'] = list({p['url']: p for p in matching.get('official_pages', []) + [{'url': product['product_url'], 'sha256': product['source_sha256']}]}.values())
+            matching['tables'].extend(t for t in product['tables'] if t.get('method') == 'official_component_literal_no_execution')
+            continue
+        component_source = next((s for s in db.execute('SELECT payload FROM component_sources')
+                                 if json.loads(s[0])['sha256'] == product['source_sha256']), None)
+        if component_source:
+            receipt = json.loads(component_source[0])
+            product['source_url'] = product['product_url']
+            product['source_sha256'] = hashlib.sha256((product['source_sha256'] + product['product_url']).encode()).hexdigest()
+            # A component and its parent page are separate evidence. Keep both
+            # as source records so the product's primary citation is a page.
+            page = next((p for p in pages if p['source_url'] == product['product_url']), None)
+            if page:
+                product['source_sha256'] = page['sha256']
+                product['observed_at'] = page['observed_at']
+                product['official_pages'] = [{'url': product['product_url'], 'sha256': page['sha256']}]
+                product['website_sitemap'] = sitemap_entry_for_page(page, sitemap_rows)
+                if product.get('website_sitemap'):
+                    entry = product['website_sitemap']
+                    product['website_sitemap'] = {'matched': True,
+                        'roles': json.loads(entry['role_data']),
+                        'lastmod_claims': entry['lastmod'].split('|') if entry['lastmod'] else [],
+                        'candidate_status': entry['state']}
+                product['tables'].append({'index': len(product['tables']) + 1,
+                    'section': product['name'] + ' — official dynamic component fields',
+                    'rows': product['tables'][0]['rows'], 'method': 'official_component_literal_no_execution',
+                    'is_specification': True, 'notes': 'Component values retained as supporting evidence; primary product citation is the official model page. Not a complete specification.'})
+                product['extraction_status'] = 'native_tables_extracted'
+                entities[component_id] = product
     frontier = [dict(r) for r in db.execute('SELECT * FROM frontier ORDER BY depth,url')]
     if db.execute("SELECT 1 FROM sqlite_master WHERE name='component_products'").fetchone():
         native_models = {re.sub(r'^NVIDIA\s+', '', e['name']).casefold() for e in entities.values()
@@ -660,7 +782,7 @@ def export(db, base, baseline=None):
         'coverage': {'complete': False, 'directory_url': 'https://www.nvidia.com/en-us/products/',
             'directory_entries': sum(r['depth'] == 1 and r['parent'] == seed for r in frontier), 'pages_observed': len(pages),
             'pending_pages': sum(r['state'] == 'pending' for r in frontier), 'failed_pages': sum(r['state'] == 'failed' for r in frontier),
-            'entity_counts': dict(counts), 'with_spec_tables': sum(bool(e['tables']) for e in entities.values()),
+            'entity_counts': dict(counts), 'with_spec_tables': sum(bool(e['tables']) for e in expanded.values()),
             'website_sitemap': sitemap_info,
             'limitations': ['官网目录入口不等于全部具体 SKU；产品身份、配置拆分和在售状态仍需核对。',
                 '仅从官方目录和产品相关链接扩展；未解析的动态表格、PDF 及独立文档站规格保留待提取。',
