@@ -186,8 +186,10 @@ def parse_page(body, url):
 
 def page_allowed(url):
     p = urlsplit(url)
-    if p.hostname not in {'www.nvidia.com', 'www.nvidia.cn'} or p.query:
+    if p.hostname not in OFFICIAL_PAGE_HOSTS or p.query:
         return False
+    if p.hostname in REDIRECT_PAGE_PATHS:
+        return p.path.rstrip('/') in REDIRECT_PAGE_PATHS[p.hostname]
     # www.nvidia.cn publishes its zh-CN sitemap with root-relative paths
     # (e.g. /networking/products/), unlike nvidia.com/zh-cn/.
     if p.hostname == 'www.nvidia.com' and not p.path.startswith(('/en-us/', '/zh-cn/')):
@@ -258,10 +260,16 @@ def sync_product_sitemap(root, db):
         parent = 'official-sitemap:' + category.casefold().replace(' ', '-')
         db.execute('INSERT OR IGNORE INTO frontier(url,depth,parent,category,label) VALUES(?,?,?,?,?)',
                    (url, 1, parent, category, 'Official sitemap product candidate'))
-        pending = db.execute('SELECT state FROM frontier WHERE url=?', (url,)).fetchone()
+        pending = db.execute('SELECT state,error FROM frontier WHERE url=?', (url,)).fetchone()
         if not page and pending and pending['state'] == 'excluded':
             db.execute("UPDATE frontier SET state='pending',error=NULL,category=?,label=? WHERE url=?",
                        (category, 'Official sitemap product candidate', url))
+        elif (not page and pending and pending['state'] == 'failed'
+              and 'outside HTTPS host allowlist' in (pending['error'] or '')):
+            # A code-reviewed official redirect-host allowlist may make a prior
+            # candidate fetchable; retry that policy failure on the next sync.
+            db.execute("UPDATE frontier SET state='pending',error=NULL,category=?,label=?,parent=? WHERE url=?",
+                       (category, 'Official sitemap product candidate', parent, url))
         if state == 'changed':
             db.execute("UPDATE frontier SET state='pending',error=NULL WHERE url=?", (url,))
     db.commit()
@@ -272,6 +280,13 @@ def sync_product_sitemap(root, db):
 
 
 MODEL = re.compile(r'\b(?:[ABHLV]\d{2,3}[A-Z]*|GB\d{3}|GH\d{3}|RTX\s*(?:PRO\s*)?\d{3,4}|GeForce\s+(?:RTX|GTX)\s*\d+|ConnectX[-– ]?\d+|BlueField[-– ]?\d+|Quantum[-– ]?\d+|Spectrum[-– ]?\d+|DGX\s+(?:Spark|Station|[ABH]\d+)|Jetson\s+(?:AGX|Orin|Thor|Nano|TX\d)|SHIELD\s+TV)\b', re.I)
+OFFICIAL_PAGE_HOSTS = {'www.nvidia.com', 'www.nvidia.cn', 'developer.nvidia.com',
+                       'developer.nvidia.cn', 'networking-docs.nvidia.com'}
+REDIRECT_PAGE_PATHS = {
+    'developer.nvidia.com': {'/riva', '/topics/ai/generative-ai/riva', '/holoscan-for-media'},
+    'developer.nvidia.cn': {'/riva', '/topics/ai/generative-ai/riva'},
+    'networking-docs.nvidia.com': {'/software/lts-releases'},
+}
 
 
 def entity_kind(heading, url):
@@ -420,7 +435,12 @@ def _collect(root, *, max_pages=200, refresh=False, reparse=False, incremental=F
             enqueue_links(db, row, old)
             db.execute('UPDATE pages SET payload=? WHERE url=?', (json.dumps(old, ensure_ascii=False), saved['url']))
     db.commit()
-    fetcher = InventoryFetcher({'allowed_hosts': ['www.nvidia.com', 'www.nvidia.cn'],
+    if reparse:
+        result = export(db, base, baseline)
+        db.close()
+        return result
+    fetcher = InventoryFetcher({'allowed_hosts': sorted(OFFICIAL_PAGE_HOSTS),
+        'robots_hosts': sorted(OFFICIAL_PAGE_HOSTS),
         'delay_seconds': 1.0, 'timeout_seconds': 30, 'max_xml_bytes': 8 * 1024 * 1024})
     atomic_json(base / 'robots.json', fetcher.prepare_robots())
     # Three in-flight requests, still globally spaced by the robots crawl delay.
@@ -453,7 +473,10 @@ def _collect(root, *, max_pages=200, refresh=False, reparse=False, incremental=F
     attempts = 0
     while attempts < max_pages:
         if not batch:
-            rows = db.execute("SELECT * FROM frontier WHERE state='pending' ORDER BY depth,url LIMIT ?", (min(3, max_pages-attempts),)).fetchall()
+            rows = db.execute("""SELECT f.* FROM frontier f WHERE f.state='pending'
+                ORDER BY CASE WHEN EXISTS (SELECT 1 FROM product_sitemap_urls s
+                    WHERE s.url=f.url AND s.state!='observed') THEN 0 ELSE 1 END, f.depth, f.url LIMIT ?""",
+                (min(3, max_pages-attempts),)).fetchall()
             for row in rows:
                 prior = db.execute('SELECT payload FROM pages WHERE url=?', (row['url'],)).fetchone()
                 batch.append((row, pool.submit(retrieve, row['url'], json.loads(prior[0]) if prior else None)))
@@ -476,6 +499,8 @@ def _collect(root, *, max_pages=200, refresh=False, reparse=False, incremental=F
                 'kind': entity_kind(data['heading'], meta['final_url']), 'http': meta})
             db.execute('INSERT OR REPLACE INTO pages VALUES(?,?,?,?)', (row['url'], sha, data['observed_at'], json.dumps(data, ensure_ascii=False)))
             db.execute('INSERT OR IGNORE INTO history VALUES(?,?,?)', (row['url'], sha, data['observed_at']))
+            db.execute("UPDATE product_sitemap_urls SET state='observed',observed_at=? WHERE url=?",
+                       (data['observed_at'], row['url']))
             # Expand directories, then product-linked specification resources. Never
             # use a whole-site sitemap as an unbounded HTML download frontier.
             enqueue_links(db, row, data)
@@ -621,10 +646,14 @@ def export(db, base, baseline=None):
     db.commit()
     counts = Counter(e['kind'] for e in expanded.values())
     sitemap_matched = sum(bool(e.get('website_sitemap', {}).get('matched')) for e in expanded.values())
+    product_urls_observed = sum(r['state'] == 'observed' for r in sitemap_rows.values())
     sitemap_info = {'status': inventory_summary.get('status'), 'run_id': inventory_summary.get('run_id'),
         'observed_at': inventory_summary.get('finished_at'), 'candidate_urls': inventory_summary.get('unique_url_candidates'),
-        'product_path_candidates': len(sitemap_rows), 'matched_catalog_sources': sitemap_matched,
-        'product_sitemaps_complete': False, 'whole_website_inventory_complete': False,
+        'product_path_candidates': len(sitemap_rows), 'product_path_observed': product_urls_observed,
+        'product_path_pending': len(sitemap_rows) - product_urls_observed,
+        'matched_catalog_sources': sitemap_matched,
+        'product_sitemaps_complete': bool(sitemap_rows) and product_urls_observed == len(sitemap_rows),
+        'whole_website_inventory_complete': False,
         'sitemap_sources': [{'role': s.get('role'), 'url': s.get('url'), 'entries': s.get('entries'), 'sha256': s.get('sha256')}
                             for s in (inventory_summary or {}).get('sitemaps', [])]}
     bundle = {'schema_version': 1, 'company_id': 'nvidia', 'generated_at': utc_now(),
