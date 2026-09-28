@@ -5,7 +5,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from fetchspec.product_catalog import parse_page, entity_kind, page_allowed, section_products, sitemap_product_category
 from fetchspec.product_catalog import sync_product_sitemap, website_page_identity, source_receipt, sitemap_entry_for_page
-from fetchspec.product_catalog import pdf_spec_tables_from_text
+from fetchspec.product_catalog import pdf_spec_tables_from_text, pdf_matrix_products
 from fetchspec.product_catalog import comparison_model_identity, product_identifier, frontier_failure_state, previous_page_identities
 from urllib.error import HTTPError
 
@@ -100,6 +100,57 @@ class ProductCatalogTests(unittest.TestCase):
             ('Total Bandwidth', '800 Gb/s'),
             ('Host Interface', 'PCIe Gen6: up to 48 lanes'),
         ])
+
+    def test_native_pdf_spec_parser_preserves_bullet_portfolio(self):
+        text = '\n'.join([
+            'Product overview                              Portfolio',
+            ' ' * 46 + '> 1 or 2 ports with up to 400 Gb/s connectivity',
+            ' ' * 46 + '> 32 GB on-board DDR5 memory',
+            ' ' * 46 + '> 1 GbE out-of-band',
+            ' ' * 46 + '> management port',
+            ' ' * 46 + '> Integrated BMC',
+        ])
+        table = pdf_spec_tables_from_text(text)[0]
+        self.assertEqual([row[1]['text'] for row in table['rows']], [
+            '1 or 2 ports with up to 400 Gb/s connectivity',
+            '32 GB on-board DDR5 memory',
+            '1 GbE out-of-band management port',
+            'Integrated BMC',
+        ])
+
+    def test_native_pdf_matrix_uses_column_gutters_and_splits_models(self):
+        text = '''Technical Specifications*
+
+ Switch Model                                                    SN6800-LD                                       SN6810-LD                               SN6600-LD
+
+ Optical form factor                                      512 MMC-12 800 Gb/s                            128 MMC-12 800 Gb/s                           64 OSFP 800 GbE
+                                                           co-packaged optics                             co-packaged optics                               liquid-DC
+ Switching capacity (Tb/s)                                        409.6 Tb/s                                      102.4 Tb/s                              102.4 Tb/s
+                                                                [4x 102.4 Tb/s]
+ CPU                                                         16-core x86, AMD                                8-core x86, AMD                           8-core x86, AMD
+ Cooling specifications                                          Liquid                                          Liquid                                     Liquid
+                                                        connector: 10x UQD8 v2                           connector: 4x UQD8 v2                      connector: 2x UQD8 v2
+*Hardware capabilities.'''
+        table = pdf_spec_tables_from_text(text)[0]
+        self.assertEqual([cell['text'] for cell in table['rows'][0]],
+                         ['Switch Model', 'SN6800-LD', 'SN6810-LD', 'SN6600-LD'])
+        self.assertEqual([cell['text'] for cell in table['rows'][1]], [
+            'Optical form factor', '512 MMC-12 800 Gb/s co-packaged optics',
+            '128 MMC-12 800 Gb/s co-packaged optics', '64 OSFP 800 GbE liquid-DC'])
+        self.assertEqual(table['rows'][3][1]['text'], '16-core x86, AMD')
+        evidence = {'id': 'doc', 'name': 'SN6000 Datasheet', 'category': 'Networking',
+            'categories': ['Networking'], 'source_url': 'https://resources.nvidia.com/sn6000',
+            'source_sha256': 'a' * 64, 'observed_at': '2026-01-01T00:00:00Z',
+            'tables': [{**table, 'source_refs': [{'url': 'https://example/spec.pdf', 'sha256': 'b' * 64}]}],
+            'attachments': [], 'official_pages': [], 'website_sitemap': {'matched': False}}
+        parent = {'id': 'series', 'name': 'NVIDIA Spectrum-6 SN6000 Series',
+            'category': 'Networking', 'categories': ['Networking'], 'source_url': 'https://nvidia.com/sn6000',
+            'official_resources': [{'url': evidence['source_url']}]}
+        children = pdf_matrix_products([evidence, parent])
+        self.assertEqual([child['name'] for child in children],
+                         ['NVIDIA SN6800-LD', 'NVIDIA SN6810-LD', 'NVIDIA SN6600-LD'])
+        self.assertTrue(all(child['parent_id'] == 'series' for child in children))
+        self.assertEqual(children[0]['tables'][0]['rows'][2][1]['text'], '16-core x86, AMD')
 
     def test_native_specification_preserves_variants_spans_notes_and_excludes_navigation(self):
         html = b'''<header><a href="/en-us/unrelated/">H100</a></header><h1>NVIDIA H200 GPU</h1>

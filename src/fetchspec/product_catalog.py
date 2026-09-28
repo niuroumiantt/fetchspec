@@ -484,6 +484,180 @@ def _pdf_right_panel_rows(lines, start, boundary):
     return rows
 
 
+def _pdf_bullet_panel(lines, start, boundary, section):
+    """Preserve an explicit vendor Portfolio/Specifications bullet panel."""
+    items, pending = [], ''
+    for raw in lines[start + 1:]:
+        if re.search(r'\|\s*(?:Datasheet|Product Brief|Technical Brief)\s*\|', raw, re.I):
+            break
+        if len(raw) > boundary and raw[max(0, boundary - 3):boundary].strip():
+            continue
+        content = (raw[boundary:] if len(raw) > boundary else '').strip()
+        if not content:
+            continue
+        if re.match(r'^(?:key\s+)?features\*?\s*$', content, re.I):
+            break
+        if content.startswith(('>', '•')):
+            value = content.lstrip('>•').strip()
+            # Some vendor PDFs repeat the bullet glyph on a wrapped visual
+            # line (for example ``1 GbE out-of-band`` / ``management port``).
+            if pending and value[:1].islower():
+                pending += ' ' + value
+                continue
+            if pending:
+                items.append(pending)
+            pending = value
+        elif pending:
+            pending += ' ' + content
+    if pending:
+        items.append(pending)
+    if len(items) < 3:
+        return None
+    return {'section': section, 'rows': [
+        [{'text': 'Official specification item', 'colspan': 1, 'rowspan': 1, 'header': False},
+         {'text': item, 'colspan': 1, 'rowspan': 1, 'header': False}]
+        for item in items]}
+
+
+def _pdf_key_features(lines, start):
+    """Parse explicit left-label/right-value Key Features tables."""
+    rows = []
+    label = ''
+    values = []
+
+    def flush():
+        nonlocal label, values
+        if label and values:
+            rows.append((label, '; '.join(values)))
+        label, values = '', []
+
+    for raw in lines[start + 1:]:
+        if re.search(r'\|\s*(?:Datasheet|Product Brief|Technical Brief)\s*\|', raw, re.I):
+            break
+        if not raw.strip():
+            continue
+        match = re.match(r'^\s*(?P<label>\S.*?)\s{2,}>\s*(?P<value>.+?)\s*$', raw)
+        continuation = re.match(r'^\s{20,}>?\s*(?P<value>\S.+?)\s*$', raw)
+        if match:
+            flush()
+            label = ' '.join(match.group('label').split())
+            values = [' '.join(match.group('value').split())]
+        elif label and continuation:
+            value = ' '.join(continuation.group('value').lstrip('•').split())
+            if value:
+                values.append(value)
+        elif rows or label:
+            break
+    flush()
+    if len(rows) < 3:
+        return None
+    return {'section': 'Key Features', 'rows': [
+        [{'text': label, 'colspan': 1, 'rowspan': 1, 'header': False},
+         {'text': value, 'colspan': 1, 'rowspan': 1, 'header': False}]
+        for label, value in rows]}
+
+
+def _pdf_model_matrix(lines, start):
+    """Preserve native multi-model PDF matrices and their wrapped cells."""
+    header_index = next((i for i in range(start + 1, min(len(lines), start + 12))
+        if re.match(r'^\s*Switch Model\b', lines[i], re.I)), None)
+    if header_index is None:
+        return None
+    header = lines[header_index]
+    models = [(m.start(), m.group()) for m in re.finditer(r'\bSN\d{4}(?:-[A-Z]+)?\b', header, re.I)]
+    if len(models) < 2:
+        return None
+    positions = [position for position, _ in models]
+    # Headers are centered above their columns, while values are left- or
+    # right-aligned inside those columns.  Slicing at the header starts cuts
+    # real values in half (``16-core`` became ``re``).  Use the midpoints
+    # between model headings as the stable inter-column gutters and leave a
+    # modest label gutter before the first centered heading.
+    label_boundary = max(20, positions[0] - 15)
+    boundaries = [label_boundary] + [
+        (positions[index] + positions[index + 1]) // 2
+        for index in range(len(positions) - 1)]
+    raw_rows = [('Switch Model', [name for _, name in models])]
+    for raw in lines[header_index + 1:]:
+        if raw.lstrip().startswith('*') or re.search(r'\|\s*Datasheet\s*\|', raw, re.I):
+            if len(raw_rows) > 1:
+                break
+            continue
+        label = raw[:label_boundary].strip()
+        values = [raw[boundary:(boundaries[i + 1] if i + 1 < len(boundaries) else None)].strip()
+                  for i, boundary in enumerate(boundaries)]
+        if not label and not any(values):
+            continue
+        if label and any(values):
+            raw_rows.append((label, values))
+        elif len(raw_rows) > 1:
+            old_label, old_values = raw_rows[-1]
+            if label:
+                old_label += ' ' + label
+            old_values = [(old_values[i] + ' ' + values[i]).strip() for i in range(len(models))]
+            raw_rows[-1] = (old_label, old_values)
+    if len(raw_rows) < 4:
+        return None
+    return {'section': 'Technical Specifications', 'rows': [[
+        {'text': label, 'colspan': 1, 'rowspan': 1, 'header': row_index == 0},
+        *[{'text': value, 'colspan': 1, 'rowspan': 1, 'header': row_index == 0}
+          for value in values]] for row_index, (label, values) in enumerate(raw_rows)]}
+
+
+def pdf_matrix_products(products):
+    """Split explicit PDF model columns into first-class product records."""
+    additions = []
+    by_resource = {}
+    for product in products:
+        for resource in product.get('official_resources', []):
+            by_resource.setdefault(resource.get('url'), []).append(product)
+    for evidence in products:
+        parents = by_resource.get(evidence.get('source_url'), [])
+        parent = next((item for item in parents if re.search(r'\b(?:Series|Platform|Family)\b', item['name'], re.I)),
+                      parents[0] if parents else evidence)
+        for table in evidence.get('tables', []):
+            rows = table.get('rows', [])
+            if not rows or not rows[0] or rows[0][0].get('text') != 'Switch Model':
+                continue
+            headers = [cell.get('text', '').strip() for cell in rows[0][1:]]
+            if len(headers) < 2 or not all(re.fullmatch(r'[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+', name, re.I)
+                                           for name in headers):
+                continue
+            refs = table.get('source_refs', [])
+            for column, model in enumerate(headers, 1):
+                existing = next((item for item in products
+                    if item.get('kind') == 'named_product'
+                    and re.search(rf'\b{re.escape(model)}$', item.get('name', ''), re.I)), None)
+                name = (existing['name'] if existing else
+                        (model if model.lower().startswith('nvidia ') else 'NVIDIA ' + model))
+                model_rows = []
+                for row in rows[1:]:
+                    if column >= len(row):
+                        continue
+                    label, value = row[0], row[column]
+                    if label.get('text', '').strip() and value.get('text', '').strip():
+                        model_rows.append([label, value])
+                if not model_rows:
+                    continue
+                product_id = existing['id'] if existing else product_identifier(name)
+                additions.append({'id': product_id, 'name': name,
+                    'category': parent['category'], 'categories': parent.get('categories', []),
+                    'kind': 'named_product', 'availability': 'not_verified',
+                    'identity_status': 'official_pdf_model_matrix',
+                    'parent_id': parent['id'], 'product_url': parent.get('source_url'),
+                    'source_url': evidence['source_url'], 'source_sha256': evidence['source_sha256'],
+                    'observed_at': evidence['observed_at'],
+                    'tables': [{**table, 'section': model + ' — official PDF specifications',
+                        'rows': model_rows, 'source_refs': refs}],
+                    'attachments': evidence.get('attachments', []),
+                    'official_resources': [],
+                    'official_pages': evidence.get('official_pages', []),
+                    'website_sitemap': evidence.get('website_sitemap', {'matched': False, 'roles': [],
+                        'lastmod_claims': [], 'candidate_status': 'official_resource_not_product_path'}),
+                    'extraction_status': 'native_tables_extracted'})
+    return additions
+
+
 def pdf_spec_tables_from_text(text):
     """Parse table-like native PDF text; kept separate for deterministic tests."""
     headings = re.compile(r'^\s*(?:(?:technical|product|hardware)\s+)?specifications?\s*:?[ \t]*$', re.I)
@@ -496,6 +670,12 @@ def pdf_spec_tables_from_text(text):
     for start, heading in enumerate(lines):
         heading_match = headings.fullmatch(heading)
         inline_match = inline_heading.search(heading) if not heading_match else None
+        matrix_heading = re.fullmatch(r'\s*Technical Specifications?\*?\s*', heading, re.I)
+        if matrix_heading:
+            matrix = _pdf_model_matrix(lines, start)
+            if matrix:
+                output.append(matrix)
+                continue
         if not heading_match and not inline_match:
             continue
         # ``pdftotext -layout`` preserves page columns.  Some NVIDIA briefs put
@@ -560,6 +740,21 @@ def pdf_spec_tables_from_text(text):
                 [{'text': label, 'colspan': 1, 'rowspan': 1, 'header': False},
                  {'text': cell, 'colspan': 1, 'rowspan': 1, 'header': False}]
                 for label, cell in rows]})
+    if not output:
+        for start, heading in enumerate(lines):
+            inline = re.search(r'(?P<gap>\s{2,})(?P<title>Portfolio|Specifications)\s*$', heading, re.I)
+            if inline:
+                table = _pdf_bullet_panel(lines, start, inline.start('title'), inline.group('title'))
+                if table:
+                    output.append(table)
+                    break
+        if not output:
+            for start, heading in enumerate(lines):
+                if re.fullmatch(r'\s*Key Features\s*', heading, re.I):
+                    table = _pdf_key_features(lines, start)
+                    if table:
+                        output.append(table)
+                        break
     return output
 
 
@@ -1230,6 +1425,18 @@ def export(db, base, baseline=None):
     pdf_sources = pdf_attachment_specs(
         archive_root / 'ledger/companies/nvidia/crawl.sqlite', archive_root,
         list(expanded.values()))
+    for product in pdf_matrix_products(list(expanded.values())):
+        old = expanded.get(product['id'])
+        if old:
+            product['official_pages'] = list({p['url']: p for p in
+                old.get('official_pages', []) + product['official_pages']}.values())
+            product['attachments'] = list({p['url']: p for p in
+                old.get('attachments', []) + product['attachments']}.values())
+            product['tables'] = list({hashlib.sha256(json.dumps(
+                {'rows': table.get('rows'), 'notes': table.get('notes', '')},
+                sort_keys=True, ensure_ascii=False).encode()).hexdigest(): table
+                for table in old.get('tables', []) + product['tables']}.values())
+        expanded[product['id']] = product
     previous = baseline if baseline is not None else {r['id']: dict(r) for r in db.execute('SELECT id,name,parent_id,source_sha256 FROM product_map')}
     changes = Counter()
     for product in expanded.values():
