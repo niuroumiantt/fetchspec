@@ -145,12 +145,19 @@ class InventoryFetcher:
                 raise ValueError("response exceeds limit")
             chunks, total = [], 0
             started = time.monotonic()
+            # urllib's response.read(n) may wait until all n bytes arrive. A
+            # slow-trickling CDN can therefore hold one 64 KiB read past the
+            # wall-clock budget before control returns here. Read only the
+            # bytes already available from http.client's buffered response so
+            # the deadline is checked throughout a long transfer.
+            reader = getattr(response, "fp", response)
+            read_chunk = getattr(reader, "read1", response.read)
             while True:
                 # Per-read timeout catches stalls; this caps total transfer time.
                 budget = self.profile.get("max_response_seconds", self.profile["timeout_seconds"] * 3)
                 if time.monotonic() - started > budget:
                     raise TimeoutError("response wall-clock budget exceeded")
-                chunk = response.read(min(65536, cap + 1 - total))
+                chunk = read_chunk(min(16384, cap + 1 - total))
                 if not chunk:
                     break
                 total += len(chunk)
