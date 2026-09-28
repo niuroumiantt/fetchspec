@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
+from unittest.mock import patch
 from urllib.error import HTTPError
 import zipfile
 
@@ -59,6 +60,45 @@ class RobotsTests(unittest.TestCase):
         for url in [BASE + "/wftp/a.pdf", "https://www.supermicro.com.attacker.test/a.pdf", "https://www.supermicro.com:8080/a.pdf", "http://www.supermicro.com/a.pdf"]:
             with self.assertRaises(ValueError):
                 f.check(url)
+
+    def test_inventory_fetcher_reads_available_chunks_and_enforces_body_deadline(self):
+        import fetchspec.inventory as inventory
+
+        class Reader:
+            def __init__(self, clock=None):
+                self.parts = [b"abc", b"def"]
+                self.clock = clock
+            def read1(self, size):
+                if self.clock is not None:
+                    self.clock[0] += 2
+                return self.parts.pop(0) if self.parts else b""
+
+        class Response:
+            status = 200
+            headers = {}
+            def __init__(self, reader): self.fp, self.reader = reader, reader
+            def __enter__(self): return self
+            def __exit__(self, *args): return False
+            def geturl(self): return BASE + "/assets/test.pdf"
+            def read(self, size): raise AssertionError("must use non-greedy read1")
+
+        class Opener:
+            def __init__(self, response): self.response = response
+            def open(self, request, timeout): return self.response
+
+        f = InventoryFetcher(load_profile("supermicro"))
+        f.profile["delay_seconds"] = 0
+        f.robots["www.supermicro.com"] = Robots("User-agent: *\nAllow: /", "InResearchFetchspec/0.2")
+        f.opener = Opener(Response(Reader()))
+        body, _ = f.get(BASE + "/assets/test.pdf", cap=20)
+        self.assertEqual(body, b"abcdef")
+
+        clock = [0.0]
+        with patch.object(inventory.time, "monotonic", side_effect=lambda: clock[0]):
+            f.profile["max_response_seconds"] = 1
+            f.opener = Opener(Response(Reader(clock)))
+            with self.assertRaisesRegex(TimeoutError, "wall-clock budget"):
+                f.get(BASE + "/assets/slow.pdf", cap=20)
 
     def test_nvidia_image_host_follows_china_region_redirect(self):
         # From China-region networks images.nvidia.com 301s robots.txt and
