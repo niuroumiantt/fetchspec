@@ -5,9 +5,20 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from fetchspec.product_catalog import parse_page, entity_kind, page_allowed, section_products, sitemap_product_category
 from fetchspec.product_catalog import sync_product_sitemap, website_page_identity, source_receipt, sitemap_entry_for_page
+from fetchspec.product_catalog import pdf_spec_tables_from_text
 
 
 class ProductCatalogTests(unittest.TestCase):
+    def test_native_pdf_spec_parser_preserves_rows_and_does_not_guess_unheaded_text(self):
+        text = '''Marketing copy with 800 GB/s bandwidth\n\nTechnical Specifications\n\n GPU Architecture                       NVIDIA Blackwell Architecture\n CUDA Cores                              10,496\n GPU Memory                              32 GB GDDR7\n Memory Bandwidth                        800 GB/s\n\nReady to Get Started'''
+        tables = pdf_spec_tables_from_text(text)
+        self.assertEqual(len(tables), 1)
+        self.assertEqual(tables[0]['section'], 'Technical Specifications')
+        self.assertEqual([row[0]['text'] for row in tables[0]['rows']],
+                         ['GPU Architecture', 'CUDA Cores', 'GPU Memory', 'Memory Bandwidth'])
+        self.assertEqual(tables[0]['rows'][-1][1]['text'], '800 GB/s')
+        self.assertEqual(pdf_spec_tables_from_text('GPU Architecture       NVIDIA Blackwell\nCUDA Cores  10000'), [])
+
     def test_native_specification_preserves_variants_spans_notes_and_excludes_navigation(self):
         html = b'''<header><a href="/en-us/unrelated/">H100</a></header><h1>NVIDIA H200 GPU</h1>
           <h2>Specifications</h2><table><tr><td></td><td>SXM</td><td>NVL</td></tr>

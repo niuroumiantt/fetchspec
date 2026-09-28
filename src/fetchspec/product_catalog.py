@@ -14,7 +14,9 @@ from html.parser import HTMLParser
 import json
 from pathlib import Path
 import re
+import shutil
 import sqlite3
+import subprocess
 import threading
 import time
 from urllib.error import HTTPError
@@ -370,6 +372,122 @@ def source_receipt(page):
     return {key: page[key] for key in ('source_url', 'requested_url', 'sha256', 'snapshot_path',
         'observed_at', 'heading', 'title', 'canonical', 'category', 'parent_url', 'depth', 'kind') if key in page} | {
         'http': {key: http[key] for key in ('status', 'final_url', 'content_type', 'etag', 'last_modified') if key in http}}
+
+
+def pdf_spec_tables(path):
+    """Extract only native text rows under an explicit PDF specification heading."""
+    tool = shutil.which('pdftotext')
+    if not tool:
+        return []
+    result = subprocess.run([tool, '-layout', '-nopgbrk', str(path), '-'],
+                            capture_output=True, text=True, timeout=90, check=False)
+    if result.returncode or not result.stdout.strip():
+        return []
+    return pdf_spec_tables_from_text(result.stdout)
+
+
+def pdf_spec_tables_from_text(text):
+    """Parse table-like native PDF text; kept separate for deterministic tests."""
+    headings = re.compile(r'^\s*(?:(?:technical|product|hardware)\s+)?specifications?\s*:?[ \t]*$', re.I)
+    stop = re.compile(r'^(?:ready to get started|for more information|to learn more|copyright|©|nvidia corporation)', re.I)
+    output = []
+    lines = text.splitlines()
+    for start, heading in enumerate(lines):
+        if not headings.fullmatch(heading):
+            continue
+        rows, unmatched = [], 0
+        for raw in lines[start + 1:]:
+            value = raw.strip()
+            if not value:
+                continue
+            columns = re.split(r'\s{2,}', value)
+            if len(columns) >= 2:
+                label = columns[0].strip()
+                cell = ' '.join(part.strip() for part in columns[1:] if part.strip())
+                if label and cell:
+                    rows.append((label, cell))
+                    unmatched = 0
+                    continue
+            if stop.search(value):
+                break
+            if rows and len(value) < 160 and unmatched == 0:
+                rows[-1] = (rows[-1][0] + ' ' + value, rows[-1][1])
+                unmatched = 1
+            elif rows:
+                break
+        if len(rows) >= 3:
+            output.append({'section': heading.strip().rstrip(':'), 'rows': [
+                [{'text': label, 'colspan': 1, 'rowspan': 1, 'header': False},
+                 {'text': cell, 'colspan': 1, 'rowspan': 1, 'header': False}]
+                for label, cell in rows]})
+    return output
+
+
+def pdf_attachment_specs(company_ledger, archive_root, products):
+    """Import verified spec tables from product-linked, downloaded PDF attachments."""
+    ledger_path = Path(company_ledger)
+    if not ledger_path.is_file():
+        return []
+    archive_root = Path(archive_root)
+    db = sqlite3.connect(f'file:{ledger_path}?mode=ro', uri=True)
+    db.row_factory = sqlite3.Row
+    try:
+        fetched = db.execute('''SELECT r.url,r.latest_sha,r.last_checked,b.path,b.kind
+            FROM requests r JOIN blobs b ON b.sha=r.latest_sha
+            WHERE r.state='done' AND b.kind='pdf' ORDER BY r.url''').fetchall()
+    finally:
+        db.close()
+    files = {row['url']: row for row in fetched}
+    generic = re.compile(r'line card|brochure|installation|user guide|release notes|announcement', re.I)
+    spec_label = re.compile(r'datasheet|data sheet|specification|technical brief|product brief', re.I)
+    cache, receipts, handled = {}, {}, set()
+    for product in products:
+        for attachment in product.get('attachments', []):
+            url = attachment.get('url', '')
+            label = attachment.get('label', '')
+            if url in handled or generic.search(label):
+                continue
+            if not spec_label.search(label) and product_identity_name(label) != product_identity_name(product['name']):
+                continue
+            row = files.get(url)
+            if row is None or not row['path']:
+                continue
+            path = archive_root / row['path']
+            if not path.is_file():
+                continue
+            sha, content = row['latest_sha'], path.read_bytes()
+            if not content.startswith(b'%PDF-') or hashlib.sha256(content).hexdigest() != sha:
+                continue
+            tables = cache.setdefault(sha, pdf_spec_tables(path))
+            if not tables:
+                continue
+            handled.add(url)
+            exposure = attachment.get('source_url') or product.get('source_url')
+            exposure_sha = attachment.get('source_sha256') or product.get('source_sha256')
+            receipt = {'source_url': url, 'requested_url': url, 'sha256': sha,
+                'snapshot_path': row['path'], 'observed_at': row['last_checked'] or utc_now(),
+                'kind': 'official_pdf_attachment', 'http': {'content_type': 'application/pdf'}}
+            receipts[(sha, url)] = receipt
+            attachment.update(sha256=sha, snapshot_path=row['path'],
+                source_url=exposure, source_sha256=exposure_sha)
+            reference = {'url': url, 'sha256': sha, 'label': label, 'kind': 'official_pdf'}
+            for extracted in tables:
+                note = 'Extracted from native PDF text; OCR not used.'
+                identity = hashlib.sha256(json.dumps({'rows': extracted['rows'], 'notes': note},
+                    sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+                existing = next((table for table in product.get('tables', []) if hashlib.sha256(json.dumps(
+                    {'rows': table.get('rows'), 'notes': table.get('notes', '')}, sort_keys=True,
+                    ensure_ascii=False).encode()).hexdigest() == identity), None)
+                if existing:
+                    existing['source_refs'] = list({(ref['url'], ref['sha256']): ref for ref in
+                        existing.get('source_refs', []) + [reference]}.values())
+                    continue
+                table_index = max((table.get('index', 0) for table in product.get('tables', [])), default=0) + 1
+                product.setdefault('tables', []).append({'index': table_index,
+                    'section': extracted['section'], 'notes': note, 'rows': extracted['rows'],
+                    'source_refs': [reference], 'extraction_method': 'pdftotext_layout'})
+                product['extraction_status'] = 'native_tables_extracted'
+    return list(receipts.values())
 
 
 def networking_doc_products(company_ledger, archive_root):
@@ -953,6 +1071,9 @@ def export(db, base, baseline=None):
             old['extraction_status'] = 'native_tables_extracted'
     for product in expanded.values():
         product.pop('_parent_depth', None)
+    pdf_sources = pdf_attachment_specs(
+        archive_root / 'ledger/companies/nvidia/crawl.sqlite', archive_root,
+        list(expanded.values()))
     previous = baseline if baseline is not None else {r['id']: dict(r) for r in db.execute('SELECT id,name,parent_id,source_sha256 FROM product_map')}
     changes = Counter()
     for product in expanded.values():
@@ -991,7 +1112,8 @@ def export(db, base, baseline=None):
         'product_map': {'policy': 'Products absent from a partial observation are retained; removal requires an explicit, completed official-directory comparison and review.',
             'changes': dict(changes), 'entries': len(expanded)},
         'products': list(expanded.values()),
-        'sources': list({(page['sha256'], page['source_url']): source_receipt(page) for page in pages}.values()),
+        'sources': list({(source['sha256'], source['source_url']): source for source in
+            [source_receipt(page) for page in pages] + pdf_sources}.values()),
         'frontier': frontier}
     atomic_json(base / 'catalog.json', bundle)
     atomic_json(base / 'product-sitemap.json', {'schema_version': 1, 'company_id': 'nvidia',
