@@ -183,7 +183,7 @@ def parse_page(body, url):
         if node.tag == 'table':
             rows = native_table(node)
             # The vendor's own heading or field names must establish relevance.
-            relevant = bool(re.search(r'specification|\bspecs\b|technical|GPU Memory|Form Factor|Memory Bandwidth', context + ' ' + node.text(), re.I))
+            relevant = bool(re.search(r'specification|\bspecs\b|technical|GPU Memory|Form Factor|Memory Bandwidth|规格', context + ' ' + node.text(), re.I))
             labels = {r[0]['text'].lower() for r in rows if r}
             relevant = relevant or len(labels & {'gpu', 'cpu', 'memory', 'storage', 'power', 'ai performance', 'dimensions', 'weight'}) >= 2
             notes = []
@@ -210,6 +210,75 @@ def parse_page(body, url):
         tables.append({'index': len(tables) + 1, 'section': grid['section'], 'rows': grid['rows'],
             'is_specification': True, 'method': 'nvidia_official_spec_grid',
             'text': '\n'.join(' | '.join(c['text'] for c in r) for r in grid['rows']), 'notes': '\n'.join(dict.fromkeys(grid['notes']))})
+    # Legacy GeForce product pages use styled divs instead of semantic table
+    # elements.  Values are explicit ``span.right`` nodes followed by their
+    # labels, grouped under vendor-authored section titles.
+    legacy_notes = '\n'.join(dict.fromkeys(node.text() for node in root.walk('p')
+        if 'additionalInfo' in node.attrs.get('class', '').split() and node.text()))
+    for colored in root.walk('div'):
+        if 'coloredTable' not in colored.attrs.get('class', '').split():
+            continue
+        section_name, section_rows = '', []
+
+        def flush_legacy():
+            nonlocal section_rows
+            if section_name and len(section_rows) >= 2:
+                tables.append({'index': len(tables) + 1, 'section': section_name.rstrip(':'),
+                    'rows': section_rows, 'is_specification': True,
+                    'method': 'nvidia_legacy_colored_spec_grid', 'text': '', 'notes': legacy_notes})
+            section_rows = []
+
+        for child in colored.children:
+            if not isinstance(child, Node) or child.tag != 'div':
+                continue
+            classes = child.attrs.get('class', '').split()
+            if 'title' in classes:
+                flush_legacy()
+                section_name = child.text()
+                continue
+            if 'row' not in classes or not section_name:
+                continue
+            value_node = next((node for node in child.walk('span')
+                               if 'right' in node.attrs.get('class', '').split()), None)
+            if value_node is None or not value_node.text():
+                continue
+            value = value_node.text()
+            label = child.text()
+            if label.startswith(value):
+                label = label[len(value):].strip()
+            if label:
+                section_rows.append([
+                    {'text': label, 'colspan': 1, 'rowspan': 1, 'header': False},
+                    {'text': value, 'colspan': 1, 'rowspan': 1, 'header': False}])
+        flush_legacy()
+    if re.search(r'(?:Product\s+Specs|产品规格)', heading, re.I):
+        card_rows, card_label, card_values, card_active = [], '', [], False
+
+        def flush_card():
+            nonlocal card_label, card_values
+            values = list(dict.fromkeys(value for value in card_values if value))
+            if card_label and values and card_label.casefold() not in {'compare', 'buy now'}:
+                card_rows.append([
+                    {'text': card_label, 'colspan': 1, 'rowspan': 1, 'header': False},
+                    {'text': '; '.join(values), 'colspan': 1, 'rowspan': 1, 'header': False}])
+            card_label, card_values = '', []
+
+        for node in nodes:
+            if node.tag == 'h1' and node.text() == heading:
+                card_active = True
+                continue
+            if not card_active:
+                continue
+            if node.tag in {'h2', 'h3'}:
+                flush_card()
+                card_label = node.text()
+            elif card_label and node.tag == 'p' and node.text():
+                card_values.append(node.text())
+        flush_card()
+        if len(card_rows) >= 3:
+            tables.append({'index': len(tables) + 1, 'section': heading,
+                'rows': card_rows, 'is_specification': True,
+                'method': 'nvidia_product_spec_cards', 'text': '', 'notes': ''})
     # Product family sites list individual models in their official navigation,
     # sometimes before H1 while the body only embeds a dynamic comparison grid.
     # Read only explicit model links within product paths, not all site chrome.
@@ -243,6 +312,10 @@ def page_allowed(url):
     # www.nvidia.cn publishes its zh-CN sitemap with root-relative paths
     # (e.g. /networking/products/), unlike nvidia.com/zh-cn/.
     if p.hostname == 'www.nvidia.com' and not p.path.startswith(('/en-us/', '/zh-cn/')):
+        return False
+    if re.search(r'/geforce/technologies(?:/|$)', p.path, re.I):
+        return False
+    if re.search(r'/(?:duckietown|lp/embedded-computing/robotics-edge-ai-tech-brief)(?:/|$)', p.path, re.I):
         return False
     if re.search(r'/(blogs?|news|events?|industries|case-studies|customer-stories|customer-success|research|careers|support|download|drivers|on-demand|gtc|privacy|about-nvidia|buy|shop|training|launchpad|contact|forums|community-portal|foundation|where-to-buy)(/|$)', p.path):
         return False
@@ -329,7 +402,7 @@ def sync_product_sitemap(root, db):
         'source_sitemaps': summary.get('sitemaps', []), 'observed_at': summary.get('finished_at')}
 
 
-MODEL = re.compile(r'\b(?:[ABHLV]\d{2,3}[A-Z]*|GB\d{3}|GH\d{3}|SN\d{4}|RTX\s*(?:PRO\s*)?\d{3,4}|GeForce\s+(?:RTX|GTX)\s*\d+|ConnectX[-– ]?\d+|BlueField[-– ]?\d+|Quantum[-– ]?\d+|Spectrum[-– ]?\d+|DGX\s+(?:Spark|Station|Rubin(?:\s+NVL\d+)?|Vera\s+Rubin\s+NVL\d+|[ABH]\d+)|Jetson\s+(?:AGX|Orin|Thor|Nano|TX\d)|SHIELD\s+TV)\b', re.I)
+MODEL = re.compile(r'\b(?:[ABHLV]\d{2,3}[A-Z]*|GB\d{3}|GH\d{3}|SN\d{4}|RTX\s*(?:PRO\s*)?\d{3,4}|GeForce\s+(?:RTX|GTX|GT)\s*(?:\d+|TITAN(?:\s+(?:Black|X|Z))?)|ConnectX[-– ]?\d+|BlueField[-– ]?\d+|Quantum[-– ]?\d+|Spectrum[-– ]?\d+|DGX\s+(?:Spark|Station|Rubin(?:\s+NVL\d+)?|Vera\s+Rubin\s+NVL\d+|[ABH]\d+)|Jetson\s+(?:AGX|Orin|Thor|Nano|TX\d)|SHIELD\s+TV)\b', re.I)
 OFFICIAL_PAGE_HOSTS = {'www.nvidia.com', 'www.nvidia.cn', 'developer.nvidia.com',
                        'developer.nvidia.cn', 'networking-docs.nvidia.com',
                        'resources.nvidia.com'}
@@ -341,7 +414,7 @@ REDIRECT_PAGE_PATHS = {
 
 
 def entity_kind(heading, url):
-    if re.search(r'\b(?:Series|Family|Platform|Architecture)\b', heading, re.I):
+    if re.search(r'\b(?:Series|Family|Platform|Architecture)\b|(?:系列|平台|集群)', heading, re.I):
         return 'family_or_directory'
     if MODEL.search(heading):
         return 'named_product'
@@ -361,6 +434,22 @@ def resource_product_heading(heading, url):
             r'^(?:SN\d{4}|Spectrum(?:-X|-\d+)|Blackwell|DGX|RTX\s+PRO)\b', clean, re.I):
         clean = 'NVIDIA ' + clean
     return clean
+
+
+def catalog_display_name(page, page_lookup):
+    """Resolve generic child spec pages to their explicit parent model."""
+    display = resource_product_heading(
+        page.get('heading') or page.get('title') or '', page.get('source_url', ''))
+    if (re.search(r'/specifications?/?$', urlsplit(page.get('source_url', '')).path, re.I)
+            and not MODEL.search(display)):
+        source = page.get('source_url', '')
+        product_url = re.sub(r'/specifications?/?$', '/', source, flags=re.I)
+        parent = page_lookup.get(page.get('parent_url')) or page_lookup.get(product_url)
+        if parent:
+            parent_name = parent.get('heading') or parent.get('title') or ''
+            if MODEL.search(parent_name):
+                return parent_name
+    return display
 
 
 def consolidate_resource_viewers(products):
@@ -407,6 +496,24 @@ def consolidate_resource_viewers(products):
             target['extraction_status'] = 'native_tables_extracted'
         products.pop(key)
     return products
+
+
+def specification_gap_status(product, page_lookup, frontier_states):
+    """Classify a concrete model gap from observed vendor links, without guessing."""
+    if product.get('kind') != 'named_product' or product.get('tables'):
+        return product.get('extraction_status', 'specification_search_pending')
+    page = page_lookup.get(product.get('source_url')) or page_lookup.get(product.get('product_url'))
+    base = (page or {}).get('source_url', product.get('source_url', '')).rstrip('/') + '/'
+    links = [link.get('url', '') for link in (page or {}).get('links', [])
+             if re.search(r'specifications?|\bspecs\b|规格',
+                          link.get('label', '') + ' ' + link.get('url', ''), re.I)
+             and link.get('url', '').startswith(base)]
+    if any(frontier_states.get(url.rstrip('/')) == 'unavailable'
+           or frontier_states.get(url) == 'unavailable' for url in links):
+        return 'official_specification_source_unavailable'
+    if not links and not product.get('attachments') and not product.get('official_resources'):
+        return 'official_specification_not_published_on_observed_page'
+    return product.get('extraction_status', 'specification_search_pending')
 
 
 def frontier_failure_state(exc):
@@ -1226,9 +1333,10 @@ def export(db, base, baseline=None):
             inventory_summary = None
     entities = {}
     prior_id_by_url, known_id_by_path = previous_page_identities(base)
+    page_lookup = {url: page for page in pages for url in
+                   {page.get('source_url'), page.get('requested_url')} if url}
     for page in pages:
-        display_name = resource_product_heading(
-            page.get('heading') or page.get('title') or '', page.get('source_url', ''))
+        display_name = catalog_display_name(page, page_lookup)
         if page.get('depth', 1) == 0 or not display_name or not page_allowed(page['source_url']):
             continue
         url = page['source_url']
@@ -1419,9 +1527,10 @@ def export(db, base, baseline=None):
             continue
         for child in section_products(page):
             product_id = product_identifier(child['name'])
+            child_kind = entity_kind(child['name'], page['source_url'])
             candidate = {
                 'id': product_id, 'name': child['name'], 'category': parent['category'],
-                'categories': parent['categories'], 'kind': 'named_product',
+                'categories': parent['categories'], 'kind': child_kind,
                 'availability': 'not_verified', 'identity_status': 'official_product_section_observed',
                 'parent_id': parent_id, 'product_url': page['source_url'],
                 'source_url': page['source_url'], 'source_sha256': page['sha256'],
@@ -1504,6 +1613,10 @@ def export(db, base, baseline=None):
                 sort_keys=True, ensure_ascii=False).encode()).hexdigest(): table
                 for table in old.get('tables', []) + product['tables']}.values())
         expanded[product['id']] = product
+    frontier_states = {row['url'].rstrip('/'): row['state'] for row in frontier}
+    for product in expanded.values():
+        product['extraction_status'] = specification_gap_status(
+            product, page_lookup, frontier_states)
     previous = baseline if baseline is not None else {r['id']: dict(r) for r in db.execute('SELECT id,name,parent_id,source_sha256 FROM product_map')}
     changes = Counter()
     for product in expanded.values():
