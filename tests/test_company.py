@@ -130,6 +130,8 @@ class DiscoveryTests(unittest.TestCase):
         self.assertTrue(adapter.in_scope(NVIDIA + "/content/dam/docs/datasheet-zh-cn.pdf"))
         self.assertTrue(adapter.in_scope("https://www.nvidia.cn/zh-cn/data-center/h100/"))
         self.assertTrue(adapter.in_scope(NVIDIA + "/content/dam/en-zz/Solutions/Data-Center/a100/a.pdf"))
+        self.assertTrue(adapter.in_scope("https://dam-cdn.nvd.orangelogic.com/AssetLink/abc123.pdf"))
+        self.assertFalse(adapter.in_scope("https://dam-cdn.nvd.orangelogic.com/AssetLink/spec-de-de.pdf"))
         self.assertFalse(adapter.in_scope(NVIDIA + "/content/gated/a.pdf"))
         self.assertFalse(adapter.in_scope(NVIDIA + "/en-us/data-center/h100/hero.jpg"))
         self.assertEqual(adapter.categories(NVIDIA + "/en-us/data-center/h100/"), ["Data Center & AI"])
