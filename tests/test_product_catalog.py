@@ -7,10 +7,37 @@ from fetchspec.product_catalog import parse_page, entity_kind, page_allowed, sec
 from fetchspec.product_catalog import sync_product_sitemap, website_page_identity, source_receipt, sitemap_entry_for_page
 from fetchspec.product_catalog import pdf_spec_tables_from_text, pdf_matrix_products
 from fetchspec.product_catalog import comparison_model_identity, product_identifier, frontier_failure_state, previous_page_identities
+from fetchspec.product_catalog import resource_product_heading, consolidate_resource_viewers
 from urllib.error import HTTPError
 
 
 class ProductCatalogTests(unittest.TestCase):
+    def test_resource_viewer_title_is_product_identity_not_document_identity(self):
+        self.assertEqual(resource_product_heading('NVIDIA DGX B300 Technical Brief',
+            'https://resources.nvidia.com/en-us-dgx-systems/dgx-b300-technical-brief'),
+            'NVIDIA DGX B300')
+        self.assertEqual(resource_product_heading('SN6000 Datasheet',
+            'https://resources.nvidia.com/networking/sn6000'), 'NVIDIA SN6000')
+        self.assertEqual(resource_product_heading('NVIDIA ConnectX-9 SuperNIC',
+            'https://resources.nvidia.com/networking/connectx-9'), 'NVIDIA ConnectX-9 SuperNIC')
+
+    def test_resource_viewer_is_absorbed_into_matching_product(self):
+        target = {'id': 'series', 'name': 'NVIDIA Spectrum-6 SN6000 Series',
+            'source_url': 'https://www.nvidia.com/networking/sn6000', 'tables': [],
+            'attachments': [], 'official_pages': [{'url': 'https://www.nvidia.com/networking/sn6000', 'sha256': 'a'}],
+            'official_resources': [], 'extraction_status': 'specification_search_pending'}
+        evidence = {'id': 'document', 'name': 'NVIDIA SN6000',
+            'source_url': 'https://resources.nvidia.com/networking/sn6000',
+            'tables': [{'rows': [[{'text': 'Ports'}, {'text': '128'}]], 'notes': ''}],
+            'attachments': [{'url': 'https://dam.example/sn6000.pdf'}],
+            'official_pages': [{'url': 'https://resources.nvidia.com/networking/sn6000', 'sha256': 'b'}],
+            'official_resources': [], 'extraction_status': 'native_tables_extracted'}
+        result = consolidate_resource_viewers({'series': target, 'document': evidence})
+        self.assertEqual(set(result), {'series'})
+        self.assertEqual(result['series']['attachments'][0]['url'], 'https://dam.example/sn6000.pdf')
+        self.assertEqual(len(result['series']['official_pages']), 2)
+        self.assertEqual(result['series']['extraction_status'], 'native_tables_extracted')
+
     def test_previous_catalog_not_stale_product_map_anchors_page_identity(self):
         with TemporaryDirectory() as tmp:
             base = Path(tmp)
