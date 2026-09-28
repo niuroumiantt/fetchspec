@@ -6,10 +6,18 @@ from tempfile import TemporaryDirectory
 from fetchspec.product_catalog import parse_page, entity_kind, page_allowed, section_products, sitemap_product_category
 from fetchspec.product_catalog import sync_product_sitemap, website_page_identity, source_receipt, sitemap_entry_for_page
 from fetchspec.product_catalog import pdf_spec_tables_from_text
-from fetchspec.product_catalog import comparison_model_identity, product_identifier
+from fetchspec.product_catalog import comparison_model_identity, product_identifier, frontier_failure_state
+from urllib.error import HTTPError
 
 
 class ProductCatalogTests(unittest.TestCase):
+    def test_frontier_failure_states_separate_vendor_removal_and_policy(self):
+        missing = HTTPError('https://www.nvidia.com/old', 404, 'Not Found', {}, None)
+        self.assertEqual(frontier_failure_state(missing), 'unavailable')
+        self.assertEqual(frontier_failure_state(
+            ValueError('redirect or URL outside HTTPS host allowlist')), 'policy_blocked')
+        self.assertEqual(frontier_failure_state(TimeoutError('timed out')), 'failed')
+
     def test_embedded_comparison_model_has_distinct_scoped_identity(self):
         official = 'NVIDIA RTX PRO 4000 Blackwell'
         desktop, desktop_scope = comparison_model_identity(
