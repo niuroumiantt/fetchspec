@@ -395,24 +395,51 @@ def pdf_spec_tables_from_text(text):
     for start, heading in enumerate(lines):
         if not headings.fullmatch(heading):
             continue
+        # ``pdftotext -layout`` preserves page columns.  Some NVIDIA briefs put
+        # prose in the left column and a specification panel in the right.  A
+        # plain ``strip`` merges those independent columns into a bogus
+        # key/value row.  When the heading itself starts well inside the page,
+        # use that x-position as the table boundary and discard the left pane.
+        heading_indent = len(heading) - len(heading.lstrip())
+        column_boundary = heading_indent if heading_indent >= 20 else 0
         rows, unmatched = [], 0
         for raw in lines[start + 1:]:
-            value = raw.strip()
+            if (column_boundary and len(raw) > column_boundary
+                    and raw[max(0, column_boundary - 3):column_boundary].strip()):
+                # Long prose from the left pane can physically cross the
+                # boundary on later pages.  It has no whitespace gutter and
+                # must not be treated as a continuation of the last spec row.
+                continue
+            region = raw[column_boundary:] if column_boundary else raw
+            value = region.strip()
             if not value:
                 continue
+            leading = len(region) - len(region.lstrip())
             columns = re.split(r'\s{2,}', value)
             if len(columns) >= 2:
                 label = columns[0].strip()
                 cell = ' '.join(part.strip() for part in columns[1:] if part.strip())
                 if label and cell:
+                    # A lower-case label fragment is the second visual line of
+                    # the preceding label (for example ``Management`` /
+                    # ``ports``), not a new specification.
+                    if column_boundary and rows and label[:1].islower():
+                        rows[-1] = (rows[-1][0] + ' ' + label,
+                                    rows[-1][1] + ' ' + cell)
+                        unmatched = 0
+                        continue
                     rows.append((label, cell))
                     unmatched = 0
                     continue
             if stop.search(value):
                 break
             if rows and len(value) < 160 and unmatched == 0:
-                rows[-1] = (rows[-1][0] + ' ' + value, rows[-1][1])
-                unmatched = 1
+                if column_boundary and leading >= 8:
+                    rows[-1] = (rows[-1][0], rows[-1][1] + ' ' + value)
+                    unmatched = 0
+                else:
+                    rows[-1] = (rows[-1][0] + ' ' + value, rows[-1][1])
+                    unmatched = 1
             elif rows:
                 break
         if len(rows) >= 3:
