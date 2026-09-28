@@ -6,11 +6,25 @@ from tempfile import TemporaryDirectory
 from fetchspec.product_catalog import parse_page, entity_kind, page_allowed, section_products, sitemap_product_category
 from fetchspec.product_catalog import sync_product_sitemap, website_page_identity, source_receipt, sitemap_entry_for_page
 from fetchspec.product_catalog import pdf_spec_tables_from_text
-from fetchspec.product_catalog import comparison_model_identity, product_identifier, frontier_failure_state
+from fetchspec.product_catalog import comparison_model_identity, product_identifier, frontier_failure_state, previous_page_identities
 from urllib.error import HTTPError
 
 
 class ProductCatalogTests(unittest.TestCase):
+    def test_previous_catalog_not_stale_product_map_anchors_page_identity(self):
+        with TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            (base / 'catalog.json').write_text(json.dumps({'products': [
+                {'id': 'nvidia-active', 'name': 'RTX A1000', 'kind': 'family_or_directory',
+                 'source_url': 'https://www.nvidia.cn/products/workstations/rtx-a1000/'},
+                {'id': 'nvidia-model', 'name': 'RTX A1000 model', 'kind': 'named_product',
+                 'source_url': 'https://www.nvidia.cn/products/workstations/rtx-a1000/'},
+            ]}))
+            exact, paths = previous_page_identities(base)
+            self.assertEqual(exact, {
+                'https://www.nvidia.cn/products/workstations/rtx-a1000/': 'nvidia-active'})
+            self.assertEqual(paths['/products/workstations/rtx-a1000'], 'nvidia-active')
+
     def test_frontier_failure_states_separate_vendor_removal_and_policy(self):
         missing = HTTPError('https://www.nvidia.com/old', 404, 'Not Found', {}, None)
         self.assertEqual(frontier_failure_state(missing), 'unavailable')
@@ -63,6 +77,28 @@ class ProductCatalogTests(unittest.TestCase):
             ('Connectors', '4x QSFP112 for data 2x QSFP112 for InfiniBand'),
             ('Management ports', '4x RJ45: 2x 1GbE ports and 2x 10GbE ports'),
             ('Software', 'NVDA-OS-XC'),
+        ])
+
+    def test_native_pdf_spec_parser_finds_inline_right_panel_and_stacked_values(self):
+        left_width = 92
+        text = '\n'.join([
+            f'{"Marketing paragraph in the left column.":<{left_width}}Product Specifications',
+            f'{"More marketing copy.":<{left_width}}Supported Network Protocols',
+            ' ' * left_width + '> Ethernet',
+            ' ' * left_width + '> InfiniBand',
+            f'{"Unrelated prose.":<{left_width}}Total Bandwidth',
+            ' ' * left_width + '> 800 Gb/s',
+            '',
+            f'{"More prose.":<{left_width}}Host Interface',
+            ' ' * left_width + '> PCIe Gen6: up to 48 lanes',
+        ])
+        tables = pdf_spec_tables_from_text(text)
+        self.assertEqual(len(tables), 1)
+        self.assertEqual(tables[0]['section'], 'Product Specifications')
+        self.assertEqual([(row[0]['text'], row[1]['text']) for row in tables[0]['rows']], [
+            ('Supported Network Protocols', 'Ethernet; InfiniBand'),
+            ('Total Bandwidth', '800 Gb/s'),
+            ('Host Interface', 'PCIe Gen6: up to 48 lanes'),
         ])
 
     def test_native_specification_preserves_variants_spans_notes_and_excludes_navigation(self):

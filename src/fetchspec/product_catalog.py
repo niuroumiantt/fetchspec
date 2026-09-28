@@ -375,6 +375,27 @@ def identity_path(url):
     return re.sub(r'^/(?:en-us|zh-cn)(?=/)', '', p.path).rstrip('/') or '/'
 
 
+def previous_page_identities(base):
+    """Return only the prior delivered page entities, never stale map rows."""
+    path = Path(base) / 'catalog.json'
+    if not path.is_file():
+        return {}, {}
+    try:
+        products = json.loads(path.read_text()).get('products', [])
+    except (OSError, json.JSONDecodeError, AttributeError):
+        return {}, {}
+    exact, localized_path = {}, {}
+    for product in products:
+        if product.get('kind') == 'named_product' or not product.get('id'):
+            continue
+        url = product.get('source_url', '')
+        if not page_allowed(url):
+            continue
+        exact.setdefault(url, product['id'])
+        localized_path.setdefault(identity_path(url), product['id'])
+    return exact, localized_path
+
+
 def source_receipt(page):
     """Compact delivery receipt; full HTML and parsed links stay on M5 blobs."""
     http = page.get('http', {})
@@ -395,22 +416,105 @@ def pdf_spec_tables(path):
     return pdf_spec_tables_from_text(result.stdout)
 
 
+def _pdf_right_panel_rows(lines, start, boundary):
+    """Read a brochure's explicit right-hand spec panel without left prose."""
+    rows = []
+    label = value = ''
+    separated = False
+
+    def flush():
+        nonlocal label, value
+        if label and value:
+            rows.append((' '.join(label.split()), ' '.join(value.split())))
+        label = value = ''
+
+    for raw in lines[start + 1:]:
+        if re.search(r'\|\s*(?:Datasheet|Product Brief|Technical Brief)\s*\|', raw, re.I):
+            break
+        if len(raw) > boundary and raw[max(0, boundary - 3):boundary].strip():
+            # No whitespace gutter: this is left-column prose crossing the x
+            # coordinate, not text inside the spec panel.
+            separated = True
+            continue
+        region = raw[boundary:] if len(raw) > boundary else ''
+        content = region.strip()
+        if not content:
+            separated = True
+            continue
+        if re.search(r'\|\s*(?:Datasheet|Product Brief|Technical Brief)\s*\|', content, re.I):
+            break
+        if re.match(r'^(?:key\s+)?features\*?\s*$', content, re.I):
+            break
+        leading = len(region) - len(region.lstrip())
+        speed = re.match(r'^((?:InfiniBand|Ethernet)\s+Speeds)\s+(.+)$', content, re.I)
+        parts = re.split(r'\s{2,}', content)
+        split = ((speed.group(1), speed.group(2)) if speed else
+                 ((parts[0].strip(), ' '.join(p.strip() for p in parts[1:] if p.strip()))
+                  if len(parts) >= 2 else None))
+        if split and split[0] and split[1]:
+            next_label, next_value = split
+            fragments = (not separated and label and len(label.split()) <= 2
+                         and len(next_label.split()) == 1 and len(label.split()) + 1 <= 3)
+            if label and value and not fragments:
+                flush()
+            if fragments:
+                label += ' ' + next_label
+                value += ' ' + next_value.lstrip('>•').strip()
+            else:
+                label, value = next_label, next_value.lstrip('>•').strip()
+            separated = False
+            continue
+        if content.startswith(('>', '•')):
+            item = content.lstrip('>•').strip()
+            if label and item:
+                value += ('; ' if value else '') + item
+            separated = False
+            continue
+        if label and value and leading > 0:
+            value += ' ' + content.lstrip('>•').strip()
+            separated = False
+            continue
+        if label and value:
+            fragment = (not separated and len(label.split()) + len(content.split()) <= 4)
+            if not fragment:
+                flush()
+        label = (label + ' ' + content).strip()
+        separated = False
+    flush()
+    return rows
+
+
 def pdf_spec_tables_from_text(text):
     """Parse table-like native PDF text; kept separate for deterministic tests."""
     headings = re.compile(r'^\s*(?:(?:technical|product|hardware)\s+)?specifications?\s*:?[ \t]*$', re.I)
+    inline_heading = re.compile(
+        r'(?P<gap>\s{2,})(?P<title>(?:(?:technical|product|hardware)\s+)?specifications?\s*:?)\s*$',
+        re.I)
     stop = re.compile(r'^(?:ready to get started|for more information|to learn more|copyright|©|nvidia corporation)', re.I)
     output = []
     lines = text.splitlines()
     for start, heading in enumerate(lines):
-        if not headings.fullmatch(heading):
+        heading_match = headings.fullmatch(heading)
+        inline_match = inline_heading.search(heading) if not heading_match else None
+        if not heading_match and not inline_match:
             continue
         # ``pdftotext -layout`` preserves page columns.  Some NVIDIA briefs put
         # prose in the left column and a specification panel in the right.  A
         # plain ``strip`` merges those independent columns into a bogus
         # key/value row.  When the heading itself starts well inside the page,
         # use that x-position as the table boundary and discard the left pane.
-        heading_indent = len(heading) - len(heading.lstrip())
+        section = (inline_match.group('title') if inline_match else heading).strip().rstrip(':')
+        heading_indent = (inline_match.start('title') if inline_match
+                          else len(heading) - len(heading.lstrip()))
         column_boundary = heading_indent if heading_indent >= 20 else 0
+        if inline_match:
+            rows = _pdf_right_panel_rows(lines, start, column_boundary)
+            if len(rows) >= 3:
+                output.append({'section': section, 'rows': [
+                    [{'text': label, 'colspan': 1, 'rowspan': 1, 'header': False},
+                     {'text': cell, 'colspan': 1, 'rowspan': 1, 'header': False}]
+                    for label, cell in rows]})
+            continue
         rows, unmatched = [], 0
         for raw in lines[start + 1:]:
             if (column_boundary and len(raw) > column_boundary
@@ -452,7 +556,7 @@ def pdf_spec_tables_from_text(text):
             elif rows:
                 break
         if len(rows) >= 3:
-            output.append({'section': heading.strip().rstrip(':'), 'rows': [
+            output.append({'section': section, 'rows': [
                 [{'text': label, 'colspan': 1, 'rowspan': 1, 'header': False},
                  {'text': cell, 'colspan': 1, 'rowspan': 1, 'header': False}]
                 for label, cell in rows]})
@@ -861,10 +965,7 @@ def export(db, base, baseline=None):
         except (OSError, json.JSONDecodeError):
             inventory_summary = None
     entities = {}
-    known_id_by_path = {}
-    for known in db.execute('SELECT id,source_url FROM product_map'):
-        if known['source_url'] and urlsplit(known['source_url']).hostname in {'www.nvidia.com', 'www.nvidia.cn'}:
-            known_id_by_path.setdefault(identity_path(known['source_url']), known['id'])
+    prior_id_by_url, known_id_by_path = previous_page_identities(base)
     for page in pages:
         display_name = page.get('heading') or page.get('title') or ''
         if page.get('depth', 1) == 0 or not display_name or not page_allowed(page['source_url']):
@@ -877,7 +978,8 @@ def export(db, base, baseline=None):
         # Named models use a canonical name key so the same model found on
         # an overview, comparison, localized route, and datasheet viewer is
         # one entity with multiple sources—not multiple products.
-        key = product_identifier(display_name) if kind == 'named_product' else known_id_by_path.get(identity_path(url), website_page_identity(url))
+        key = (product_identifier(display_name) if kind == 'named_product' else
+               prior_id_by_url.get(url, known_id_by_path.get(identity_path(url), website_page_identity(url))))
         categories = sorted({r[0] for r in db.execute('SELECT category FROM memberships WHERE url=?', (page['requested_url'],))} | {page['category']})
         candidate = {'id': key, 'name': display_name, 'category': ' / '.join(c for c in categories if c), 'categories': categories,
             'kind': kind, 'availability': 'not_verified', 'identity_status': 'official_page_observed',

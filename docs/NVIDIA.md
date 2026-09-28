@@ -14,6 +14,8 @@ Frontier 状态区分三类结果：网络、解析等可重试异常为 `failed
 
 产品地图不是附件清单：发现页的明确产品区块可以把一个 family/platform 拆成多个稳定 ID 的具体产品，登记 `parent_id`、官方产品页快照、分类和该产品自己指向的规格资源入口。无 `.pdf` 后缀的官方 datasheet landing page 只登记为 `official_resource_page`，确认返回文件/公开直链后才算附件，不把入口当成下载成功。增量日常用 `--incremental`，仅条件重查目录与官网分类页（frontier 深度 ≤2），由新链接扩展新增项；已知产品来源不扫。`--refresh` 是人工要求的完整复核。未出现在部分扫描里的旧产品保留，不判下架；下架须完成目录比较并复核。
 
+产品/系列页 ID 以上一次已交付 `catalog.json` 中的 active 页面实体为续跑基线，不从累积且含历史旧 ID 的 `product_map` 随机挑选；首次运行才用规范化官方 URL 的确定性哈希。重复 `--reparse` 后产品 ID、父子关系、来源与规格表必须逐字节等价（仅生成时间/变更计量可更新）。这保证同一路径的中英文或历史实体不会在重算时交换规格。
+
 `blobs/<SHA前2位>/<SHA>.html` 保存不可变页面；`product-catalog/nvidia/discovery.sqlite3` 保存发现队列、官网产品路径 sitemap 台账、目录关系和版本观察；`catalog.json` 为结构化交付，来源只传 SHA/URL/快照路径等核查收据和原厂规格表，避免重复传输 HTML 正文/链接；`product-sitemap.json` 是我们自己的公司产品图（产品/系列、官网类别、父级关系、来源 SHA、规格状态与 sitemap 对账证据），不是 NVIDIA 的 XML sitemap。原厂规格表保留分组、字段、配置列、合并单元格和脚注，上下标保留标记。路径相同的 nvidia.com 英/中文页与 nvidia.cn 中文页合并到同一页面身份，来源快照分别保留。不同产品不硬套同一模板，不猜缺值、不自动把整柜参数换成单卡参数。
 
 ### 同一产品的多来源归并与提取优先级
@@ -27,6 +29,8 @@ Frontier 状态区分三类结果：网络、解析等可重试异常为 `failed
 系列/对比表的列可能分别代表不同具体型号。若表头明确命名型号，采集器将每个型号列拆成独立产品规格记录，保留列内字段和值、系列 `parent_id`、来源 URL/SHA 和原表脚注。型号页和系列表命中同一产品时合并到同一 ID，选择更具体的型号/系列参数页为主来源，其他页只作为辅助证据。GeForce RTX 家族的型号参数列不能只留在一个“系列”记录里，也不能让动态 JS 地址代替产品来源。
 
 型号页、系列/平台、软件服务分开；型号识别待复核，官网列出不等于确认在售。目录数量不是 SKU 数，frontier 耗尽不等于全公司产品穷尽。动态规格、PDF 定向抽取、独立文档站和配置拆分仍待补齐。仅采英文与中文来源；官方中文站 `www.nvidia.cn` 的根路径纳入，其他地区语言不采集。
+
+PDF 定向抽取既识别独占一行的 `Specifications`，也识别 NVIDIA datasheet 首屏双栏右侧的 `Product Specifications` 面板；以后者标题的横坐标作为隔离边界，丢弃左侧营销正文，只保留面板中的字段、跨行字段名、项目符号值和原 PDF SHA。页脚或后续 Features 区出现即停止，不能把下一节正文拼入最后一个参数。
 
 inresearch 的 `manage.py product-catalog import --input <catalog.json> --archive-root <原件根>` 核验快照后入私有 SQLite；`product-catalog publish` 用 NVIDIA 专用凭证交 AWS。`/product-catalog.html` 直接用结构化数据展示、筛选、并排核查和导出 CSV；原文只在核查时打开。规格提取不自动成为正式研究采用。
 
