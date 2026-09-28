@@ -6,9 +6,21 @@ from tempfile import TemporaryDirectory
 from fetchspec.product_catalog import parse_page, entity_kind, page_allowed, section_products, sitemap_product_category
 from fetchspec.product_catalog import sync_product_sitemap, website_page_identity, source_receipt, sitemap_entry_for_page
 from fetchspec.product_catalog import pdf_spec_tables_from_text
+from fetchspec.product_catalog import comparison_model_identity, product_identifier
 
 
 class ProductCatalogTests(unittest.TestCase):
+    def test_embedded_comparison_model_has_distinct_scoped_identity(self):
+        official = 'NVIDIA RTX PRO 4000 Blackwell'
+        desktop, desktop_scope = comparison_model_identity(
+            official, 'https://www.nvidia.com/en-us/products/workstations/professional-desktop-gpus/')
+        embedded, embedded_scope = comparison_model_identity(
+            official, 'https://www.nvidia.com/en-us/products/workstations/rtx-embedded/')
+        self.assertEqual((desktop, desktop_scope), (official, None))
+        self.assertEqual((embedded, embedded_scope),
+                         ('NVIDIA RTX PRO 4000 Blackwell (Embedded GPU)', 'embedded_gpu'))
+        self.assertNotEqual(product_identifier(desktop), product_identifier(embedded))
+
     def test_native_pdf_spec_parser_preserves_rows_and_does_not_guess_unheaded_text(self):
         text = '''Marketing copy with 800 GB/s bandwidth\n\nTechnical Specifications\n\n GPU Architecture                       NVIDIA Blackwell Architecture\n CUDA Cores                              10,496\n GPU Memory                              32 GB GDDR7\n Memory Bandwidth                        800 GB/s\n\nReady to Get Started'''
         tables = pdf_spec_tables_from_text(text)

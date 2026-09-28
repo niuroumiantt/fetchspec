@@ -620,6 +620,15 @@ def product_identifier(name):
     return 'nvidia-' + hashlib.sha256(('nvidia-product:' + key).encode()).hexdigest()[:20]
 
 
+def comparison_model_identity(name, source_url):
+    """Keep same-labelled models separate when NVIDIA declares a distinct portfolio."""
+    display_name = name if name.lower().startswith('nvidia ') else 'NVIDIA ' + name
+    path = urlsplit(source_url).path.casefold()
+    if '/products/workstations/rtx-embedded/' in path and not re.search(r'\bembedded\b', display_name, re.I):
+        return display_name + ' (Embedded GPU)', 'embedded_gpu'
+    return display_name, None
+
+
 def model_source_rank(url):
     """Prefer a model/family specification page over a generic comparison page."""
     path = urlsplit(url).path.casefold()
@@ -922,7 +931,7 @@ def export(db, base, baseline=None):
             # section+parameter two-label layouts.
             first_model_column = model_columns[0][0]
             for column, model in model_columns:
-                name = model if model.lower().startswith('nvidia ') else 'NVIDIA ' + model
+                name, variant_scope = comparison_model_identity(model, page['source_url'])
                 normalized_name = re.sub(r'^NVIDIA\s+', '', name).casefold()
                 existing = next((p for p in entities.values()
                     if p['kind'] == 'named_product'
@@ -952,6 +961,9 @@ def export(db, base, baseline=None):
                         'lastmod_claims': sitemap_rows[page['source_url']]['lastmod'].split('|') if page['source_url'] in sitemap_rows and sitemap_rows[page['source_url']]['lastmod'] else [],
                         'candidate_status': sitemap_rows[page['source_url']]['state'] if page['source_url'] in sitemap_rows else 'not_a_product_path'},
                     'extraction_status': 'native_tables_extracted'}
+                if variant_scope:
+                    child.update(official_name=model, variant_scope=variant_scope,
+                                 identity_status='official_comparison_column_scoped_by_parent')
                 if existing:
                     child['official_pages'] = list({r['url']: r for r in existing.get('official_pages', []) + child['official_pages']}.values())
                     child['attachments'] = list({r['url']: r for r in existing.get('attachments', []) + child['attachments']}.values())
