@@ -21,6 +21,52 @@ class ProductCatalogTests(unittest.TestCase):
         self.assertEqual(table['rows'][1][1]['colspan'], 2)
         self.assertIn('sparse', table['notes'])
 
+    def test_article_header_does_not_hide_networking_manual_specifications(self):
+        body = b'''<header data-component="header" class="header"><h2>Site Navigation</h2></header>
+          <main><article><header><h1>Specifications</h1></header>
+          <h2>MCX545A-ECAN Specifications</h2><table><tr><th>Physical</th><th>Value</th></tr>
+          <tr><td>Connector</td><td>Single QSFP28</td></tr></table></article></main>'''
+        data = parse_page(body, 'https://networking-docs.nvidia.com/connectx5vpiocp2hw/specifications')
+        self.assertEqual(data['heading'], 'Specifications')
+        self.assertEqual(len(data['tables']), 1)
+        self.assertIn('MCX545A-ECAN Specifications', data['tables'][0]['section'])
+        self.assertEqual(data['tables'][0]['rows'][1][1]['text'], 'Single QSFP28')
+
+    def test_networking_manual_models_are_imported_with_parent_and_source_receipt(self):
+        import hashlib
+        from fetchspec.product_catalog import networking_doc_products
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            url = 'https://networking-docs.nvidia.com/connectx5vpiocp2hw/specifications'
+            body = b'''<main><article><header><h1>Specifications</h1></header>
+              <h2>MCX545A-ECAN Specifications</h2><table><tr><th>Physical</th><th>Value</th></tr>
+              <tr><td>Connector</td><td>Single QSFP28</td></tr></table>
+              <h2>MCX545B-ECAN Specifications</h2><table><tr><th>Physical</th><th>Value</th></tr>
+              <tr><td>Connector</td><td>Single QSFP28</td></tr></table></article></main>'''
+            sha = hashlib.sha256(body).hexdigest()
+            rel = f'ledger/companies/nvidia/snapshots/{sha[:2]}/{sha}.html'
+            snapshot = root / rel
+            snapshot.parent.mkdir(parents=True)
+            snapshot.write_bytes(body)
+            ledger = root / 'ledger/companies/nvidia/crawl.sqlite'
+            ledger.parent.mkdir(parents=True, exist_ok=True)
+            with sqlite3.connect(ledger) as db:
+                db.executescript('CREATE TABLE requests(id TEXT PRIMARY KEY,url TEXT); CREATE TABLE pages(request TEXT,sha TEXT,path TEXT,title TEXT,breadcrumbs TEXT,observed_at TEXT);')
+                db.execute('INSERT INTO requests VALUES(?,?)', ('r1', url))
+                db.execute('INSERT INTO pages VALUES(?,?,?,?,?,?)', ('r1', sha, rel,
+                    'Specifications | NVIDIA ConnectX-5 InfiniBand/Ethernet Adapter Cards User Manual',
+                    json.dumps(['Networking', 'Adapters']), '2026-09-28T00:00:00+00:00'))
+            products, sources = networking_doc_products(ledger, root)
+            self.assertEqual(len(products), 3)
+            parent = next(p for p in products if p['kind'] == 'family_or_directory')
+            child = next(p for p in products if p['kind'] == 'named_product')
+            self.assertEqual(child['name'], 'NVIDIA ConnectX-5 MCX545A-ECAN')
+            self.assertEqual(child['parent_id'], parent['id'])
+            self.assertEqual(len(child['tables'][0]['rows']), 2)
+            self.assertEqual(child['official_pages'][0]['sha256'], sha)
+            self.assertEqual(child['tables'][0]['source_refs'][0]['url'], url)
+            self.assertEqual(sources[0]['source_url'], url)
+
     def test_scope_and_classification_do_not_turn_family_into_shipping_product(self):
         self.assertEqual(entity_kind('NVIDIA HGX Platform', 'https://www.nvidia.com/en-us/data-center/hgx/'), 'family_or_directory')
         self.assertEqual(entity_kind('NVIDIA GB300 NVL72', ''), 'named_product')
