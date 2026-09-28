@@ -329,7 +329,7 @@ def sync_product_sitemap(root, db):
         'source_sitemaps': summary.get('sitemaps', []), 'observed_at': summary.get('finished_at')}
 
 
-MODEL = re.compile(r'\b(?:[ABHLV]\d{2,3}[A-Z]*|GB\d{3}|GH\d{3}|SN\d{4}|RTX\s*(?:PRO\s*)?\d{3,4}|GeForce\s+(?:RTX|GTX)\s*\d+|ConnectX[-– ]?\d+|BlueField[-– ]?\d+|Quantum[-– ]?\d+|Spectrum[-– ]?\d+|DGX\s+(?:Spark|Station|[ABH]\d+)|Jetson\s+(?:AGX|Orin|Thor|Nano|TX\d)|SHIELD\s+TV)\b', re.I)
+MODEL = re.compile(r'\b(?:[ABHLV]\d{2,3}[A-Z]*|GB\d{3}|GH\d{3}|SN\d{4}|RTX\s*(?:PRO\s*)?\d{3,4}|GeForce\s+(?:RTX|GTX)\s*\d+|ConnectX[-– ]?\d+|BlueField[-– ]?\d+|Quantum[-– ]?\d+|Spectrum[-– ]?\d+|DGX\s+(?:Spark|Station|Rubin(?:\s+NVL\d+)?|Vera\s+Rubin\s+NVL\d+|[ABH]\d+)|Jetson\s+(?:AGX|Orin|Thor|Nano|TX\d)|SHIELD\s+TV)\b', re.I)
 OFFICIAL_PAGE_HOSTS = {'www.nvidia.com', 'www.nvidia.cn', 'developer.nvidia.com',
                        'developer.nvidia.cn', 'networking-docs.nvidia.com',
                        'resources.nvidia.com'}
@@ -348,6 +348,65 @@ def entity_kind(heading, url):
     if '/software/' in url or re.search(r'\b(?:software|cloud|app|SDK|Nsight|NeMo|BioNeMo)\b', heading, re.I):
         return 'software_service'
     return 'family_or_directory'
+
+
+def resource_product_heading(heading, url):
+    """Turn a resource-viewer document title into the product it evidences."""
+    if urlsplit(url).hostname != 'resources.nvidia.com':
+        return heading
+    clean = re.sub(r'\s+(?:Datasheet|Technical Brief|Product Brief)\s*$', '', heading, flags=re.I).strip()
+    if clean == heading.strip():
+        return heading
+    if not clean.lower().startswith('nvidia ') and re.match(
+            r'^(?:SN\d{4}|Spectrum(?:-X|-\d+)|Blackwell|DGX|RTX\s+PRO)\b', clean, re.I):
+        clean = 'NVIDIA ' + clean
+    return clean
+
+
+def consolidate_resource_viewers(products):
+    """Attach datasheet viewers to products instead of counting documents as products."""
+    products = dict(products)
+    resource_ids = [key for key, item in products.items()
+                    if urlsplit(item.get('source_url', '')).hostname == 'resources.nvidia.com']
+
+    def subject_tokens(name):
+        value = product_identity_name(name)
+        return {token for token in re.findall(r'[a-z]+|\d+', value)
+                if token not in {'nvidia', 'datasheet', 'technical', 'product', 'brief'}}
+
+    for key in resource_ids:
+        evidence = products.get(key)
+        if evidence is None:
+            continue
+        tokens = subject_tokens(evidence['name'])
+        candidates = [item for item in products.values()
+            if item['id'] != key
+            and urlsplit(item.get('source_url', '')).hostname != 'resources.nvidia.com'
+            and tokens and tokens <= subject_tokens(item['name'])]
+        if not candidates:
+            continue
+        # Prefer an exact normalized title, then the shortest official title
+        # containing the evidence subject (SN6000 -> SN6000 Series).
+        target = min(candidates, key=lambda item: (
+            product_identity_name(item['name']) != product_identity_name(evidence['name']),
+            len(subject_tokens(item['name'])), item['name']))
+        target['official_pages'] = list({page['url']: page for page in
+            target.get('official_pages', []) + evidence.get('official_pages', [])}.values())
+        target['attachments'] = list({item['url']: item for item in
+            target.get('attachments', []) + evidence.get('attachments', [])}.values())
+        target['official_resources'] = list({item['url']: item for item in
+            target.get('official_resources', []) + evidence.get('official_resources', [])}.values())
+        table_map = {}
+        for table in target.get('tables', []) + evidence.get('tables', []):
+            identity = hashlib.sha256(json.dumps(
+                {'rows': table.get('rows'), 'notes': table.get('notes', '')},
+                sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+            table_map.setdefault(identity, table)
+        target['tables'] = list(table_map.values())
+        if target['tables']:
+            target['extraction_status'] = 'native_tables_extracted'
+        products.pop(key)
+    return products
 
 
 def frontier_failure_state(exc):
@@ -1162,7 +1221,8 @@ def export(db, base, baseline=None):
     entities = {}
     prior_id_by_url, known_id_by_path = previous_page_identities(base)
     for page in pages:
-        display_name = page.get('heading') or page.get('title') or ''
+        display_name = resource_product_heading(
+            page.get('heading') or page.get('title') or '', page.get('source_url', ''))
         if page.get('depth', 1) == 0 or not display_name or not page_allowed(page['source_url']):
             continue
         url = page['source_url']
@@ -1392,6 +1452,7 @@ def export(db, base, baseline=None):
                                      categories=old_child['categories'], _parent_depth=old_child['_parent_depth'])
                 candidate['extraction_status'] = 'native_tables_extracted' if candidate['tables'] else old_child.get('extraction_status', candidate['extraction_status'])
             expanded[product_id] = candidate
+    expanded = consolidate_resource_viewers(expanded)
     archive_root = base.parent.parent
     doc_products, doc_pages = networking_doc_products(
         archive_root / 'ledger/companies/nvidia/crawl.sqlite', archive_root)
