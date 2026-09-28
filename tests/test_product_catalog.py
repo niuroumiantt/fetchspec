@@ -28,6 +28,9 @@ class ProductCatalogTests(unittest.TestCase):
         self.assertFalse(page_allowed('https://evil.example/en-us/h200/'))
         self.assertFalse(page_allowed('https://www.nvidia.com/en-us/about-nvidia/news/'))
         self.assertTrue(page_allowed('https://www.nvidia.cn/networking/products/data-processing-unit/'))
+        self.assertTrue(page_allowed('https://resources.nvidia.com/en-us-accelerated-networking-resource-library/bluefield-4-dpu-datasheet'))
+        self.assertFalse(page_allowed('https://resources.nvidia.com/en-us-accelerated-networking-resource-library/gated/bluefield-4-dpu-datasheet'))
+        self.assertFalse(page_allowed('https://resources.nvidia.com/_pfcdn/assets/secret.pdf'))
         self.assertTrue(page_allowed('https://developer.nvidia.com/riva'))
         self.assertTrue(page_allowed('https://networking-docs.nvidia.com/software/lts-releases'))
         self.assertFalse(page_allowed('https://developer.nvidia.com/blog/unrelated/'))
@@ -37,6 +40,13 @@ class ProductCatalogTests(unittest.TestCase):
         self.assertIsNone(sitemap_product_category('https://www.nvidia.cn/news/geforce-launch/'))
         self.assertEqual(website_page_identity('https://www.nvidia.com/en-us/geforce/rtx-5090/'),
                          website_page_identity('https://www.nvidia.cn/geforce/rtx-5090/'))
+
+    def test_resource_landing_url_drops_tracking_query_but_direct_file_keeps_it(self):
+        from fetchspec.product_catalog import normalized
+        self.assertEqual(normalized('https://resources.nvidia.com/en-us-accelerated-networking-resource-library/bluefield-4-dpu-datasheet?xs=123', 'https://www.nvidia.com/'),
+                         'https://resources.nvidia.com/en-us-accelerated-networking-resource-library/bluefield-4-dpu-datasheet')
+        self.assertEqual(normalized('https://resources.nvidia.com/_pfcdn/assets/a.pdf?token=abc', 'https://www.nvidia.com/'),
+                         'https://resources.nvidia.com/_pfcdn/assets/a.pdf?token=abc')
 
     def test_spec_grid_preserves_superscript_and_ignores_marketing_grid(self):
         html = b'''<h1>DGX Station</h1><h2>Overview</h2><div class="nv-flexbox"><div class="nv-text">Marketing</div><div class="nv-text">Claim</div></div>
@@ -49,6 +59,22 @@ class ProductCatalogTests(unittest.TestCase):
     def test_inline_markup_does_not_split_model_names(self):
         data = parse_page(b'<h1><span>G</span>eForce RTX 5090</h1>', 'https://www.nvidia.com/en-us/geforce/')
         self.assertEqual(data['heading'], 'GeForce RTX 5090')
+
+    def test_identical_models_share_identity_across_english_chinese_and_datasheet_labels(self):
+        from fetchspec.product_catalog import product_identifier
+        self.assertEqual(product_identifier('GeForce RTX 5090'), product_identifier('NVIDIA RTX 5090'))
+        self.assertEqual(product_identifier('NVIDIA H200 GPU'), product_identifier('H200 Datasheet'))
+        self.assertEqual(product_identifier('NVIDIA Jetson AGX Orin 开发者套件'),
+                         product_identifier('NVIDIA Jetson AGX Orin Developer Kit'))
+        self.assertNotEqual(product_identifier('NVIDIA RTX PRO 6000 Blackwell Workstation Edition'),
+                            product_identifier('NVIDIA RTX PRO 6000 Blackwell Server Edition'))
+
+    def test_resource_viewer_iframe_is_retained_as_official_file_source(self):
+        page = parse_page(b'<h1>NVIDIA BlueField-4 DPU</h1><iframe src="https://dam-cdn.nvd.orangelogic.com/AssetLink/abc.pdf" title="BlueField-4 DPU Datasheet"></iframe>',
+                          'https://resources.nvidia.com/en-us-accelerated-networking-resource-library/bluefield-4-dpu-datasheet')
+        self.assertIn({'url': 'https://dam-cdn.nvd.orangelogic.com/AssetLink/abc.pdf',
+                       'label': 'BlueField-4 DPU Datasheet', 'section': 'NVIDIA BlueField-4 DPU',
+                       'role': 'embedded_official_document'}, page['links'])
 
     def test_model_navigation_is_evidence_even_when_body_is_dynamic(self):
         data = parse_page(b'<nav><a href="/en-us/geforce/graphics-cards/50-series/rtx-5090/">RTX 5090</a><a href="/en-us/news/">News</a></nav><h1>GeForce RTX 50 Series</h1>', 'https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/')

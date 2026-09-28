@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 import hashlib
 import fcntl
+from html import unescape
 from html.parser import HTMLParser
 import json
 from pathlib import Path
@@ -94,7 +95,28 @@ def normalized(url, base):
     p = urlsplit(urljoin(base, url))
     if p.scheme != 'https' or p.username or p.password or p.port not in (None, 443):
         return None
-    return urlunsplit((p.scheme, p.netloc.lower(), p.path, p.query, ''))
+    query = p.query
+    if p.hostname == 'resources.nvidia.com' and re.fullmatch(r'/en-us-[a-z0-9-]+/[a-z0-9-]+/?', p.path, re.I):
+        # Resource viewer links commonly carry analytics IDs. They are not
+        # part of product identity and can otherwise hide an allowed page
+        # from the deterministic frontier's query-free URL policy.
+        query = ''
+    return urlunsplit((p.scheme, p.netloc.lower(), p.path, query, ''))
+
+
+def product_identity_name(name):
+    """Normalize official EN/zh labels to one durable model/entity key."""
+    value = unescape(re.sub(r'<[^>]*>', ' ', name or '')).casefold()
+    for source, target in [('开发者套件', 'developer kit'), ('开发套件', 'developer kit'),
+                           ('工作站版', 'workstation edition'), ('服务器版', 'server edition'),
+                           ('系列', 'series'), ('数据表', ' '), ('规格表', ' '),
+                           ('™', ''), ('®', ''), ('©', '')]:
+        value = value.replace(source, target)
+    value = re.sub(r'\bnvidia\b|\bgeforce\b', ' ', value)
+    value = re.sub(r'\b(?:gpu|graphics card|product specs?|datasheet|data sheet|user manual|whitepaper|product brief)\b', ' ', value)
+    value = re.sub(r'\s*\d+\s*$', '', value) if re.search(r'[¹²³⁴⁵⁶⁷⁸⁹⁰]$', value) else value
+    value = re.sub(r'[^a-z0-9]+', ' ', value).strip()
+    return ' '.join(value.split())
 
 
 def native_table(table):
@@ -162,6 +184,14 @@ def parse_page(body, url):
                     notes.append(following.text())
             tables.append({'index': len(tables) + 1, 'section': section, 'rows': rows,
                            'is_specification': relevant, 'text': node.text(), 'notes': '\n'.join(notes), 'method': 'html_table'})
+    # NVIDIA's resource library hosts PDF.js viewers; the viewer iframe is
+    # the authoritative file URL even though its Download button is JS-only.
+    for node in root.walk():
+        if node.tag in {'iframe', 'embed'} and node.attrs.get('src'):
+            link = normalized(node.attrs['src'], url)
+            if link:
+                links.append({'url': link, 'label': node.attrs.get('title', ''),
+                              'section': section, 'role': 'embedded_official_document'})
     for grid in grids.values():
         tables.append({'index': len(tables) + 1, 'section': grid['section'], 'rows': grid['rows'],
             'is_specification': True, 'method': 'nvidia_official_spec_grid',
@@ -188,6 +218,12 @@ def page_allowed(url):
     p = urlsplit(url)
     if p.hostname not in OFFICIAL_PAGE_HOSTS or p.query:
         return False
+    # NVIDIA's product-resource portal contains public datasheet landing
+    # pages as well as gated campaigns and unrelated collateral. Follow only
+    # one-level English resource-library pages discovered from an approved
+    # NVIDIA product page; direct files stay with the document pipeline.
+    if p.hostname == 'resources.nvidia.com':
+        return bool(re.fullmatch(r'/en-us-[a-z0-9-]+/[a-z0-9-]+/?', p.path, re.I))
     if p.hostname in REDIRECT_PAGE_PATHS:
         return p.path.rstrip('/') in REDIRECT_PAGE_PATHS[p.hostname]
     # www.nvidia.cn publishes its zh-CN sitemap with root-relative paths
@@ -279,9 +315,10 @@ def sync_product_sitemap(root, db):
         'source_sitemaps': summary.get('sitemaps', []), 'observed_at': summary.get('finished_at')}
 
 
-MODEL = re.compile(r'\b(?:[ABHLV]\d{2,3}[A-Z]*|GB\d{3}|GH\d{3}|RTX\s*(?:PRO\s*)?\d{3,4}|GeForce\s+(?:RTX|GTX)\s*\d+|ConnectX[-– ]?\d+|BlueField[-– ]?\d+|Quantum[-– ]?\d+|Spectrum[-– ]?\d+|DGX\s+(?:Spark|Station|[ABH]\d+)|Jetson\s+(?:AGX|Orin|Thor|Nano|TX\d)|SHIELD\s+TV)\b', re.I)
+MODEL = re.compile(r'\b(?:[ABHLV]\d{2,3}[A-Z]*|GB\d{3}|GH\d{3}|SN\d{4}|RTX\s*(?:PRO\s*)?\d{3,4}|GeForce\s+(?:RTX|GTX)\s*\d+|ConnectX[-– ]?\d+|BlueField[-– ]?\d+|Quantum[-– ]?\d+|Spectrum[-– ]?\d+|DGX\s+(?:Spark|Station|[ABH]\d+)|Jetson\s+(?:AGX|Orin|Thor|Nano|TX\d)|SHIELD\s+TV)\b', re.I)
 OFFICIAL_PAGE_HOSTS = {'www.nvidia.com', 'www.nvidia.cn', 'developer.nvidia.com',
-                       'developer.nvidia.cn', 'networking-docs.nvidia.com'}
+                       'developer.nvidia.cn', 'networking-docs.nvidia.com',
+                       'resources.nvidia.com'}
 REDIRECT_PAGE_PATHS = {
     'developer.nvidia.com': {'/riva', '/topics/ai/generative-ai/riva', '/holoscan-for-media'},
     'developer.nvidia.cn': {'/riva', '/topics/ai/generative-ai/riva'},
@@ -330,7 +367,7 @@ def sitemap_entry_for_page(page, sitemap_rows):
 
 def product_identifier(name):
     """Stable product identity independent of the page that currently links it."""
-    key = ' '.join(name.casefold().split())
+    key = product_identity_name(name)
     return 'nvidia-' + hashlib.sha256(('nvidia-product:' + key).encode()).hexdigest()[:20]
 
 
@@ -346,6 +383,12 @@ def model_source_rank(url):
     if '/50-series/' in path:
         return 2
     return 1
+
+
+def source_preference(product):
+    """Prefer a readable official model/spec page over a campaign or viewer shell."""
+    host = urlsplit(product.get('source_url', '')).hostname
+    return (100 if product.get('tables') else 0) + model_source_rank(product.get('source_url', '')) + (0 if host == 'resources.nvidia.com' else 1)
 
 
 def section_products(page):
@@ -550,17 +593,29 @@ def export(db, base, baseline=None):
         if known['source_url'] and urlsplit(known['source_url']).hostname in {'www.nvidia.com', 'www.nvidia.cn'}:
             known_id_by_path.setdefault(identity_path(known['source_url']), known['id'])
     for page in pages:
-        if page.get('depth', 1) == 0 or not page.get('heading') or not page_allowed(page['source_url']):
+        display_name = page.get('heading') or page.get('title') or ''
+        if page.get('depth', 1) == 0 or not display_name or not page_allowed(page['source_url']):
             continue
         url = page['source_url']
-        key = known_id_by_path.get(identity_path(url), website_page_identity(url))
+        kind = entity_kind(display_name, url)
+        if urlsplit(url).hostname == 'resources.nvidia.com' and not re.search(
+                r'^\s*(?:NVIDIA\s+)?(?:BlueField|ConnectX|Spectrum|Quantum|SN\d{4}|RTX|GeForce|Jetson|DGX|H100|H200|Grace|Blackwell)\b', display_name, re.I):
+            continue
+        # Named models use a canonical name key so the same model found on
+        # an overview, comparison, localized route, and datasheet viewer is
+        # one entity with multiple sources—not multiple products.
+        key = product_identifier(display_name) if kind == 'named_product' else known_id_by_path.get(identity_path(url), website_page_identity(url))
         categories = sorted({r[0] for r in db.execute('SELECT category FROM memberships WHERE url=?', (page['requested_url'],))} | {page['category']})
-        candidate = {'id': key, 'name': page['heading'], 'category': ' / '.join(c for c in categories if c), 'categories': categories,
-            'kind': entity_kind(page['heading'], url), 'availability': 'not_verified', 'identity_status': 'official_page_observed',
+        candidate = {'id': key, 'name': display_name, 'category': ' / '.join(c for c in categories if c), 'categories': categories,
+            'kind': kind, 'availability': 'not_verified', 'identity_status': 'official_page_observed',
             'source_url': url, 'source_sha256': page['sha256'], 'observed_at': page['observed_at'],
             'tables': [t for t in page['tables'] if t['is_specification']],
-            'attachments': [l for l in page['links'] if re.search(r'\.(pdf|docx?|pptx?|xlsx?)(?:$|\?)', l['url'], re.I)
-                            and (urlsplit(l['url']).hostname or '').endswith(('.nvidia.com', '.nvidia.cn'))],
+            'attachments': [{**l, 'source_url': url, 'source_sha256': page['sha256']}
+                            for l in page['links']
+                            if re.search(r'\.(pdf|docx?|pptx?|xlsx?)(?:$|\?)', l['url'], re.I)
+                            and urlsplit(l['url']).hostname in {'www.nvidia.com', 'nvidia.com', 'www.nvidia.cn', 'nvidia.cn',
+                                'images.nvidia.com', 'images.nvidia.cn', 'resources.nvidia.com', 'dam-cdn.nvd.orangelogic.com',
+                                'networking-docs.nvidia.com', 'docs.nvidia.com'}],
             'extraction_status': 'native_tables_extracted' if any(t['is_specification'] for t in page['tables']) else 'specification_search_pending',
             'official_pages': [{'url': url, 'sha256': page['sha256']} ]}
         # Match by the requested source URL first: language/legacy paths may
@@ -584,8 +639,9 @@ def export(db, base, baseline=None):
             sitemap['matched'] = sitemap['matched'] or candidate['website_sitemap']['matched']
             sitemap['roles'] = sorted(set(sitemap['roles'] + candidate['website_sitemap']['roles']))
             sitemap['lastmod_claims'] = sorted(set(sitemap['lastmod_claims'] + candidate['website_sitemap']['lastmod_claims']))
-            # Prefer the English page as display identity while retaining both source snapshots.
-            if url.startswith('https://www.nvidia.com/en-us/'):
+            # Prefer an explicit model/spec page over an overview or resource
+            # viewer shell while retaining every official source snapshot.
+            if source_preference(candidate) > source_preference(old):
                 for field in ('name', 'source_url', 'source_sha256', 'observed_at', 'kind', 'extraction_status'):
                     old[field] = candidate[field]
             if not old['tables'] and candidate['tables']:
@@ -670,7 +726,10 @@ def export(db, base, baseline=None):
         if matching:
             matching['identity_status'] = 'official_model_page_and_component_observed'
             matching['attachments'] = list({a['url']: a for a in matching.get('attachments', []) + product.get('attachments', [])}.values())
-            matching['official_pages'] = list({p['url']: p for p in matching.get('official_pages', []) + [{'url': product['product_url'], 'sha256': product['source_sha256']}]}.values())
+            model_page = next((p for p in pages if p.get('source_url') == product.get('product_url')), None)
+            if model_page:
+                matching['official_pages'] = list({p['url']: p for p in matching.get('official_pages', []) + [
+                    {'url': model_page['source_url'], 'sha256': model_page['sha256']} ]}.values())
             matching['tables'].extend(t for t in product['tables'] if t.get('method') == 'official_component_literal_no_execution')
             continue
         component_source = next((s for s in db.execute('SELECT payload FROM component_sources')
@@ -744,11 +803,21 @@ def export(db, base, baseline=None):
                 page_refs = {r['url']: r for r in old_child.get('official_pages', [])}
                 page_refs.update({r['url']: r for r in candidate['official_pages']})
                 candidate['official_pages'] = list(page_refs.values())
-                if old_child.get('_parent_depth', 99) < candidate['_parent_depth']:
-                    candidate.update(parent_id=old_child['parent_id'], product_url=old_child['product_url'],
+                files = {r['url']: r for r in old_child.get('attachments', [])}
+                files.update({r['url']: r for r in candidate['attachments']})
+                candidate['attachments'] = list(files.values())
+                tables = {hashlib.sha256(json.dumps({'rows': t.get('rows'), 'notes': t.get('notes', '')},
+                    sort_keys=True, ensure_ascii=False).encode()).hexdigest(): t
+                    for t in old_child.get('tables', []) + candidate['tables']}
+                candidate['tables'] = list(tables.values())
+                if source_preference(old_child) > source_preference(candidate) or (
+                        source_preference(old_child) == source_preference(candidate)
+                        and old_child.get('_parent_depth', 99) < candidate['_parent_depth']):
+                    candidate.update(parent_id=old_child.get('parent_id'), product_url=old_child.get('product_url', old_child['source_url']),
                                      source_url=old_child['source_url'], source_sha256=old_child['source_sha256'],
                                      observed_at=old_child['observed_at'], category=old_child['category'],
                                      categories=old_child['categories'], _parent_depth=old_child['_parent_depth'])
+                candidate['extraction_status'] = 'native_tables_extracted' if candidate['tables'] else old_child.get('extraction_status', candidate['extraction_status'])
             expanded[product_id] = candidate
     for product in expanded.values():
         product.pop('_parent_depth', None)
