@@ -21,6 +21,12 @@ class ProductCatalogTests(unittest.TestCase):
         self.assertEqual(table['rows'][1][1]['colspan'], 2)
         self.assertIn('sparse', table['notes'])
 
+    def test_empty_or_invalid_html_cell_spans_default_to_one(self):
+        data = parse_page(b'<h1>Specifications</h1><table><tr><th colspan="">Metric</th><td rowspan="n/a">Value</td></tr></table>',
+                          'https://networking-docs.nvidia.com/connectx5vpiocp2hw/specifications')
+        cells = data['tables'][0]['rows'][0]
+        self.assertEqual([(cell['colspan'], cell['rowspan']) for cell in cells], [(1, 1), (1, 1)])
+
     def test_article_header_does_not_hide_networking_manual_specifications(self):
         body = b'''<header data-component="header" class="header"><h2>Site Navigation</h2></header>
           <main><article><header><h1>Specifications</h1></header>

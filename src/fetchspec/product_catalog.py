@@ -133,8 +133,13 @@ def native_table(table):
         cells = []
         for cell in row.children:
             if isinstance(cell, Node) and cell.tag in {'td', 'th'}:
-                cells.append({'text': cell.text(), 'colspan': min(100, max(1, int(cell.attrs.get('colspan', '1')))),
-                              'rowspan': min(100, max(1, int(cell.attrs.get('rowspan', '1')))), 'header': cell.tag == 'th'})
+                def span(name):
+                    try:
+                        return min(100, max(1, int(cell.attrs.get(name) or 1)))
+                    except (TypeError, ValueError):
+                        return 1
+                cells.append({'text': cell.text(), 'colspan': span('colspan'),
+                              'rowspan': span('rowspan'), 'header': cell.tag == 'th'})
         if cells:
             rows.append(cells)
     return rows
