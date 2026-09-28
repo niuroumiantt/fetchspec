@@ -80,9 +80,14 @@ class Document(HTMLParser):
 
 def content_nodes(root):
     """Discard site chrome, executable content and hidden consent widgets."""
-    if root.tag in {'script', 'style', 'noscript', 'svg', 'nav', 'header', 'footer', 'form'}:
+    if root.tag in {'script', 'style', 'noscript', 'svg', 'nav', 'footer', 'form'}:
         return
     mark = root.attrs.get('class', '') + ' ' + root.attrs.get('id', '')
+    # NVIDIA Networking Docs wraps each article's h1 in a plain <header>.
+    # Drop the separate site-level header but preserve article headings.
+    if root.tag == 'header' and (root.attrs.get('data-component') == 'header'
+                                 or re.search(r'(^|\s)header(\s|$)', root.attrs.get('class', ''), re.I)):
+        return
     if re.search(r'global.?nav|global.?footer|cookie|consent|breadcrumb', mark, re.I):
         return
     yield root
@@ -360,6 +365,98 @@ def source_receipt(page):
     return {key: page[key] for key in ('source_url', 'requested_url', 'sha256', 'snapshot_path',
         'observed_at', 'heading', 'title', 'canonical', 'category', 'parent_url', 'depth', 'kind') if key in page} | {
         'http': {key: http[key] for key in ('status', 'final_url', 'content_type', 'etag', 'last_modified') if key in http}}
+
+
+def networking_doc_products(company_ledger, archive_root):
+    """Extract explicitly model-labelled native specs from NVIDIA hardware manuals."""
+    ledger_path = Path(company_ledger)
+    if not ledger_path.is_file():
+        return [], []
+    archive_root = Path(archive_root)
+    connection = sqlite3.connect(f'file:{ledger_path}?mode=ro', uri=True)
+    connection.row_factory = sqlite3.Row
+    products, source_pages = {}, {}
+    try:
+        rows = connection.execute('''SELECT r.url,p.sha,p.path,p.title,p.breadcrumbs,p.observed_at
+            FROM pages p JOIN requests r ON r.id=p.request
+            WHERE r.url LIKE 'https://networking-docs.nvidia.com/%'
+            ORDER BY r.url''').fetchall()
+    finally:
+        connection.close()
+    for row in rows:
+        title = row['title'] or ''
+        family_match = re.search(r'\bNVIDIA\s+((?:ConnectX|BlueField|Spectrum|Quantum)[-\w]*)', title, re.I)
+        if not family_match:
+            continue
+        url, sha = row['url'], row['sha']
+        snapshot = archive_root / row['path']
+        if not snapshot.is_file() or hashlib.sha256(snapshot.read_bytes()).hexdigest() != sha:
+            continue
+        parsed = parse_page(snapshot.read_bytes(), url)
+        model_tables = []
+        for table in parsed['tables']:
+            match = re.match(r'^([A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+)\s+(?:specifications?|specs)\b',
+                             table.get('section', '').strip(), re.I)
+            if match and table.get('is_specification') and table.get('rows'):
+                model_tables.append((match.group(1), table))
+        if not model_tables:
+            continue
+        family = 'NVIDIA ' + family_match.group(1)
+        try:
+            breadcrumbs = json.loads(row['breadcrumbs'] or '[]')
+        except json.JSONDecodeError:
+            breadcrumbs = []
+        categories = []
+        for crumb in breadcrumbs:
+            value = ' '.join(str(crumb).split())
+            if value in {'Networking', 'Adapters', 'DPUs', 'Ethernet Switches', 'InfiniBand'} and value not in categories:
+                categories.append(value)
+        if not categories:
+            categories = ['Networking', 'Hardware']
+        page = {'source_url': url, 'requested_url': url, 'sha256': sha,
+            'snapshot_path': row['path'], 'observed_at': row['observed_at'],
+            'heading': parsed['heading'], 'title': title, 'canonical': parsed.get('canonical'),
+            'category': ' / '.join(categories), 'parent_url': '', 'depth': 0,
+            'kind': 'official_hardware_manual',
+            'http': {'status': 200, 'final_url': url, 'content_type': 'text/html'}}
+        source_pages[(sha, url)] = page
+        parent_id = product_identifier(family)
+        page_ref = {'url': url, 'sha256': sha}
+        parent = products.setdefault(parent_id, {'id': parent_id, 'name': family,
+            'category': ' / '.join(categories), 'categories': categories,
+            'kind': 'family_or_directory', 'availability': 'not_verified',
+            'identity_status': 'official_hardware_manual_observed',
+            'source_url': url, 'source_sha256': sha, 'observed_at': row['observed_at'],
+            'parent_id': None, 'tables': [], 'attachments': [], 'official_resources': [],
+            'official_pages': [], 'website_sitemap': {'matched': False, 'roles': [],
+                'lastmod_claims': [], 'candidate_status': 'official_manual_not_product_path'},
+            'extraction_status': 'specification_search_pending'})
+        parent['official_pages'] = list({r['url']: r for r in parent['official_pages'] + [page_ref]}.values())
+        for model, table in model_tables:
+            table = {**table, 'source_refs': [page_ref]}
+            name = family + ' ' + model
+            product_id = product_identifier(name)
+            product = products.setdefault(product_id, {'id': product_id, 'name': name,
+                'category': ' / '.join(categories), 'categories': categories,
+                'kind': 'named_product', 'availability': 'not_verified',
+                'identity_status': 'official_part_number_specification_observed',
+                'source_url': url, 'source_sha256': sha, 'observed_at': row['observed_at'],
+                'parent_id': parent_id, 'tables': [], 'attachments': [], 'official_resources': [],
+                'official_pages': [], 'website_sitemap': {'matched': False, 'roles': [],
+                    'lastmod_claims': [], 'candidate_status': 'official_manual_not_product_path'},
+                'extraction_status': 'native_tables_extracted'})
+            product['official_pages'] = list({r['url']: r for r in product['official_pages'] + [page_ref]}.values())
+            identity = hashlib.sha256(json.dumps({'rows': table['rows'], 'notes': table.get('notes', '')},
+                sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+            existing_table = next((t for t in product['tables'] if hashlib.sha256(json.dumps(
+                {'rows': t['rows'], 'notes': t.get('notes', '')}, sort_keys=True,
+                ensure_ascii=False).encode()).hexdigest() == identity), None)
+            if existing_table:
+                existing_table['source_refs'] = list({(r['url'], r['sha256']): r for r in
+                    existing_table.get('source_refs', []) + table['source_refs']}.values())
+            else:
+                product['tables'].append(table)
+    return list(products.values()), list(source_pages.values())
 
 
 def sitemap_entry_for_page(page, sitemap_rows):
@@ -821,6 +918,34 @@ def export(db, base, baseline=None):
                                      categories=old_child['categories'], _parent_depth=old_child['_parent_depth'])
                 candidate['extraction_status'] = 'native_tables_extracted' if candidate['tables'] else old_child.get('extraction_status', candidate['extraction_status'])
             expanded[product_id] = candidate
+    archive_root = base.parent.parent
+    doc_products, doc_pages = networking_doc_products(
+        archive_root / 'ledger/companies/nvidia/crawl.sqlite', archive_root)
+    pages.extend(p for p in doc_pages if not any(x.get('source_url') == p['source_url'] and x.get('sha256') == p['sha256'] for x in pages))
+    for product in doc_products:
+        old = expanded.get(product['id'])
+        if old is None:
+            expanded[product['id']] = product
+            continue
+        old['official_pages'] = list({p['url']: p for p in old.get('official_pages', []) + product['official_pages']}.values())
+        old['categories'] = sorted(set(old.get('categories', []) + product['categories']))
+        old['category'] = ' / '.join(old['categories'])
+        table_map = {}
+        for table in old.get('tables', []) + product.get('tables', []):
+            key = hashlib.sha256(json.dumps({'rows': table.get('rows'), 'notes': table.get('notes', '')},
+                sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+            if key not in table_map:
+                table_map[key] = table
+            else:
+                table_map[key]['source_refs'] = list({(r['url'], r['sha256']): r for r in
+                    table_map[key].get('source_refs', []) + table.get('source_refs', [])}.values())
+        old['tables'] = list(table_map.values())
+        old['attachments'] = list({a['url']: a for a in old.get('attachments', []) + product.get('attachments', [])}.values())
+        if not old.get('tables') and product.get('tables'):
+            old.update(source_url=product['source_url'], source_sha256=product['source_sha256'],
+                observed_at=product['observed_at'])
+        if old['tables']:
+            old['extraction_status'] = 'native_tables_extracted'
     for product in expanded.values():
         product.pop('_parent_depth', None)
     previous = baseline if baseline is not None else {r['id']: dict(r) for r in db.execute('SELECT id,name,parent_id,source_sha256 FROM product_map')}
@@ -860,7 +985,9 @@ def export(db, base, baseline=None):
                 '参数保留官方表格、列名、合并单元格和脚注；尚未自动映射跨产品通用字段。']},
         'product_map': {'policy': 'Products absent from a partial observation are retained; removal requires an explicit, completed official-directory comparison and review.',
             'changes': dict(changes), 'entries': len(expanded)},
-        'products': list(expanded.values()), 'sources': [source_receipt(page) for page in pages], 'frontier': frontier}
+        'products': list(expanded.values()),
+        'sources': list({(page['sha256'], page['source_url']): source_receipt(page) for page in pages}.values()),
+        'frontier': frontier}
     atomic_json(base / 'catalog.json', bundle)
     atomic_json(base / 'product-sitemap.json', {'schema_version': 1, 'company_id': 'nvidia',
         'generated_at': bundle['generated_at'], 'directory_url': bundle['coverage']['directory_url'],
