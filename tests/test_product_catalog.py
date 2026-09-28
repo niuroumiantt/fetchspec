@@ -7,11 +7,32 @@ from fetchspec.product_catalog import parse_page, entity_kind, page_allowed, sec
 from fetchspec.product_catalog import sync_product_sitemap, website_page_identity, source_receipt, sitemap_entry_for_page
 from fetchspec.product_catalog import pdf_spec_tables_from_text, pdf_matrix_products
 from fetchspec.product_catalog import comparison_model_identity, product_identifier, frontier_failure_state, previous_page_identities
-from fetchspec.product_catalog import resource_product_heading, consolidate_resource_viewers
+from fetchspec.product_catalog import resource_product_heading, consolidate_resource_viewers, catalog_display_name, specification_gap_status
 from urllib.error import HTTPError
 
 
 class ProductCatalogTests(unittest.TestCase):
+    def test_chinese_series_and_platform_are_not_concrete_models(self):
+        self.assertEqual(entity_kind('GeForce RTX 50 系列', 'https://www.nvidia.cn/geforce/50-series/'),
+                         'family_or_directory')
+        self.assertEqual(entity_kind('NVIDIA Quantum-2 InfiniBand 平台', 'https://www.nvidia.cn/networking/quantum2/'),
+                         'family_or_directory')
+        self.assertEqual(entity_kind('NVIDIA RTX 2000 Ada 架构 GPU', 'https://www.nvidia.cn/rtx-2000/'),
+                         'named_product')
+
+    def test_concrete_model_gap_distinguishes_removed_and_unpublished_specs(self):
+        product = {'kind': 'named_product', 'tables': [], 'attachments': [],
+            'official_resources': [], 'source_url': 'https://www.nvidia.com/gpu/'}
+        linked = {'source_url': product['source_url'], 'links': [
+            {'label': 'Specifications', 'url': 'https://www.nvidia.com/gpu/specifications'}]}
+        self.assertEqual(specification_gap_status(product, {product['source_url']: linked},
+            {'https://www.nvidia.com/gpu/specifications': 'unavailable'}),
+            'official_specification_source_unavailable')
+        generic = {'source_url': product['source_url'], 'links': [
+            {'label': 'Specifications', 'url': 'https://www.nvidia.com/graphics-cards/'}]}
+        self.assertEqual(specification_gap_status(product, {product['source_url']: generic}, {}),
+            'official_specification_not_published_on_observed_page')
+
     def test_resource_viewer_title_is_product_identity_not_document_identity(self):
         self.assertEqual(resource_product_heading('NVIDIA DGX B300 Technical Brief',
             'https://resources.nvidia.com/en-us-dgx-systems/dgx-b300-technical-brief'),
@@ -37,6 +58,47 @@ class ProductCatalogTests(unittest.TestCase):
         self.assertEqual(result['series']['attachments'][0]['url'], 'https://dam.example/sn6000.pdf')
         self.assertEqual(len(result['series']['official_pages']), 2)
         self.assertEqual(result['series']['extraction_status'], 'native_tables_extracted')
+
+    def test_legacy_geforce_div_specs_are_native_tables_and_use_parent_model(self):
+        html = b'''<h1>Specifications</h1><div class="coloredTable">
+          <div class="title">GTX 780 Ti GPU Engine Specs:</div>
+          <div class="row"><span class="right">2880</span>CUDA Cores<div class="clear"></div></div>
+          <div class="row"><span class="right">875</span>Base Clock (MHz)<div class="clear"></div></div>
+          <div class="row"><span class="right">928</span>Boost Clock (MHz)<div class="clear"></div></div>
+          <div class="title">GTX 780 Ti Memory Specs:</div>
+          <div class="row"><span class="right">3072 MB</span>Standard Memory Config<div class="clear"></div></div>
+          <div class="row"><span class="right">GDDR5</span>Memory Interface<div class="clear"></div></div>
+          </div><p class="additionalInfo">Reference-card values.</p>'''
+        parsed = parse_page(html,
+            'https://www.nvidia.com/en-us/geforce/graphics-cards/geforce-gtx-780-ti/specifications')
+        self.assertEqual([(table['section'], len(table['rows'])) for table in parsed['tables']],
+                         [('GTX 780 Ti GPU Engine Specs', 3), ('GTX 780 Ti Memory Specs', 2)])
+        self.assertEqual([cell['text'] for cell in parsed['tables'][0]['rows'][0]],
+                         ['CUDA Cores', '2880'])
+        self.assertEqual(parsed['tables'][0]['notes'], 'Reference-card values.')
+        page = {'heading': 'Specifications',
+            'source_url': 'https://www.nvidia.com/en-us/geforce/graphics-cards/geforce-gtx-780-ti/specifications',
+            'parent_url': 'official-sitemap:gaming-and-creating'}
+        parent = {'heading': 'GeForce GTX 780 Ti'}
+        product_url = 'https://www.nvidia.com/en-us/geforce/graphics-cards/geforce-gtx-780-ti/'
+        self.assertEqual(catalog_display_name(page, {product_url: parent}), 'GeForce GTX 780 Ti')
+
+    def test_product_spec_cards_form_one_native_table_and_drop_cta(self):
+        parsed = parse_page(b'''<h1>SHIELD TV Pro Product Specs</h1>
+          <h2>Processor</h2><p>Tegra X1+; 3 GB RAM</p>
+          <h2>Storage</h2><p>16 GB</p><p>Expandable by USB</p>
+          <h2>Interfaces</h2><p>Gigabit Ethernet; HDMI 2.0b</p>
+          <h2>Power</h2><p>40 W adapter</p>
+          <h2>Compare</h2><p>See why SHIELD is best.</p>''',
+          'https://www.nvidia.com/en-us/shield/shield-tv-pro/')
+        table = parsed['tables'][0]
+        self.assertEqual(table['method'], 'nvidia_product_spec_cards')
+        self.assertEqual([(row[0]['text'], row[1]['text']) for row in table['rows']], [
+            ('Processor', 'Tegra X1+; 3 GB RAM'),
+            ('Storage', '16 GB; Expandable by USB'),
+            ('Interfaces', 'Gigabit Ethernet; HDMI 2.0b'),
+            ('Power', '40 W adapter'),
+        ])
 
     def test_previous_catalog_not_stale_product_map_anchors_page_identity(self):
         with TemporaryDirectory() as tmp:
@@ -211,6 +273,13 @@ class ProductCatalogTests(unittest.TestCase):
         self.assertEqual(table['rows'][1][1]['colspan'], 2)
         self.assertIn('sparse', table['notes'])
 
+    def test_chinese_html_specification_heading_marks_official_table(self):
+        data = parse_page(b'''<h1>GeForce RTX 4090 D</h1><h2>\xe8\xa7\x84\xe6\xa0\xbc</h2>
+          <table><tr><td>CUDA Core</td><td>14592</td></tr>
+          <tr><td>\xe5\x8a\xa0\xe9\x80\x9f\xe9\xa2\x91\xe7\x8e\x87</td><td>2.52 GHz</td></tr></table>''',
+          'https://www.nvidia.cn/geforce/graphics-cards/40-series/rtx-4090-d/')
+        self.assertTrue(data['tables'][0]['is_specification'])
+
     def test_empty_or_invalid_html_cell_spans_default_to_one(self):
         data = parse_page(b'<h1>Specifications</h1><table><tr><th colspan="">Metric</th><td rowspan="n/a">Value</td></tr></table>',
                           'https://networking-docs.nvidia.com/connectx5vpiocp2hw/specifications')
@@ -269,6 +338,9 @@ class ProductCatalogTests(unittest.TestCase):
         self.assertFalse(page_allowed('https://www.nvidia.com/de-de/data-center/h200/'))
         self.assertFalse(page_allowed('https://evil.example/en-us/h200/'))
         self.assertFalse(page_allowed('https://www.nvidia.com/en-us/about-nvidia/news/'))
+        self.assertFalse(page_allowed('https://www.nvidia.com/en-us/geforce/technologies/vxgi/'))
+        self.assertFalse(page_allowed('https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-nano/duckietown/'))
+        self.assertFalse(page_allowed('https://www.nvidia.com/en-us/lp/embedded-computing/robotics-edge-ai-tech-brief/'))
         self.assertTrue(page_allowed('https://www.nvidia.cn/networking/products/data-processing-unit/'))
         self.assertTrue(page_allowed('https://resources.nvidia.com/en-us-accelerated-networking-resource-library/bluefield-4-dpu-datasheet'))
         self.assertFalse(page_allowed('https://resources.nvidia.com/en-us-accelerated-networking-resource-library/gated/bluefield-4-dpu-datasheet'))

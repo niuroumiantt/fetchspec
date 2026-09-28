@@ -28,6 +28,10 @@ Frontier 状态区分三类结果：网络、解析等可重试异常为 `failed
 
 能直接读取的 HTML 表格/DOM 或官方静态数据应先于 OCR：通常更快、字段与配置列更完整、可保留脚注，也容易稳定重跑。OCR 只在原厂内容确实以图像/扫描发布且没有可读 HTML、文本 PDF 或结构化组件时使用；OCR 值须保存页码/区域和低置信度标记，不得伪装成原生规格表。
 
+旧版 GeForce 型号页把参数放在 `/specifications` 子页的 `coloredTable` div 网格，而不是 HTML `table`。采集器按原厂 section title 拆成 GPU Engine、Memory、Display、Dimensions、Thermal/Power 等表，把 `span.right` 的显式值与字段名配对，并把子页归回父型号，不把标题为 `Specifications` 的子页另算产品。SHIELD 产品规格页则按 `Product Specs` 下的 Processor、Storage、Interfaces、Power 等卡片组成一张字段表，排除 Compare/Buy CTA。
+
+中文 HTML 的 `规格` 标题与英文 specification 等价；中文 `系列`、`平台`、`集群` 是 family/platform 层级，不因名称里含 RTX/Quantum 型号词就误算具体 SKU。GeForce technology、Duckietown 文章和 Robotics Tech Brief 页面保留快照但不进入产品实体清单。若具体型号的专属规格 URL 经观察明确 404，记录 `official_specification_source_unavailable`；若产品页没有发布专属规格入口和附件，记录 `official_specification_not_published_on_observed_page`，均不猜值、不冒充爬取失败。
+
 系列/对比表的列可能分别代表不同具体型号。若表头明确命名型号，采集器将每个型号列拆成独立产品规格记录，保留列内字段和值、系列 `parent_id`、来源 URL/SHA 和原表脚注。型号页和系列表命中同一产品时合并到同一 ID，选择更具体的型号/系列参数页为主来源，其他页只作为辅助证据。GeForce RTX 家族的型号参数列不能只留在一个“系列”记录里，也不能让动态 JS 地址代替产品来源。
 
 型号页、系列/平台、软件服务分开；型号识别待复核，官网列出不等于确认在售。目录数量不是 SKU 数，frontier 耗尽不等于全公司产品穷尽。动态规格、PDF 定向抽取、独立文档站和配置拆分仍待补齐。仅采英文与中文来源；官方中文站 `www.nvidia.cn` 的根路径纳入，其他地区语言不采集。
