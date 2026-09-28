@@ -32,6 +32,8 @@ Frontier 状态区分三类结果：网络、解析等可重试异常为 `failed
 
 PDF 定向抽取既识别独占一行的 `Specifications`，也识别 NVIDIA datasheet 首屏双栏右侧的 `Product Specifications` 面板；以后者标题的横坐标作为隔离边界，丢弃左侧营销正文，只保留面板中的字段、跨行字段名、项目符号值和原 PDF SHA。页脚或后续 Features 区出现即停止，不能把下一节正文拼入最后一个参数。
 
+PDF 中的 `Portfolio`、`Specifications` 项目列表和 `Key Features` 左标签/右值表也属于可核查规格证据；只在标题明确、至少三个有效项时入库。多型号 `Technical Specifications` 矩阵按表头模型列之间的版面中点划分，不按居中的表头起点硬切，避免把 `16-core` 等值截断。每一型号列拆成独立产品表，同时与独立文档站已经确认的完整型号归并到同一稳定 ID；例如 SN6800-LD、SN6810-LD、SN6600-LD 统一挂到 `NVIDIA Spectrum-6 SN6000 Series`，型号手册和系列 PDF 矩阵作为两份互补官方证据保留，不重复计产品。
+
 inresearch 的 `manage.py product-catalog import --input <catalog.json> --archive-root <原件根>` 核验快照后入私有 SQLite；`product-catalog publish` 用 NVIDIA 专用凭证交 AWS。`/product-catalog.html` 直接用结构化数据展示、筛选、并排核查和导出 CSV；原文只在核查时打开。规格提取不自动成为正式研究采用。
 
 以下 `company-crawl` / `profiles/nvidia.json` 保留旧附件专项任务兼容，其收窄范围不作为产品清单覆盖规则。
