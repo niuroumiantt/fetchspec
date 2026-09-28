@@ -128,6 +128,25 @@ class ProductCatalogTests(unittest.TestCase):
             ('Host Interface', 'PCIe Gen6: up to 48 lanes'),
         ])
 
+    def test_native_pdf_spec_parser_reads_chinese_spec_heading_and_wrapped_label(self):
+        left_width = 56
+        text = '\n'.join([
+            f'{"性能图表":<{left_width}}规格',
+            f'{"":<{left_width}}GPU 显存                              24GB GDDR6',
+            f'{"":<{left_width}}显存位宽                                192 位',
+            f'{"":<{left_width}}基于 NVIDIA Ada Lovelace                7,680',
+            ' ' * left_width + '架构的 CUDA 核心',
+            f'{"":<{left_width}}系统接口                                PCIe 4.0 x16',
+            ' ' * left_width + '准备好开始了吗？',
+        ])
+        table = pdf_spec_tables_from_text(text)[0]
+        self.assertEqual([(row[0]['text'], row[1]['text']) for row in table['rows']], [
+            ('GPU 显存', '24GB GDDR6'),
+            ('显存位宽', '192 位'),
+            ('基于 NVIDIA Ada Lovelace 架构的 CUDA 核心', '7,680'),
+            ('系统接口', 'PCIe 4.0 x16'),
+        ])
+
     def test_native_pdf_spec_parser_preserves_bullet_portfolio(self):
         text = '\n'.join([
             'Product overview                              Portfolio',

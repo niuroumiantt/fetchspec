@@ -36,6 +36,8 @@ PDF 定向抽取既识别独占一行的 `Specifications`，也识别 NVIDIA dat
 
 PDF 中的 `Portfolio`、`Specifications` 项目列表和 `Key Features` 左标签/右值表也属于可核查规格证据；只在标题明确、至少三个有效项时入库。多型号 `Technical Specifications` 矩阵按表头模型列之间的版面中点划分，不按居中的表头起点硬切，避免把 `16-core` 等值截断。每一型号列拆成独立产品表，同时与独立文档站已经确认的完整型号归并到同一稳定 ID；例如 SN6800-LD、SN6810-LD、SN6600-LD 统一挂到 `NVIDIA Spectrum-6 SN6000 Series`，型号手册和系列 PDF 矩阵作为两份互补官方证据保留，不重复计产品。
 
+中文原厂资料中的 `规格` 标题与附件标签 `数据表`、`规格表`、`技术简介` 等同英文规格入口处理。双栏页面仍按标题横坐标隔离左侧图表/营销文案；中文字段名换行时合并字段名，`准备好开始了吗`、`如需详细了解` 等后续 CTA 作为表格终点。英文版和中文版参数表命中同一型号时都保留为独立官方证据，不能因字段翻译不同丢弃其一。
+
 inresearch 的 `manage.py product-catalog import --input <catalog.json> --archive-root <原件根>` 核验快照后入私有 SQLite；`product-catalog publish` 用 NVIDIA 专用凭证交 AWS。`/product-catalog.html` 直接用结构化数据展示、筛选、并排核查和导出 CSV；原文只在核查时打开。规格提取不自动成为正式研究采用。
 
 以下 `company-crawl` / `profiles/nvidia.json` 保留旧附件专项任务兼容，其收窄范围不作为产品清单覆盖规则。

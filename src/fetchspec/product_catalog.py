@@ -502,6 +502,8 @@ def _pdf_right_panel_rows(lines, start, boundary):
             continue
         if re.search(r'\|\s*(?:Datasheet|Product Brief|Technical Brief)\s*\|', content, re.I):
             break
+        if re.match(r'^(?:ready to get started|for more information|to learn more|准备好开始了吗|如需详细了解)', content, re.I):
+            break
         if re.match(r'^(?:key\s+)?features\*?\s*$', content, re.I):
             break
         leading = len(region) - len(region.lstrip())
@@ -513,6 +515,7 @@ def _pdf_right_panel_rows(lines, start, boundary):
         if split and split[0] and split[1]:
             next_label, next_value = split
             fragments = (not separated and label and len(label.split()) <= 2
+                         and re.match(r'^[a-z]', next_label)
                          and len(next_label.split()) == 1 and len(label.split()) + 1 <= 3)
             if label and value and not fragments:
                 flush()
@@ -534,7 +537,10 @@ def _pdf_right_panel_rows(lines, start, boundary):
             separated = False
             continue
         if label and value:
-            fragment = (not separated and len(label.split()) + len(content.split()) <= 4)
+            # Chinese wrapped labels do not provide lowercase-word clues;
+            # title-cased English text is more likely the next parameter.
+            fragment = (not separated and (len(label.split()) + len(content.split()) <= 4
+                        or bool(re.search(r'[\u3400-\u9fff]', content))))
             if not fragment:
                 flush()
         label = (label + ' ' + content).strip()
@@ -719,11 +725,11 @@ def pdf_matrix_products(products):
 
 def pdf_spec_tables_from_text(text):
     """Parse table-like native PDF text; kept separate for deterministic tests."""
-    headings = re.compile(r'^\s*(?:(?:technical|product|hardware)\s+)?specifications?\s*:?[ \t]*$', re.I)
+    headings = re.compile(r'^\s*(?:(?:(?:technical|product|hardware)\s+)?specifications?\s*:?|规格)\s*$', re.I)
     inline_heading = re.compile(
-        r'(?P<gap>\s{2,})(?P<title>(?:(?:technical|product|hardware)\s+)?specifications?\s*:?)\s*$',
+        r'(?P<gap>\s{2,})(?P<title>(?:(?:technical|product|hardware)\s+)?specifications?\s*:?|规格)\s*$',
         re.I)
-    stop = re.compile(r'^(?:ready to get started|for more information|to learn more|copyright|©|nvidia corporation)', re.I)
+    stop = re.compile(r'^(?:ready to get started|for more information|to learn more|copyright|©|nvidia corporation|准备好开始了吗|如需详细了解)', re.I)
     output = []
     lines = text.splitlines()
     for start, heading in enumerate(lines):
@@ -833,7 +839,7 @@ def pdf_attachment_specs(company_ledger, archive_root, products):
         db.close()
     files = {row['url']: row for row in fetched}
     generic = re.compile(r'line card|brochure|installation|user guide|release notes|announcement', re.I)
-    spec_label = re.compile(r'datasheet|data sheet|specification|technical brief|product brief', re.I)
+    spec_label = re.compile(r'datasheet|data sheet|specification|technical brief|product brief|数据表|规格表|技术简介', re.I)
     cache, receipts, handled = {}, {}, set()
     for product in products:
         for attachment in product.get('attachments', []):
