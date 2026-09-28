@@ -19,6 +19,32 @@ class ProductCatalogTests(unittest.TestCase):
         self.assertEqual(tables[0]['rows'][-1][1]['text'], '800 GB/s')
         self.assertEqual(pdf_spec_tables_from_text('GPU Architecture       NVIDIA Blackwell\nCUDA Cores  10000'), [])
 
+    def test_native_pdf_spec_parser_isolates_right_hand_specification_panel(self):
+        left_width = 118
+        lines = [
+            'Extending InfiniBand Performance to Remote',
+            ' ' * left_width + 'Specifications',
+            'Infrastructures and the Edge',
+            ' ' * left_width + 'Performance    400Gb/s bidirectional',
+            f'{"The NVIDIA MetroX system seamlessly extends the reach.":<{left_width}}               throughput',
+            f'{"and native remote direct-memory access communications.":<{left_width}}Connectors     4x QSFP112 for data',
+            f'{"over long distances.":<{left_width}}               2x QSFP112 for InfiniBand',
+            '',
+            f'{"Optimized for High Density and Scalability":<{left_width}}Management     4x RJ45: 2x 1GbE ports',
+            f'{"Marketing copy continues in the left pane.":<{left_width}}ports          and 2x 10GbE ports',
+            f'{"More unrelated prose.":<{left_width}}Software       NVDA-OS-XC',
+            'x' * (left_width + 9) + 'overflow from the left pane',
+        ]
+        text = '\n'.join(lines)
+        tables = pdf_spec_tables_from_text(text)
+        self.assertEqual(len(tables), 1)
+        self.assertEqual([(row[0]['text'], row[1]['text']) for row in tables[0]['rows']], [
+            ('Performance', '400Gb/s bidirectional throughput'),
+            ('Connectors', '4x QSFP112 for data 2x QSFP112 for InfiniBand'),
+            ('Management ports', '4x RJ45: 2x 1GbE ports and 2x 10GbE ports'),
+            ('Software', 'NVDA-OS-XC'),
+        ])
+
     def test_native_specification_preserves_variants_spans_notes_and_excludes_navigation(self):
         html = b'''<header><a href="/en-us/unrelated/">H100</a></header><h1>NVIDIA H200 GPU</h1>
           <h2>Specifications</h2><table><tr><td></td><td>SXM</td><td>NVL</td></tr>
