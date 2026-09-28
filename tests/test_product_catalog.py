@@ -64,6 +64,8 @@ class ProductCatalogTests(unittest.TestCase):
         from fetchspec.product_catalog import product_identifier
         self.assertEqual(product_identifier('GeForce RTX 5090'), product_identifier('NVIDIA RTX 5090'))
         self.assertEqual(product_identifier('NVIDIA H200 GPU'), product_identifier('H200 Datasheet'))
+        self.assertEqual(product_identifier('NVIDIA A10 Tensor Core GPU'),
+                         product_identifier('NVIDIA A10 Tensor 核心 GPU'))
         self.assertEqual(product_identifier('NVIDIA Jetson AGX Orin 开发者套件'),
                          product_identifier('NVIDIA Jetson AGX Orin Developer Kit'))
         self.assertNotEqual(product_identifier('NVIDIA RTX PRO 6000 Blackwell Workstation Edition'),
