@@ -107,7 +107,9 @@ def normalized(url, base):
 def product_identity_name(name):
     """Normalize official EN/zh labels to one durable model/entity key."""
     value = unescape(re.sub(r'<[^>]*>', ' ', name or '')).casefold()
-    for source, target in [('开发者套件', 'developer kit'), ('开发套件', 'developer kit'),
+    for source, target in [('张量核心', 'tensor core'), ('tensor 核心', 'tensor core'),
+                           ('核心', 'core'), ('英伟达', 'nvidia'), ('显卡', 'graphics card'),
+                           ('开发者套件', 'developer kit'), ('开发套件', 'developer kit'),
                            ('工作站版', 'workstation edition'), ('服务器版', 'server edition'),
                            ('系列', 'series'), ('数据表', ' '), ('规格表', ' '),
                            ('™', ''), ('®', ''), ('©', '')]:
