@@ -350,6 +350,15 @@ def entity_kind(heading, url):
     return 'family_or_directory'
 
 
+def frontier_failure_state(exc):
+    """Separate terminal vendor/policy outcomes from retryable crawl failures."""
+    if isinstance(exc, HTTPError) and exc.code == 404:
+        return 'unavailable'
+    if 'redirect or URL outside HTTPS host allowlist' in str(exc):
+        return 'policy_blocked'
+    return 'failed'
+
+
 def identifier(url):
     return 'nvidia-' + hashlib.sha256(url.encode()).hexdigest()[:20]
 
@@ -726,6 +735,11 @@ def _collect(root, *, max_pages=200, refresh=False, reparse=False, incremental=F
             'candidate_urls': inventory_report.get('unique_url_candidates'),
             'reconciliation': inventory_report.get('reconciliation', {})}, ensure_ascii=False), flush=True)
     sitemap_summary = sync_product_sitemap(root, db)
+    # Older runs put every exception in one ``failed`` bucket. Preserve the
+    # original error while reclassifying known terminal outcomes so coverage
+    # does not claim that removed vendor URLs are active crawler failures.
+    db.execute("UPDATE frontier SET state='unavailable' WHERE state='failed' AND error LIKE 'HTTP Error 404:%'")
+    db.execute("UPDATE frontier SET state='policy_blocked' WHERE state='failed' AND error LIKE '%redirect or URL outside HTTPS host allowlist%'")
     print(json.dumps({'stage': 'official_product_sitemap', **{k: v for k, v in sitemap_summary.items() if k != 'source_sitemaps'}}, ensure_ascii=False), flush=True)
     baseline = {r['id']: dict(r) for r in db.execute('SELECT id,name,parent_id,source_sha256 FROM product_map')}
     seed = 'https://www.nvidia.com/en-us/products/'
@@ -822,8 +836,9 @@ def _collect(root, *, max_pages=200, refresh=False, reparse=False, incremental=F
             db.execute("UPDATE frontier SET state='done',error=NULL WHERE url=?", (row['url'],))
             print(json.dumps({'page': attempts, 'heading': data['heading'], 'spec_tables': sum(t['is_specification'] for t in data['tables'])}, ensure_ascii=False), flush=True)
         except Exception as exc:
-            db.execute("UPDATE frontier SET state='failed',error=? WHERE url=?", (str(exc)[:300], row['url']))
-            print(json.dumps({'error': str(exc)[:200], 'url': row['url']}), flush=True)
+            state = frontier_failure_state(exc)
+            db.execute("UPDATE frontier SET state=?,error=? WHERE url=?", (state, str(exc)[:300], row['url']))
+            print(json.dumps({'state': state, 'error': str(exc)[:200], 'url': row['url']}), flush=True)
         db.commit()
         export(db, base, baseline)
     result = export(db, base, baseline)
@@ -1143,10 +1158,13 @@ def export(db, base, baseline=None):
         'coverage': {'complete': False, 'directory_url': 'https://www.nvidia.com/en-us/products/',
             'directory_entries': sum(r['depth'] == 1 and r['parent'] == seed for r in frontier), 'pages_observed': len(pages),
             'pending_pages': sum(r['state'] == 'pending' for r in frontier), 'failed_pages': sum(r['state'] == 'failed' for r in frontier),
+            'unavailable_pages': sum(r['state'] == 'unavailable' for r in frontier),
+            'policy_blocked_pages': sum(r['state'] == 'policy_blocked' for r in frontier),
             'entity_counts': dict(counts), 'with_spec_tables': sum(bool(e['tables']) for e in expanded.values()),
             'website_sitemap': sitemap_info,
             'limitations': ['官网目录入口不等于全部具体 SKU；产品身份、配置拆分和在售状态仍需核对。',
                 '仅从官方目录和产品相关链接扩展；未解析的动态表格、PDF 及独立文档站规格保留待提取。',
+                '厂商已删除的 404 页面单列为 unavailable；策略阻止的站外跳转单列为 policy_blocked，不计入可重试访问失败。',
                 '参数保留官方表格、列名、合并单元格和脚注；尚未自动映射跨产品通用字段。']},
         'product_map': {'policy': 'Products absent from a partial observation are retained; removal requires an explicit, completed official-directory comparison and review.',
             'changes': dict(changes), 'entries': len(expanded)},
