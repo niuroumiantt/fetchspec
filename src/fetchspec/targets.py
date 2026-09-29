@@ -38,8 +38,10 @@ def _strings(value, name, *, empty=True):
 
 def validate_documents(contract, document):
     """Reject old/partial shapes before they can become executable demand."""
-    if not isinstance(contract, dict) or contract.get("version") != "1.5":
-        raise ValueError("unsupported supply contract; expected 1.5")
+    version = contract.get("version") if isinstance(contract, dict) else None
+    match = re.fullmatch(r"1\.(\d+)", version) if isinstance(version, str) else None
+    if not match or int(match.group(1)) < 5:
+        raise ValueError(f"unsupported supply contract {version!r}; expected 1.5 or later 1.x")
     generated = contract.get("generated_target_contract")
     if (not isinstance(generated, dict) or generated.get("version") != "2.0"
             or generated.get("source") != "framework/tco_targets.json"

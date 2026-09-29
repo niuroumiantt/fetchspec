@@ -71,6 +71,16 @@ class TargetSyncTests(unittest.TestCase):
             with self.subTest(ids=ids), self.assertRaises(ValueError):
                 validate_target_ids(snapshot, ids)
 
+    def test_supply_contract_accepts_1_5_and_later_1_x_only(self):
+        contract, document = documents()
+        for version in ("1.5", "1.6", "1.10"):
+            with self.subTest(version=version):
+                supply = dict(contract, version=version)
+                self.assertEqual(len(validate_documents(supply, document)), 2)
+        for version in ("1.4", "2.0", "1", "1.6.1", "1.x", " 1.6", "", None, 1.6):
+            with self.subTest(version=version), self.assertRaisesRegex(ValueError, "unsupported supply contract"):
+                validate_documents(dict(contract, version=version), document)
+
     def test_stale_contract_and_partial_target_shapes_rejected(self):
         contract, document = documents()
         variants = []
