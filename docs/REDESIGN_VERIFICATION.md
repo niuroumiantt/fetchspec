@@ -5,7 +5,7 @@
 ## 基线与保护
 
 - Fetchspec 从最新远程 main `203f54a` 建立 `codex/target-driven-pipeline`；原主工作区仍为 `codex/supermicro-expand-sitemaps`，本地 main 未切换或重置。
-- inresearch 权威读取基线 `e8c6db2`；供应契约 1.5、生成目标契约 2.0、目标表 2.1.0，当时 351 条目标中 130 条属于 Fetchspec，数量未写死。
+- inresearch 权威读取基线 `e8c6db2`；供应契约 1.5、生成目标契约 2.0、目标表 2.1.0，当时 351 条目标中 130 条属于 Fetchspec，数量未写死。上游 2026-09-28 升至供应契约 1.6（providers 增加 `host_default`，其余两项版本不变）；校验接受 1.5 及之后的 1.x。
 - 9 个旧工作区（主区加 8 linked）、20 个旧分支只读盘点。catalog-reconciliation 有 1 处未提交修改；nvidia-company-crawl 有 2 处修改和 2 个未跟踪文件；全部保留。
 - 以远程 PR、merge tree、patch 对比核实：Supermicro 扩 sitemap 的 c438b74 已被 PR #14 覆盖；component-specs 两提交由 #24 覆盖；product-map 独有 patch 与 #25 相同，后续 #26 已在 main。没有整批 cherry-pick 历史分支。
 - 进程 cwd/启动项未发现旧 Fetchspec 工作树引用，但 IDE 状态无法穷尽核验；不据此删除旧树。原件与旧交付台账也未清理。

@@ -71,6 +71,16 @@ class TargetSyncTests(unittest.TestCase):
             with self.subTest(ids=ids), self.assertRaises(ValueError):
                 validate_target_ids(snapshot, ids)
 
+    def test_supply_contract_accepts_1_5_and_later_1_x_only(self):
+        contract, document = documents()
+        for version in ("1.5", "1.6", "1.10"):
+            with self.subTest(version=version):
+                supply = dict(contract, version=version)
+                self.assertEqual(len(validate_documents(supply, document)), 2)
+        for version in ("1.4", "2.0", "1", "1.6.1", "1.x", " 1.6", "", None, 1.6):
+            with self.subTest(version=version), self.assertRaisesRegex(ValueError, "unsupported supply contract"):
+                validate_documents(dict(contract, version=version), document)
+
     def test_stale_contract_and_partial_target_shapes_rejected(self):
         contract, document = documents()
         variants = []
@@ -82,18 +92,6 @@ class TargetSyncTests(unittest.TestCase):
         for supply, targets in variants:
             with self.subTest(supply=supply["version"], version=targets["version"]), self.assertRaises(ValueError):
                 validate_documents(supply, targets)
-
-    def test_additive_1x_contracts_accepted_other_majors_rejected(self):
-        contract, document = documents()
-        for version in ("1.5", "1.6", "1.12"):
-            with self.subTest(version=version):
-                accepted = copy.deepcopy(contract); accepted["version"] = version
-                self.assertEqual([row["id"] for row in validate_documents(accepted, document)],
-                                 [row["id"] for row in validate_documents(contract, document)])
-        for version in ("1.4", "1.05x", "2.0", "1", 1.6, None):
-            with self.subTest(version=version), self.assertRaisesRegex(ValueError, "unsupported supply contract"):
-                rejected = copy.deepcopy(contract); rejected["version"] = version
-                validate_documents(rejected, document)
 
     def test_dirty_upstream_inputs_are_not_an_authoritative_snapshot(self):
         path = self.upstream / SOURCE_FILES[1]

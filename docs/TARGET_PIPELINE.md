@@ -22,7 +22,7 @@ NVIDIA 的成熟 `product_catalog.py` 解析和身份规则通过兼容适配复
 
 默认 `~/.local/share/fetchspec/pipeline/`：
 
-- `targets/snapshots/<id>/` 保存完整上游文件和摘要；`targets/current.json` 是当前快照指针。版本/形状不兼容、重复 ID、未知或非 Fetchspec 目标拒绝执行。目标数量从文件读取。
+- `targets/snapshots/<id>/` 保存完整上游文件和摘要；`targets/current.json` 是当前快照指针。供应契约接受 1.5 及之后的 1.x（现行 1.6），生成目标契约 2.0，目标表 2.x；版本/形状不兼容、重复 ID、未知或非 Fetchspec 目标拒绝执行。目标数量从文件读取。
 - `blobs/<前2位>/<sha>` 保存唯一字节，无格式扩展名；格式、URL、语言和文件名属于来源观察。原件独占发布，旧字节绝不覆盖。
 - `products/catalog.sqlite3` 分表保存 products、product_versions、relations、sources、blobs、spec_tables、spec_cells、changes、bindings、imports、catalog_snapshots、historical_evidence、errors、comparisons。当前投影与历史版本分开；catalog_snapshots 保存原目录覆盖说明和 frontier 等元数据，规格原值不因比较字段而改写。
 - `acquisition/<company>/sources.sqlite3` 管理可恢复抓取 frontier、来源字节版本、每次 HTTP 观察、错误和工作中产品载荷；公司进程锁避免重复抓取。同一产品库导入失败后可从该台账重新投影。
