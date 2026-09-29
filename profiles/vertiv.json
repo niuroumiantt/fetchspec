@@ -1,0 +1,74 @@
+{
+  "profile_version": 1,
+  "company_id": "vertiv",
+  "company_en": "Vertiv",
+  "adapter_evidence": {
+    "verified_date": "2026-09-29",
+    "product_pages": "https://www.vertiv.com/en-us/products-catalog/<category>/<subcategory>/<product>/ carries a native HTML 'Models' table (rating, voltage, efficiency, dimensions per model) and links official Data Sheet PDFs under /<hex>/globalassets/.",
+    "sitemap": "https://www.vertiv.com/sitemap.xml redirects to a 404 page; no public product sitemap is declared in robots.txt.",
+    "chinese_site": "The zh-cn catalog does not mirror en-us product slugs (404); only en-us product pages are in scope until a mapped Chinese source is reviewed."
+  },
+  "status": "target_driven_product_adapter",
+  "allowed_hosts": [
+    "www.vertiv.com"
+  ],
+  "sitemaps": [],
+  "discovery_entrypoints": [
+    {
+      "role": "ups",
+      "url": "https://www.vertiv.com/en-us/products-catalog/critical-power/uninterruptible-power-supplies-ups/"
+    },
+    {
+      "role": "power_distribution",
+      "url": "https://www.vertiv.com/en-us/products-catalog/critical-power/power-distribution/"
+    },
+    {
+      "role": "high_density_cooling",
+      "url": "https://www.vertiv.com/en-us/products-catalog/thermal-management/high-density-solutions/"
+    }
+  ],
+  "document_formats": [
+    "pdf",
+    "docx",
+    "xlsx"
+  ],
+  "locales": "en_us_only",
+  "supported_locales": [
+    "en-us"
+  ],
+  "delay_seconds": 2.0,
+  "timeout_seconds": 30,
+  "max_xml_bytes": 20971520,
+  "max_document_bytes": 134217728,
+  "min_free_bytes": 8589934592,
+  "max_requests": 2000,
+  "max_discovery_depth": 3,
+  "page_prefixes": [
+    "/en-us/products-catalog/"
+  ],
+  "category_roots": [
+    {
+      "label": "Critical Power",
+      "paths": [
+        "/en-us/products-catalog/critical-power/"
+      ]
+    },
+    {
+      "label": "Thermal Management",
+      "paths": [
+        "/en-us/products-catalog/thermal-management/"
+      ]
+    }
+  ],
+  "known_gaps": [
+    "No official product sitemap: new models are found only through bounded collection from declared category pages.",
+    "Chinese product pages are not collected because they do not share en-us product identities.",
+    "Datasheet PDFs need pdftotext on the collection host; the HTML Models table is preferred when present.",
+    "A product page groups several models; per-model rows stay inside the vendor table and are not split into separate products."
+  ],
+  "target_parts": [
+    "ups",
+    "pdu",
+    "cdu"
+  ]
+}

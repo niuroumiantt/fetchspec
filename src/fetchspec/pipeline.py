@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import sys
 
+from .adapters import ADAPTERS
 from .inventory import atomic_json, utc_now
 from .products import ProductStore, fingerprint
 from .store import default_data_root
@@ -20,7 +21,7 @@ def main(argv=None):
     migrate.add_argument('--archive-root', type=Path, required=True)
     migrate.add_argument('--history-db', type=Path)
     collect = sub.add_parser('collect', help='bounded official product/source refresh for explicit target demand')
-    collect.add_argument('--company', required=True, choices=['nvidia', 'supermicro'])
+    collect.add_argument('--company', required=True, choices=sorted(ADAPTERS))
     collect.add_argument('--url', action='append', required=True)
     collect.add_argument('--target', action='append', required=True)
     collect.add_argument('--max-pages', type=int, default=20)
@@ -28,10 +29,10 @@ def main(argv=None):
     collection_mode.add_argument('--refresh', action='store_true')
     collection_mode.add_argument('--reparse', action='store_true')
     mapping_sync = sub.add_parser('map-sync', help='reconcile official product sitemap candidates without collecting pages')
-    mapping_sync.add_argument('--company', required=True, choices=['nvidia','supermicro'])
+    mapping_sync.add_argument('--company', required=True, choices=sorted(ADAPTERS))
     mapping_sync.add_argument('--target', action='append', required=True)
     map_ack = sub.add_parser('map-ack', help='acknowledge reviewed sitemap candidates after collection/review')
-    map_ack.add_argument('--company', required=True, choices=['nvidia','supermicro'])
+    map_ack.add_argument('--company', required=True, choices=sorted(ADAPTERS))
     map_ack.add_argument('--url', action='append', required=True)
     map_ack.add_argument('--reason', required=True)
     bind = sub.add_parser('bind', help='explicitly bind reviewed products to demand; no fuzzy inference')
@@ -50,6 +51,12 @@ def main(argv=None):
     proposal.add_argument('--delivery-id', required=True)
     proposal.add_argument('--output', type=Path, required=True)
     proposal.add_argument('--environment', default='receiver')
+    assignments = sub.add_parser('assignments', help='export inresearch deliveries-import input from a validated receipt')
+    assignments.add_argument('--delivery-id', required=True)
+    assignments.add_argument('--output', type=Path, required=True)
+    assignments.add_argument('--environment', default='receiver')
+    assignments.add_argument('--by', default='fetchspec')
+    assignments.add_argument('--allow-validation', action='store_true', help='rehearsal only: accept local_receiver_validation receipts')
     export = sub.add_parser('export', help='export original cells and product map')
     export.add_argument('--company')
     export.add_argument('--directory', type=Path, required=True)
@@ -68,6 +75,9 @@ def main(argv=None):
     catalog_export = sub.add_parser('catalog', help='export structured candidate catalog; NVIDIA schema remains receiver compatible')
     catalog_export.add_argument('--company', required=True)
     catalog_export.add_argument('--output', type=Path, required=True)
+    coverage = sub.add_parser('coverage', help='per-target rollout: adapter, binding, package, receipt')
+    coverage.add_argument('--csv', type=Path)
+    coverage.add_argument('--stage', choices=['no_adapter', 'adapter_ready', 'bound', 'packaged', 'received_validation_only', 'received'])
     sub.add_parser('status')
     args = parser.parse_args(argv)
     root = (args.root or (default_data_root() / 'pipeline')).expanduser().resolve()
@@ -83,7 +93,7 @@ def main(argv=None):
 
 def execute(args, root):
     from .targets import sync_targets, load_snapshot, validate_target_ids
-    from .delivery_v2 import build_package, import_receipt, export_author_proposal
+    from .delivery_v2 import build_package, import_receipt, export_author_proposal, export_assignments
     if args.command == 'sync-targets':
         snapshot = sync_targets(args.upstream, root)
         return {'snapshot_id': snapshot['snapshot_id'], 'targets': len(snapshot['targets']), 'upstream': snapshot['upstream']}
@@ -91,6 +101,20 @@ def execute(args, root):
         return import_receipt(root, args.input, snapshot=load_snapshot(root), environment=args.environment)
     if args.command == 'author-proposal':
         return export_author_proposal(root, args.delivery_id, snapshot=load_snapshot(root), output_path=args.output, environment=args.environment)
+    if args.command == 'coverage':
+        from .coverage import build as build_coverage, write_csv
+        report = build_coverage(root, load_snapshot(root))
+        if args.csv:
+            write_csv(report, args.csv)
+        records = [r for r in report['records'] if not args.stage or r['stage'] == args.stage]
+        return {k: report[k] for k in ('snapshot_id', 'upstream_commit', 'targets', 'summary', 'parts_without_adapter', 'authority')} | {
+            'records': [{k: r[k] for k in ('target_id', 'stage', 'adapters', 'bound_products', 'receipt_environments')} for r in records]
+            if args.stage else f'{len(records)} records; use --stage or --csv for rows'}
+    if args.command == 'assignments':
+        result = export_assignments(root, args.delivery_id, snapshot=load_snapshot(root), output_path=args.output,
+                                    environment=args.environment, by=args.by, allow_validation=args.allow_validation)
+        return {'output': str(args.output), 'records': len(result['records']),
+                'target_ids': [r['target_id'] for r in result['records']], **result['source']}
     if args.command == 'migrate':
         archive = args.archive_root.resolve()
         if root == archive or root.is_relative_to(archive):

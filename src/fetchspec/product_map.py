@@ -19,6 +19,8 @@ def sitemap_profile(company_id):
         # Do not traverse support, news, image, FAQ or the resource archive.
         profile['sitemaps'] = [s for s in profile['sitemaps'] if s['role'] in {'system', 'chassis', 'motherboard', 'accessories'}]
         profile.pop('sitemap_index_select', None)
+    if not profile.get('sitemaps') and not profile.get('sitemap_index'):
+        raise ValueError(company_id + ' declares no official product sitemap; discover through bounded collect from its category pages')
     profile['known_gaps'] = ['Product sitemap entries are URL candidates, not verified products. Partial omissions never retire products.']
     return profile
 

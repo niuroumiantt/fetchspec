@@ -2,7 +2,7 @@
 
 Fetchspec 是 inresearch.ai 的厂商规格采集队。任务只来自当前 `framework/tco_targets.json` 中 `team=fetchspec` 的目标；官方产品与规格都是候选证据，接收不等于研究采用。
 
-当前入口：**目标同步 → 产品地图 → 有界增量/定向采集 → 原生规格 → SQLite/CSV → v2 包 → 核验回执**。公共层管理网络政策、不可变字节、来源观察和交付；NVIDIA、Supermicro 适配器只管理官方路径、产品身份与例外。只收英文、中文，不执行网页脚本，不进行无界全站爬取。
+当前入口：**目标同步 → 产品地图 → 有界增量/定向采集 → 原生规格 → SQLite/CSV → v2 包 → 核验回执**。公共层管理网络政策、不可变字节、来源观察和交付；NVIDIA、Supermicro、Vertiv 适配器只管理官方路径、产品身份与例外。只收英文、中文，不执行网页脚本，不进行无界全站爬取。
 
 ```bash
 export PYTHONPATH=src
@@ -16,6 +16,9 @@ python3 -m fetchspec.pipeline bind --company supermicro --product <product-id> \
   --target P.server.spec --reason '官方 GPU 服务器型号规格与目标实例相符'
 python3 -m fetchspec.pipeline package --company supermicro --product <product-id>
 python3 -m fetchspec.pipeline receipt --input /path/to/receiver-receipt.json
+python3 -m fetchspec.pipeline assignments --delivery-id <delivery-id> --output assignments.json --environment production
+# inresearch 作者 checkout：python3 manage.py deliveries import --assignments assignments.json
+python3 -m fetchspec.pipeline coverage --csv coverage.csv
 python3 -m fetchspec.pipeline export --company supermicro --directory /path/to/csv
 ```
 

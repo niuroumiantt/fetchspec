@@ -6,13 +6,14 @@
 
 | 层 | 实现 | 所有权 |
 |---|---|---|
-| 需求 | `targets.py` | 只读当前目标和供应契约，保存完整原文、commit、SHA；只领取 Fetchspec |
+| 需求 | `targets.py` | 只读当前目标和供应契约（1.5 及以后的 1.x；新主版本拒绝），保存完整原文、commit、SHA；只领取 Fetchspec |
 | 公司适配 | `adapters/` | 官方路径、语言、目录/型号身份和公司解析例外 |
 | 变化计划 | `product_map.py` | 官方产品 sitemap 候选、lastmod 对账、持久待处理计划和人工复核 |
 | 公共获取 | `acquisition.py` + `inventory.InventoryFetcher` | 有界 frontier、条件请求、robots、节流、重试、快照、观察和失败 |
 | 原生提取 | `extraction.py`，兼容 NVIDIA 原规则 | HTML 表格，原生 PDF 文本，DOCX/XLSX/PPTX 原表；不执行脚本/宏，不猜扫描件 |
 | 候选库 | `products.py` | 产品和原表版本、关系、来源、字节、单元格、变化、显式任务绑定、CSV |
-| 交付 | `delivery_v2.py` | 逐项目标/部件/产品、原规格表、SHA 包、核验回执、作者登记提案 |
+| 交付 | `delivery_v2.py` | 逐项目标/部件/产品、原规格表、SHA 包、核验回执、作者登记提案、`deliveries import` 输入 |
+| 进度 | `coverage.py` | 每条目标：声明适配器、显式绑定、包、各环境回执；上游状态只复制不推断 |
 | 命令 | `pipeline.py` | 编排以上用例，不拥有研究判断 |
 
 NVIDIA 的成熟 `product_catalog.py` 解析和身份规则通过兼容适配复用，避免重新识别导致 595 个既有 ID 丢失。旧公司抓取和旧 1.1 生产器没有被强行改写为新库；新任务默认走本管线，历史队列保留原状。
@@ -51,7 +52,7 @@ PYTHONPATH=src python3 -m fetchspec.pipeline --root ~/.local/share/fetchspec/pip
 
 `collect --company ... --target ... --url ...` 仅从指定官方产品/目录展开，最大请求预算必需有界；产品页有可解析原表时优先使用 HTML，再选择 PDF、Office。只重试可恢复错误，受 robots 拒绝的内容不绕过。普通重跑恢复未完成项，`--refresh` 条件重查指定来源；`--reparse` 只重解析已保存字节，不请求网络；ETag/Last-Modified 与 SHA 分开计量。HTTP 请求成功但无法确定解析时明确保留缺口，OCR/模型没有实现时不会伪称已处理。
 
-NVIDIA 保留英文/中文现有身份映射与成熟原表；Supermicro 仅有轻量型号、官方路径和公开资源解析规则。目录页面不是产品型号；scope_exhausted 只说明本次有界队列耗尽，不表示公司目录完整。
+NVIDIA 保留英文/中文现有身份映射与成熟原表；Supermicro 仅有轻量型号、官方路径和公开资源解析规则；Vertiv 只收 en-us 产品目录页，产品页原生 `Models` 表是主来源（无官方 sitemap，`map-sync` 明确拒绝，新型号从已声明分类页有界发现）。每个 profile 的 `target_parts` 声明它可服务的部件，`coverage` 据此列出无人覆盖的部件。目录页面不是产品型号；scope_exhausted 只说明本次有界队列耗尽，不表示公司目录完整。
 
 ## v2 交付与接收
 
@@ -63,7 +64,9 @@ NVIDIA 保留英文/中文现有身份映射与成熟原表；Supermicro 仅有�
 
 回执导入校验 manifest hash、全文件集合、逐项目标、批次目标及当前部件解析，拒绝错包、缺项、目标漂移和冲突；原回执永久保留。包内结构化产品规格保存在 manifest 中，通用 receiver 目前只归档与索引原件；现有 NVIDIA 网页规格目录仍使用其既有 catalog 导入接口，不声称通用包已经更新线上规格页面。
 
-`author-proposal` 输出带回执和真实目标的可审核 JSON，不写 inresearch checkout。**现行 inresearch 尚缺作者导入命令，而且旧 docs-plan 按部件判 delivered，会误把同部件未交付目标一起升级。Fetchspec 不能在上游只读的边界内修复这一点；收到回执不等于 Git 目标四态已闭环。**
+`author-proposal` 输出带回执和真实目标的可审核 JSON，不写 inresearch checkout。`assignments --delivery-id ... --output ...` 从已核验回执生成 inresearch `manage.py deliveries import --assignments` 直接可读的文件：每条绑定目标一条记录，`evidence_path` 取公开官方产品页 URL（先 HTML 后附件），note 带 delivery、manifest、receipt 与原件 SHA。`local_receiver_validation` 回执默认拒绝，只有显式 `--allow-validation` 才生成并标 `REHEARSAL`。
+
+**上游两处需先修（补丁与验证见 [upstream/](upstream/README.md)）：** inresearch `knowledge/targets.py` 把任一事件卡的 `part_id` 当作该部件 news 行已交付，我们的规格卡会把 inews 的 `P.<部件>.news` 一起翻成 delivered；旧 docs-plan 载体也按部件同时翻 spec 与 operation。另外 `framework/tco_targets.json` 是受审文件，导入后需人工更新审阅记录。收到回执不等于 Git 目标四态已闭环；作者导入并通过审阅才算。
 
 ## 退出与清理
 

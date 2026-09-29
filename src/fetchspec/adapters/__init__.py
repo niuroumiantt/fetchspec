@@ -1,10 +1,13 @@
 """Small product adapters: official scope, identity and vendor-specific parsing."""
 from .nvidia import NvidiaProductAdapter
 from .supermicro import SupermicroProductAdapter
+from .vertiv import VertivProductAdapter
+
+
+ADAPTERS = {'nvidia': NvidiaProductAdapter, 'supermicro': SupermicroProductAdapter, 'vertiv': VertivProductAdapter}
 
 
 def adapter_for(company_id, known_catalog=None):
-    classes = {'nvidia': NvidiaProductAdapter, 'supermicro': SupermicroProductAdapter}
-    if company_id not in classes:
+    if company_id not in ADAPTERS:
         raise ValueError('unsupported product adapter: ' + company_id)
-    return classes[company_id](known_catalog=known_catalog)
+    return ADAPTERS[company_id](known_catalog=known_catalog)

@@ -2,6 +2,7 @@
   "profile_version": 1,
   "company_id": "nvidia",
   "company_en": "NVIDIA",
+  "target_parts": ["gpu", "cpu", "rack-system", "network-switch", "switch-asic", "nic", "optics", "copper-interconnect"],
   "adapter": "nvidia",
   "base_url": "https://www.nvidia.com",
   "status": "research_scope_datacenter_networking_products",
