@@ -9,7 +9,7 @@ from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
 
-from fetchspec.delivery_v2 import build_package, export_author_proposal, import_receipt
+from fetchspec.delivery_v2 import build_package, export_assignments, export_author_proposal, import_receipt
 from fetchspec.targets import SOURCE_FILES, sync_targets
 from test_targets import commit, upstream
 
@@ -194,6 +194,73 @@ class DeliveryV2Tests(unittest.TestCase):
         self.assertEqual(proposal["records"][0]["part_id"], "gpu")
         self.assertEqual(proposal["status"], "proposed")
         self.assertFalse((self.upstream / "data").exists())
+
+    def test_assignments_export_is_one_public_pointer_per_bound_target(self):
+        page = self.item
+        pdf_body = b"%PDF-1.7 datasheet"
+        pdf = dict(item(self.base), sha256=hashlib.sha256(pdf_body).hexdigest(), format="pdf",
+                   source_item_id="nvidia:model-a:pdf",
+                   source={"url": "https://www.nvidia.com/model-a/datasheet.pdf", "language": "en", "categories": ["Hardware"]})
+        (self.base / "a.pdf").write_bytes(pdf_body)
+        pdf["blob_path"] = str(self.base / "a.pdf")
+        summary = self.build([pdf, page])
+        with self.assertRaisesRegex(ValueError, "validated receipt"):
+            export_assignments(self.state, summary["delivery_id"])
+        imported = import_receipt(self.state, receipt(summary))
+        output = self.base / "assignments.json"
+        result = export_assignments(self.state, summary["delivery_id"], output_path=output, by="macmini-operator")
+        self.assertEqual(json.loads(output.read_text()), result)
+        self.assertEqual(result["version"], 1)
+        self.assertEqual([r["target_id"] for r in result["records"]], ["P.gpu.spec"])
+        record = result["records"][0]
+        self.assertEqual(record["delivery"]["evidence_path"], "https://www.nvidia.com/model-a/")  # product page before PDF
+        self.assertEqual(record["delivery"]["by"], "macmini-operator")
+        self.assertIn(imported["receipt_sha256"][:16], record["delivery"]["note"])
+        self.assertLessEqual(len(record["delivery"]["note"]), 500)
+        self.assertEqual(record["fetchspec"]["source_sha256"], sorted([page["sha256"], pdf["sha256"]]))
+        self.assertEqual(result["source"]["git_target_status"], "unchanged_until_author_import")
+        self.assertFalse((self.upstream / "data").exists())
+        with self.assertRaisesRegex(ValueError, "invalid --by"):
+            export_assignments(self.state, summary["delivery_id"], by="bad name")
+
+    def test_local_validation_receipts_need_explicit_rehearsal_flag(self):
+        summary = self.build()
+        import_receipt(self.state, receipt(summary), environment="local_receiver_validation")
+        with self.assertRaisesRegex(ValueError, "rehearsal"):
+            export_assignments(self.state, summary["delivery_id"], environment="local_receiver_validation")
+        with self.assertRaisesRegex(ValueError, "validated receipt"):
+            export_assignments(self.state, summary["delivery_id"])  # other environments stay separate
+        result = export_assignments(self.state, summary["delivery_id"], environment="local_receiver_validation",
+                                    allow_validation=True)
+        self.assertTrue(result["source"]["rehearsal"])
+        self.assertFalse(result["source"]["production_received"])
+        self.assertTrue(result["records"][0]["delivery"]["note"].startswith("REHEARSAL"))
+
+    @unittest.skipUnless(os.environ.get("FETCHSPEC_INRESEARCH_ROOT"), "requires inresearch checkout")
+    def test_assignments_export_is_accepted_by_upstream_deliveries_import(self):
+        authority = Path(os.environ["FETCHSPEC_INRESEARCH_ROOT"])
+        snapshot = sync_targets(authority, self.state)
+        summary = build_package(self.state, snapshot, "supermicro",
+                                [item(self.base, company="supermicro", target="P.server.spec")],
+                                collector_revision="test-revision")
+        import_receipt(self.state, receipt(summary))
+        exported = self.base / "assignments.json"
+        export_assignments(self.state, summary["delivery_id"], output_path=exported)
+        author = self.base / "author-checkout"
+        (author / "framework").mkdir(parents=True)
+        (author / "data").mkdir()
+        (author / "framework/tco_targets.json").write_text(json.dumps(snapshot["target_document"]))
+        sys.path.insert(0, str(authority / "src"))
+        try:
+            from inresearch.knowledge import deliveries
+            first = deliveries.import_assignments(author, exported, by="author", today="2026-09-29")
+            self.assertEqual([c["target_id"] for c in first["imported"]], ["P.server.spec"])
+            self.assertEqual(first["imported"][0]["pointer_kind"], "url")
+            self.assertEqual(deliveries.check(author), [])
+            again = deliveries.import_assignments(author, exported, by="author", today="2026-09-30")
+            self.assertEqual(again["imported"], [])
+        finally:
+            sys.path.remove(str(authority / "src"))
 
     def test_manifest_sha_and_exact_batch_item_sha_target_part_sets_are_required(self):
         summary = self.build()

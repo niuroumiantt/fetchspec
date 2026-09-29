@@ -100,13 +100,15 @@ inresearch.ai 的唯一逻辑是"一棵树、三级账、四问四段、五类�
 | 永久归档与深读 | Spark | 原件永久归档、Reader；当前不可用，NVIDIA 走 M5 → AWS 临时路径 |
 | 需求与采用 | inresearch.ai Git（作者 checkout） | 目标表、事件卡、研究事实 |
 
-## 六、本次核对发现的缺口（按影响排序）
+## 六、缺口与处理状态（2026-09-29 更新）
 
-1. **同步入口现在打不通（阻塞）。** `src/fetchspec/targets.py` 只接受供应契约 `version == "1.5"`；inresearch 2026-09-28 已升到 1.6（只加了 provider `host_default`，其余形状不变）。对当前上游执行 `sync-targets` 返回 `unsupported supply contract; expected 1.5`。把契约版本改回 1.5 后校验通过，选出 130 行，说明版本号是唯一阻塞。需要放宽为接受 1.5 及以后的 1.x，并同步更新 TARGET_PIPELINE.md、REDESIGN_VERIFICATION.md 里的"1.5"。
-2. **"上游没有回执导入命令"的说法已过时。** inresearch 2026-09-29 新增 `manage.py deliveries import --assignments`（`knowledge/deliveries.py`），CURRENT.md 已登记为回执进 Git 载体的唯一通道。本仓库 `author-proposal` 的 `limitations` 文案和 TARGET_PIPELINE.md 第 66 行仍写"尚缺作者导入命令"。真正缺的是把提案 `records` 变成 `register_delivery(target_id, evidence_path)` 登记（或直接生成 `assignments.json` 记录）的一步，目前要人工搬运。
-3. **按部件翻状态的问题在上游依然存在。** `knowledge/targets.py` 对 spec 与 operation 行都按 `bom_part` 看 `product_docs_plan.csv`，同部件的两行会一起翻成 delivered；事件卡通道按 `target_id` 逐行判定，没有这个问题。我们交付时应走事件卡通道，提案里也应只列真正绑定过的目标行。
-4. **覆盖面：2 个适配器对 63 个部件。** 现有适配器只有 NVIDIA、Supermicro（对应 gpu、server、network-switch、nic 等少数部件）；目标表的 124 条部件行覆盖电力（变压器、开关柜、UPS、燃机）、冷却（CDU、冷板、冷机、浸没）、IT（CPU、HBM、SSD、光模块）等全部系统，`part_fetch.json` 已为每个部件登记了出版方实例。下一批适配器应按目标行 `next_due` 与部件优先级排，公共层不动、只加站点适配器。
-5. **六条 sourced 因子行**（如 `F.revenue.gpus.density.density.rack_spec`、`F.cost.energy.pue.equipment.efficiency`）的 `sourced_by = registry`，是人工登记的序列，不需要重新采集；到期只做变化检查。
+1. **同步入口拒绝契约 1.6：已修。** `targets.py` 现在接受 1.5 及以后的 1.x，拒绝其他主版本。对 inresearch `6f592ff`（契约 1.6）实测同步 130 行。
+2. **回执到 Git 缺一步：已补。** 新命令 `assignments` 从已核验回执生成 inresearch `deliveries import --assignments` 的输入，不再人工搬运。上游真实导入函数已在测试里接受该文件。
+3. **上游按部件翻状态：已定位并给出补丁，需 inresearch 合入。** 实测发现不只 docs-plan：任一带 `part_id` 的事件卡也会把该部件的 news 行（inews 的目标）翻成 delivered。补丁让绑定了 `target_id` 的卡只交付那一行，并给供应页投影补上 delivered 计数。见 [upstream/](upstream/README.md)。
+4. **覆盖面：3 个适配器对 63 个部件。** 新增 Vertiv（ups、pdu、cdu）。`coverage` 命令按目标列出阶段；当前 26 条目标有适配器，104 条没有，缺口部件清单由命令输出。
+5. **六条 sourced 因子行**（如 `F.revenue.gpus.density.density.rack_spec`）的 `sourced_by = registry`，是人工登记的序列，到期只做变化检查。
+
+真实端到端记录见 [E2E_2026-09-29.md](E2E_2026-09-29.md)。
 
 ## 附：命令速查
 
@@ -122,6 +124,9 @@ python3 -m fetchspec.pipeline bind --company supermicro --product <product-id> \
 python3 -m fetchspec.pipeline package --company supermicro --product <product-id>
 python3 -m fetchspec.pipeline receipt --input /path/to/receiver-receipt.json --environment production
 python3 -m fetchspec.pipeline author-proposal --delivery-id <id> --output proposal.json --environment production
+python3 -m fetchspec.pipeline assignments --delivery-id <id> --output assignments.json --environment production
+#   作者 checkout：python3 manage.py deliveries import --assignments assignments.json
+python3 -m fetchspec.pipeline coverage --csv coverage.csv
 python3 -m fetchspec.pipeline export --company supermicro --directory /path/to/csv
-PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests   # 144 项，2 项跳过
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests
 ```

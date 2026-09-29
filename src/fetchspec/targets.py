@@ -20,6 +20,16 @@ EXECUTION_FIELDS = {"disclosure_type", "publisher_category", "instances", "mecha
 STATUSES = {"sourced", "assumed", "delivered", "needed"}
 
 
+# 1.5 introduced the generated-target contract this reader depends on. Later 1.x
+# releases are additive (1.6 added provider host_default); a new major is not.
+MIN_CONTRACT_MINOR = 5
+
+
+def supported_contract_version(value):
+    match = re.fullmatch(r"1\.(\d+)", value) if isinstance(value, str) else None
+    return bool(match) and int(match.group(1)) >= MIN_CONTRACT_MINOR
+
+
 def canonical_bytes(value):
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
 
@@ -38,8 +48,8 @@ def _strings(value, name, *, empty=True):
 
 def validate_documents(contract, document):
     """Reject old/partial shapes before they can become executable demand."""
-    if not isinstance(contract, dict) or contract.get("version") != "1.5":
-        raise ValueError("unsupported supply contract; expected 1.5")
+    if not isinstance(contract, dict) or not supported_contract_version(contract.get("version")):
+        raise ValueError("unsupported supply contract; expected 1.%d or a later 1.x" % MIN_CONTRACT_MINOR)
     generated = contract.get("generated_target_contract")
     if (not isinstance(generated, dict) or generated.get("version") != "2.0"
             or generated.get("source") != "framework/tco_targets.json"

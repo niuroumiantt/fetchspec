@@ -472,12 +472,10 @@ def import_receipt(state_root, receipt, *, snapshot=None, environment="receiver"
             **_environment_context(environment)}
 
 
-def export_author_proposal(state_root, delivery_id, *, snapshot=None, output_path=None, environment="receiver"):
-    """Export a reviewable proposal; never write an inresearch author checkout."""
-    snapshot = _snapshot(state_root, snapshot)
-    environment = _environment(environment)
+def _received_delivery(state_root, delivery_id, snapshot, environment):
+    """Return (row, manifest, manifest_sha, receipt) only for a re-verified receipt."""
     with closing(_database(state_root)) as db:
-        row = db.execute("SELECT p.*,r.receipt_sha256,r.receipt_json,r.context_json FROM packages p JOIN receipts r USING(delivery_id) WHERE delivery_id=? AND environment=?", (delivery_id, environment)).fetchone()
+        row = db.execute("SELECT p.*,r.receipt_sha256,r.receipt_json,r.context_json,r.imported_at FROM packages p JOIN receipts r USING(delivery_id) WHERE delivery_id=? AND environment=?", (delivery_id, environment)).fetchone()
     if row is None:
         raise ValueError("a validated receipt is required for an author proposal")
     manifest, manifest_sha = _verify_package(Path(row["package_path"]), row["manifest_sha256"])
@@ -485,6 +483,17 @@ def export_author_proposal(state_root, delivery_id, *, snapshot=None, output_pat
         raise ValueError("stored raw receipt SHA mismatch")
     receipt = json.loads(row["receipt_json"].encode("utf-8"))
     _validate_receipt(receipt, manifest, manifest_sha, snapshot)
+    return row, manifest, manifest_sha, receipt
+
+
+UPSTREAM_IMPORT = "python3 manage.py deliveries import --assignments <this file>"
+
+
+def export_author_proposal(state_root, delivery_id, *, snapshot=None, output_path=None, environment="receiver"):
+    """Export a reviewable proposal; never write an inresearch author checkout."""
+    snapshot = _snapshot(state_root, snapshot)
+    environment = _environment(environment)
+    row, manifest, manifest_sha, receipt = _received_delivery(state_root, delivery_id, snapshot, environment)
     records = []
     for item in manifest["items"]:
         for target in validate_target_ids(snapshot, item["target_ids"]):
@@ -503,10 +512,64 @@ def export_author_proposal(state_root, delivery_id, *, snapshot=None, output_pat
               "delivery_id": delivery_id, "manifest_sha256": manifest_sha,
               "receipt_sha256": row["receipt_sha256"], "target_snapshot_id": snapshot["snapshot_id"],
               "package_target_snapshot_id": manifest["target_snapshot_id"], "records": records,
-              "suggested_carrier": "data/product_docs_plan.csv",
+              "suggested_carrier": "data/event_cards.json via deliveries import (per target_id)",
+              "upstream_import": "fetchspec.pipeline assignments --delivery-id " + delivery_id + " --output <file>; then " + UPSTREAM_IMPORT,
               "review_required": True, "research_adoption": "not_inferred", "git_target_status": "unchanged",
-              "limitations": ["Current inresearch has no receipt-to-author-checkout import command.",
-                              "The current docs-plan carrier applies by bom_part to both spec and operation targets; review target scope before author registration."]}
+              "limitations": ["Only the author checkout can change target status; this proposal never writes it.",
+                              "Use the event-card carrier: data/product_docs_plan.csv marks every spec and operation target of a bom_part at once."]}
+    if output_path is not None:
+        atomic_json(Path(output_path), result)
+    return result
+
+
+def _primary_item(items, target_id):
+    """Choose one stable, public pointer per target: the product page before attachments."""
+    candidates = [item for item in items if target_id in item["target_ids"]]
+    candidates.sort(key=lambda item: (item["format"] != "html", not item["product_evidence"], item["source"]["url"], item["sha256"]))
+    return candidates[0], candidates
+
+
+def export_assignments(state_root, delivery_id, *, snapshot=None, output_path=None, environment="receiver",
+                       by="fetchspec", allow_validation=False):
+    """Write the runtime ``assignments.json`` shape consumed by inresearch ``deliveries import``.
+
+    One record per bound target: target_id + a public official evidence URL, plus the
+    delivery/receipt identities in the note. Receipts from local receiver validation are
+    refused unless explicitly allowed for rehearsal, and are then marked as such.
+    """
+    snapshot = _snapshot(state_root, snapshot)
+    environment = _environment(environment)
+    if not isinstance(by, str) or not re.fullmatch(r"[A-Za-z0-9._@-]{1,80}", by):
+        raise ValueError("invalid --by identity")
+    local_only = environment == "local_receiver_validation"
+    if local_only and not allow_validation:
+        raise ValueError("local receiver validation receipts do not prove production receipt; pass --allow-validation only for a rehearsal")
+    row, manifest, manifest_sha, receipt = _received_delivery(state_root, delivery_id, snapshot, environment)
+    received_at = str(row["imported_at"])[:10]
+    records = []
+    for target in validate_target_ids(snapshot, manifest["target_ids"]):
+        primary, related = _primary_item(manifest["items"], target["id"])
+        url = primary["source"]["url"]
+        parsed = urlsplit(url)
+        if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
+            raise ValueError("evidence pointer must be a public https URL")
+        products = sorted({entry["product_id"] for item in related for entry in item["product_evidence"]
+                           if target["id"] in entry["target_ids"]} or {pid for item in related for pid in item["product_ids"]})
+        note = (("REHEARSAL local_receiver_validation; " if local_only else "")
+                + f"fetchspec {manifest['delivery_id']} manifest {manifest_sha[:16]} receipt {row['receipt_sha256'][:16]} "
+                + f"env {environment}; products {','.join(products)}; sha256 {','.join(sorted(i['sha256'][:16] for i in related))}")
+        records.append({"target_id": target["id"], "assignee": by, "status": "已交付",
+                        "delivery": {"evidence_path": url, "at": received_at, "by": by, "note": note[:500]},
+                        "fetchspec": {"delivery_id": manifest["delivery_id"], "manifest_sha256": manifest_sha,
+                                      "receipt_sha256": row["receipt_sha256"], "environment": environment,
+                                      "part_id": target["part_id"], "product_ids": products,
+                                      "source_sha256": sorted(i["sha256"] for i in related), "acceptance": "candidate"}})
+    result = {"version": 1, "updated": received_at, "records": records,
+              "source": {"kind": "fetchspec_assignments_export", "delivery_id": delivery_id,
+                         "target_snapshot_id": snapshot["snapshot_id"], "upstream_commit": snapshot["upstream"]["commit"],
+                         **_environment_context(environment), "rehearsal": local_only,
+                         "import_with": UPSTREAM_IMPORT, "git_target_status": "unchanged_until_author_import",
+                         "research_adoption": "not_inferred"}}
     if output_path is not None:
         atomic_json(Path(output_path), result)
     return result
