@@ -21,6 +21,7 @@ python3 -m fetchspec.pipeline export --company supermicro --directory /path/to/c
 
 默认新运行根为 `~/.local/share/fetchspec/pipeline`；可在命令前用 `--root` 指定，既有 `FETCHSPEC_DATA_ROOT` / `config/archive.local.json` 继续适用。源码进 Git，数据库、官方原件、目标快照、包和回执不进 Git。
 
+- 我们在 inresearch 骨架里的位置、任务来源、十步流程、交付物与架构流程图：[总览](docs/OVERVIEW.md)。
 - 当前实现、数据库、迁移和运行边界：[目标驱动管线](docs/TARGET_PIPELINE.md)。
 - 本轮审计与实测：[重构验收](docs/REDESIGN_VERIFICATION.md)。
 - NVIDIA 历史采集成果和兼容入口：[NVIDIA](docs/NVIDIA.md)。
