@@ -10,7 +10,7 @@ from .store import default_data_root
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Declarative official-site spec fetch for inresearch")
-    parser.add_argument("command", choices=["list", "validate", "crawl", "where", "inventory", "company-crawl", "company-status"])
+    parser.add_argument("command", choices=["list", "validate", "crawl", "where", "inventory", "company-crawl", "company-status", "deliver"])
     parser.add_argument("--company", default="supermicro", help="Company inventory profile (not a legacy demo rule)")
     parser.add_argument("--rule", help="Path or rule_id (filename stem)")
     parser.add_argument("--demo", action="store_true", help="Only rules marked demo=true")
@@ -20,9 +20,17 @@ def main(argv=None):
     parser.add_argument("--max-requests", type=int, default=0, help="Company worker request budget; 0 drains the persistent frontier")
     parser.add_argument("--recheck", action="store_true", help="Requeue known company URLs for conditional checks, retaining versions")
     parser.add_argument("--force", action="store_true", help="With --recheck, omit conditional headers for a full content audit")
+    parser.add_argument("--task", help="deliver: inresearch supply task id; omitted means proactive discovery")
     parser.add_argument("--summary", action="store_true", help="company-status: short operator summary with pace and ETA")
     parser.add_argument("--json", action="store_true", help="company-status --summary: emit JSON instead of text")
     args = parser.parse_args(argv)
+
+    if args.command == "deliver":
+        from .delivery import build_delivery
+        from .inventory import load_profile
+        result = build_delivery(load_profile(args.company), Path(args.out or default_data_root()).expanduser(), task_id=args.task)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
 
     if args.command in {"company-crawl", "company-status"}:
         from .company import CompanyLedger, format_summary, progress_summary, run_company

@@ -39,3 +39,20 @@ launchd 在崩溃、远端错误暂停或重启后自动续跑（间隔 600 秒�
 blob 按内容 SHA 命名，可以合并到已有数据目录。先 `stop`，确认 `status` 显示 `worker=stopped`，
 再按公司复制 `blobs/`、`library/<company>/` 和 `ledger/companies/<company>/`；
 不要覆盖目标上的 `ledger/catalog.json` 等其他公司共用文件。源目录保留到目标续跑确认后再单独处理。
+
+## 交付包（inresearch 交付协议 v1）
+
+```bash
+PYTHONPATH=src python3 -m fetchspec deliver --company nvidia               # 主动发现批次
+PYTHONPATH=src python3 -m fetchspec deliver --company nvidia --task <任务ID> # 对应 inresearch 供应任务
+```
+
+在 `<数据目录>/deliveries/<时间>-<公司>/` 生成：`manifest.json`（交付信封）、`items.jsonl`（每个不重复内容一条，
+含全部来源 URL、首次获取时间、SHA、格式、完整性、使用范围、版本关系）、`SHA256SUMS`、`blobs/`（从归档硬链接）
+和 `library/`（指向包内 blobs 的相对链接）。已在之前交付包出现过的内容不重复打包；构建前逐个复核 SHA。
+交付不等于验收或研究采用。送往 Spark 时只写 `incoming/<日期>-fetchspec/`，不加 `--delete`：
+
+```bash
+cd <数据目录>/deliveries/<交付ID> && shasum -a 256 -c SHA256SUMS
+rsync -a <数据目录>/deliveries/<交付ID>/ spark:<incoming>/<日期>-fetchspec/<交付ID>/
+```
