@@ -386,6 +386,21 @@ def _collect(root, *, max_pages=200, refresh=False, reparse=False, incremental=F
 
 def export(db, base, baseline=None):
     pages = [json.loads(r[0]) for r in db.execute('SELECT payload FROM pages ORDER BY url')]
+    # The company sitemap is a broad URL-update index, not a product registry.
+    # Attach only source-level match evidence and summary counts; never inflate
+    # the product denominator with news, support or other sitemap URLs.
+    sitemap_path = base.parent.parent / 'ledger' / 'companies' / 'nvidia' / 'inventory' / 'latest-attempt.json'
+    sitemap_summary = None
+    sitemap_urls = {}
+    if sitemap_path.is_file():
+        try:
+            sitemap_summary = json.loads(sitemap_path.read_text())
+            manifest = Path(base.parent.parent / sitemap_summary['url_manifest'])
+            for line in manifest.read_text().splitlines():
+                item = json.loads(line)
+                sitemap_urls[item['url']] = item
+        except (OSError, KeyError, json.JSONDecodeError):
+            sitemap_summary, sitemap_urls = None, {}
     entities = {}
     for page in pages:
         if page.get('depth', 1) == 0 or not page.get('heading') or not page_allowed(page['source_url']):
@@ -402,6 +417,10 @@ def export(db, base, baseline=None):
             'attachments': [l for l in page['links'] if re.search(r'\.(pdf|docx?|pptx?|xlsx?)(?:$|\?)', l['url'], re.I)
                             and (urlsplit(l['url']).hostname or '').endswith(('.nvidia.com', '.nvidia.cn'))],
             'extraction_status': 'native_tables_extracted' if any(t['is_specification'] for t in page['tables']) else 'specification_search_pending'}
+        match = sitemap_urls.get(url)
+        entities[key]['website_sitemap'] = {'matched': bool(match),
+            'roles': sorted({s['role'] for s in match.get('sources', [])}) if match else [],
+            'lastmod_claims': sorted({s['lastmod_claim'] for s in match.get('sources', []) if s.get('lastmod_claim')}) if match else []}
     frontier = [dict(r) for r in db.execute('SELECT * FROM frontier ORDER BY depth,url')]
     if db.execute("SELECT 1 FROM sqlite_master WHERE name='component_products'").fetchone():
         native_models = {re.sub(r'^NVIDIA\s+', '', e['name']).casefold() for e in entities.values()
@@ -433,6 +452,9 @@ def export(db, base, baseline=None):
                 'observed_at': page['observed_at'], 'tables': [], 'attachments': [],
                 'official_resources': child['resources'],
                 'official_pages': [{'url': page['source_url'], 'sha256': page['sha256']}],
+                'website_sitemap': {'matched': page['source_url'] in sitemap_urls,
+                    'roles': sorted({s['role'] for s in sitemap_urls.get(page['source_url'], {}).get('sources', [])}),
+                    'lastmod_claims': sorted({s['lastmod_claim'] for s in sitemap_urls.get(page['source_url'], {}).get('sources', []) if s.get('lastmod_claim')})},
                 '_parent_depth': page.get('depth', 99),
                 'extraction_status': 'specification_search_pending'}
             old_child = expanded.get(product_id)
@@ -473,7 +495,12 @@ def export(db, base, baseline=None):
             'entity_counts': dict(counts), 'with_spec_tables': sum(bool(e['tables']) for e in entities.values()),
             'limitations': ['官网目录入口不等于全部具体 SKU；产品身份、配置拆分和在售状态仍需核对。',
                 '仅从官方目录和产品相关链接扩展；未解析的动态表格、PDF 及独立文档站规格保留待提取。',
-                '参数保留官方表格、列名、合并单元格和脚注；尚未自动映射跨产品通用字段。']},
+                '参数保留官方表格、列名、合并单元格和脚注；尚未自动映射跨产品通用字段。'],
+            'website_sitemap': ({'run_id': sitemap_summary.get('run_id'), 'status': sitemap_summary.get('status'),
+            'observed_at': sitemap_summary.get('finished_at'), 'candidate_urls': sitemap_summary.get('unique_url_candidates'),
+            'sitemap_sources': [{'role': s.get('role'), 'url': s.get('url'), 'entries': s.get('entries'), 'sha256': s.get('sha256')} for s in sitemap_summary.get('sitemaps', [])],
+            'product_source_pages_matched': sum(bool(e.get('website_sitemap', {}).get('matched')) for e in expanded.values()),
+            'complete_website_inventory': False} if sitemap_summary else {'status': 'not_observed', 'complete_website_inventory': False})},
         'product_map': {'policy': 'Products absent from a partial observation are retained; removal requires an explicit, completed official-directory comparison and review.',
             'changes': dict(changes), 'entries': len(expanded)},
         'products': list(expanded.values()), 'sources': pages, 'frontier': frontier}
