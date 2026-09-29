@@ -1,0 +1,127 @@
+# Fetchspec 在 inresearch.ai 骨架中的位置：任务、流程与交付
+
+2026-09-29 对照 inresearch.ai `6f592ff`（`supply_contract.json` 1.6、`tco_targets.json` 2.1.0）与本仓库 `ed84430`（PR #43）梳理。本文只解释现状与边界，不新增规则；现行工程规则仍以 [TARGET_PIPELINE.md](TARGET_PIPELINE.md) 为准，研究规范以 inresearch `framework/` 为准。
+
+![Fetchspec 架构流程图](architecture.svg)
+
+## 一、我们是谁：六队里的厂商规格队
+
+inresearch.ai 的唯一逻辑是"一棵树、三级账、四问四段、五类变量、六队、一个模板"。Fetchspec 只出现在其中两处：
+
+| 逻辑 | 与 Fetchspec 的关系 |
+|---|---|
+| 一棵树（骨架） | 61 个物理部件 + 软件 + 基型是我们的对象；每个部件对应厂商的产品线与型号，`part_id` 就是目标行上的部件键 |
+| 三级账 | 不直接参与；我们交付的规格在研究侧被提取、采用后才进入账本 |
+| 四问 · 四段 | 我们在四段的第一段"采集"，只回答"数据从哪来"，不回答"值多少" |
+| 五类变量 | 只领 **1 构成**（spec 行、因子行）与 **2 运行**（operation 行）；数据类别全部是 `reference`（参照数据，按版本改） |
+| 六队 | Fetchspec 是六队中的"产品与技术资料"队；仓库 `niuroumiantt/fetchspec`，主执行机 `macmini`，`team_state = connected` |
+| 一个模板 | 节点页每列的"→ 采集"链接指向目标表里我们的行；我们不做页面 |
+
+一句话：**inresearch 定义研究要什么（目标行），Fetchspec 负责从厂商官网把可追溯的官方规格证据取回来并打包交付；证据是否成为研究事实不由我们判断。**
+
+## 二、任务是什么：目标表里 `team == fetchspec` 的行
+
+任务只有一个来源：`framework/tco_targets.json`（由 `manage.py targets --refresh` 生成，不手写）。当前快照：
+
+| 项 | 值 |
+|---|---:|
+| 全部目标行 / Fetchspec 行 | 351 / 130 |
+| 部件规格行 `P.<部件>.spec`（变量类 1） | 63 |
+| 部件运行行 `P.<部件>.operation`（变量类 2） | 61 |
+| 因子行 `F.<因子>.<slug>`（变量类 1） | 6 |
+| 状态 sourced / delivered / needed | 6 / 0 / 124 |
+| 机制 · 主执行机 | 全部 `vendor_page` · `macmini` |
+
+每行告诉我们四件事：**哪个部件**（`part_id`，如 `gpu`、`cdu`、`transformer`）、**要什么披露**（`disclosure_type`，如"产品规格、数据手册与参考设计"或"额定功率与份额、效率或 PUE 贡献、寿命与 MTBF、上架与利用率"）、**去哪些出版方找**（`publisher_category` + `instances`，由 `framework/part_fetch.json` 人工登记，如 `P.transformer.spec` 的 Hitachi Energy / Siemens Energy / Hyosung / GE Vernova）、**多久检查一次**（`calendar`，多数为"每代际发布"，`next_due` 排到期）。
+
+任务边界：
+
+- 只收英文和中文官方来源，只做厂商官网与公开附件；不做新闻（inews）、财报与 SEC（fetchfilings）、研报与标准 PDF（fetchreports）、报价（fetchquotes）、统计与费率（fetchstat）。
+- 一个来源只属一个队、一台主执行机；换主机等于结束旧任务开新任务，不能两台机器同时抓同一来源。
+- 目标是需求，不是证据；官网列出不等于在售，404 不等于停产，收到文件不等于研究完成。
+- 不执行网页脚本，不 OCR 猜值，不做无界全站爬取；HTML/PDF/Office 是证据载体，产品身份和原表参数才是我们要交出的东西。
+- 不写 inresearch 的正式事实、目标表状态或作者 checkout；上游对我们只读。
+
+## 三、流程是什么：十步，四条边界
+
+流程图里的 1–10 都是 `python3 -m fetchspec.pipeline <命令>`；上面一条是 inresearch Git 权威，下面一条是 inresearch 接收侧和作者 checkout。
+
+| # | 命令 | 输入 | 产出（数据根 `~/.local/share/fetchspec/pipeline/`） | 谁做 |
+|---|---|---|---|---|
+| 1 | `sync-targets --upstream <inresearch checkout>` | 干净的 inresearch Git checkout | `targets/snapshots/<id>/` 完整原文 + commit + SHA；`targets/current.json` 指针。版本 / 形状不符、重复 ID、非 Fetchspec 目标一律拒绝 | 机器 |
+| 2 | `map-sync` / `map-ack --url --reason` | 已声明的官方产品 sitemap | `acquisition/<company>/map-plan.json` 待复核候选；新 URL 与 `lastmod` 变化只生成候选，人工确认后才处理 | 机器 + 人 |
+| 3 | `collect --company --target --url --max-pages` | 目标 ID + 种子 URL + 请求预算 | `blobs/<sha>` 不可变字节；`acquisition/<company>/sources.sqlite3` frontier、条件请求、观察、错误；`scopes/` 本次范围 | 机器 |
+| 4 | （collect 内置）原生提取 | 已保存字节 | HTML 表 → 原生 PDF 文本 → DOCX/XLSX/PPTX 原表；`--reparse` 只重解析不联网 | 机器 |
+| 5 | （collect 内置）候选库投影 | 提取结果 | `products/catalog.sqlite3`：products、product_versions、relations、sources、blobs、spec_tables、spec_cells、changes、bindings、historical_evidence 等 | 机器 |
+| 6 | `list` / `export --directory` / `map-field` | 候选库 | CSV：产品图、原始单元格、版本化比较映射；`map-field` 记录复核人、单位、条件，不改原值 | 人 |
+| 7 | `bind --product --target --reason` | 复核过的产品 ID + 目标行 ID | `bindings` 表；绑定属于当前目标快照，不做模糊推断 | 人 |
+| 8 | `package --company --product` | 当前快照下的显式绑定 | `deliveries/<delivery_id>/`：`manifest.json`（契约 2.0）、`SHA256SUMS`、`files/`；`delivery-ledger.sqlite` 记 packaged | 机器 |
+| — | rsync 包目录到接收机 `incoming/<日期>-fetchspec/` | 包 | 只传 package，不传采集台账 | 人 |
+| — | inresearch `manage.py fetchspec-receive <包>` | 包 | 逐文件校验路径、大小、SHA；`target_ids` 必须存在于当前目标表且属于 fetchspec；写运行库 `receipts.json`、`originals/`、`product-library/`；显式选定的 SHA 才进 Reader | inresearch 侧 |
+| 9 | `receipt --input <回执> --environment <env>` | 接收端回执 JSON | 校验 manifest hash、文件集合、逐项目标；`delivery-ledger.sqlite` 记 received。`local_receiver_validation` 明确 `production_received=false` | 机器 |
+| 10 | `author-proposal --delivery-id --output` | 已核验回执 | 可审核 JSON：每条 `target_id` × 产品 × `source_sha256` × `source_url`；不写上游 | 机器 |
+| — | inresearch `register_delivery(target_id, evidence_path)` → `manage.py deliveries import --assignments` → `targets --refresh` → PR | 提案 / 派工文件 | `data/event_cards.json` 事件卡（Git 内载体）；目标行 `needed → delivered` | inresearch 作者 |
+| — | Reader 深读 → 候选证据 → C3 采用 | 已归档原件 | `delivered → sourced` | 研究侧 |
+
+四条边界（图中三条泳道的分界线加最后一步）：
+
+1. **上游只读**：我们只从 Git checkout 读需求，快照保存完整原文和 SHA；不复制、不修改研究事实。
+2. **网络有界**：每次 collect 必须给请求预算和种子 URL；robots 拒绝不绕过；ETag / Last-Modified 与内容 SHA 分开计量；同 SHA 不重复下载，旧字节永不覆盖。
+3. **打包不等于交付，交付不等于采用**：`packaged`、`received`、`delivered`、`sourced` 四个状态分别由四个不同的载体证明（本地台账、接收端回执、Git 事件卡、研究序列）。
+4. **回执写回 Git 不自动**：只有作者在 checkout 里跑 `deliveries import` 并走 PR 才能翻状态；Fetchspec 只提供可审核的提案。
+
+## 四、交付是什么
+
+**主交付：v2.0 包**（`deliveries/<delivery_id>/`），受 `supply_contract.json` 的交付契约 1.1 + 生成目标契约 2.0 约束：
+
+| 文件 | 内容 |
+|---|---|
+| `manifest.json` | `contract_version=2.0`、`provider_id=fetchspec`、`delivery_id`、`company_id`、`collector_revision`（采集代码版本）、`task_id_or_discovery=discovery` + `collection_trigger=generated_targets`（不编造人工任务 ID）、批次 `target_ids` 与解析出的 `part_ids`、`target_snapshot_id` 与上游 commit、`items[]` |
+| `items[]` 每项 | `source_item_id`、`source`（url、原文件名、语言、`discovery_role`、`categories`、`also_seen_at`）、`retrieved_at`、`sha256`、`format`、`bytes`、`completeness`、`access_scope`、`version_relation`（original / supersedes）、逐项 `target_ids`、`product_ids`、`product_evidence`（产品身份 + 原规格表）、`source_observations` |
+| `SHA256SUMS` | 逐文件校验；接收端重算 |
+| `files/<2hex>/<sha>.<fmt>` | 原件；同 SHA 只放一份，多个来源观察合并到一个条目 |
+
+**配套产出**：
+
+- 结构化候选目录 `catalog --company nvidia --output catalog.json`（NVIDIA schema 1，接收端 `product-catalog import` 兼容，线上 `/product-catalog.html` 展示）。当前 NVIDIA 595 产品 / 825 原表 / 39,327 原单元格；Supermicro 首个型号 20 表 / 107 单元格。
+- CSV 导出：产品图、原始单元格（含行列、跨度、表名、脚注、来源 SHA、目标绑定）、版本化比较映射（标 current / historical）。
+- 回执台账与作者提案 JSON：让"我们交了什么、对方收到什么、哪几行目标可以翻状态"三件事都可审计。
+
+**明确不交付**：翻译、研究事实、采用判断、目标表状态、全站 URL 清单、营销页与脚本文件。`acceptance` 字段永远是 `candidate`。
+
+## 五、机器与数据归属
+
+| 角色 | 机器 | 放什么 |
+|---|---|---|
+| 代码与规则 | GitHub `niuroumiantt/fetchspec` | 源码、profiles、rules、tests、文档；**没有**原件与数据库 |
+| 主执行机 | `hermes@macmini` | 目标表 130 行的 `host`；`~/.local/share/fetchspec` 原件、台账、包 |
+| NVIDIA 批次 / 开发 | M5 | 历史 NVIDIA 数据 `~/Downloads/tempfetch`（只读保留）；新管线根 `~/.local/share/fetchspec/pipeline` |
+| 接收与展示 | AWS（inresearch 站点 + receiver） | 运行库回执、产品目录投影；不放规格原件长期档 |
+| 永久归档与深读 | Spark | 原件永久归档、Reader；当前不可用，NVIDIA 走 M5 → AWS 临时路径 |
+| 需求与采用 | inresearch.ai Git（作者 checkout） | 目标表、事件卡、研究事实 |
+
+## 六、本次核对发现的缺口（按影响排序）
+
+1. **同步入口现在打不通（阻塞）。** `src/fetchspec/targets.py` 只接受供应契约 `version == "1.5"`；inresearch 2026-09-28 已升到 1.6（只加了 provider `host_default`，其余形状不变）。对当前上游执行 `sync-targets` 返回 `unsupported supply contract; expected 1.5`。把契约版本改回 1.5 后校验通过，选出 130 行，说明版本号是唯一阻塞。需要放宽为接受 1.5 及以后的 1.x，并同步更新 TARGET_PIPELINE.md、REDESIGN_VERIFICATION.md 里的"1.5"。
+2. **"上游没有回执导入命令"的说法已过时。** inresearch 2026-09-29 新增 `manage.py deliveries import --assignments`（`knowledge/deliveries.py`），CURRENT.md 已登记为回执进 Git 载体的唯一通道。本仓库 `author-proposal` 的 `limitations` 文案和 TARGET_PIPELINE.md 第 66 行仍写"尚缺作者导入命令"。真正缺的是把提案 `records` 变成 `register_delivery(target_id, evidence_path)` 登记（或直接生成 `assignments.json` 记录）的一步，目前要人工搬运。
+3. **按部件翻状态的问题在上游依然存在。** `knowledge/targets.py` 对 spec 与 operation 行都按 `bom_part` 看 `product_docs_plan.csv`，同部件的两行会一起翻成 delivered；事件卡通道按 `target_id` 逐行判定，没有这个问题。我们交付时应走事件卡通道，提案里也应只列真正绑定过的目标行。
+4. **覆盖面：2 个适配器对 63 个部件。** 现有适配器只有 NVIDIA、Supermicro（对应 gpu、server、network-switch、nic 等少数部件）；目标表的 124 条部件行覆盖电力（变压器、开关柜、UPS、燃机）、冷却（CDU、冷板、冷机、浸没）、IT（CPU、HBM、SSD、光模块）等全部系统，`part_fetch.json` 已为每个部件登记了出版方实例。下一批适配器应按目标行 `next_due` 与部件优先级排，公共层不动、只加站点适配器。
+5. **六条 sourced 因子行**（如 `F.revenue.gpus.density.density.rack_spec`、`F.cost.energy.pue.equipment.efficiency`）的 `sourced_by = registry`，是人工登记的序列，不需要重新采集；到期只做变化检查。
+
+## 附：命令速查
+
+```bash
+export PYTHONPATH=src
+python3 -m fetchspec.pipeline sync-targets --upstream ~/code/inresearch.ai
+python3 -m fetchspec.pipeline map-sync --company supermicro --target P.server.spec
+python3 -m fetchspec.pipeline collect --company supermicro --target P.server.spec \
+  --url https://www.supermicro.com/en/products/system/gpu/8u/sys-821ge-tnhr --max-pages 3
+python3 -m fetchspec.pipeline list --company supermicro
+python3 -m fetchspec.pipeline bind --company supermicro --product <product-id> \
+  --target P.server.spec --reason '官方 GPU 服务器型号规格与目标实例相符'
+python3 -m fetchspec.pipeline package --company supermicro --product <product-id>
+python3 -m fetchspec.pipeline receipt --input /path/to/receiver-receipt.json --environment production
+python3 -m fetchspec.pipeline author-proposal --delivery-id <id> --output proposal.json --environment production
+python3 -m fetchspec.pipeline export --company supermicro --directory /path/to/csv
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests   # 144 项，2 项跳过
+```
