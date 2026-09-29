@@ -1,3 +1,5 @@
+> 新生成目标任务的现行入口见 [目标驱动管线](TARGET_PIPELINE.md)。本文保留既有抓取/资料的兼容操作；不授权扩大新任务范围，也不把旧打包台账视为接收或正式采用。
+
 # 公司级抓取运维
 
 抓取由 fetchspec 的 Python 代码执行（持久队列、robots、限速、去重都在 `src/fetchspec/company.py`），
