@@ -4,6 +4,8 @@ Fetchspec 是 [inresearch.ai](https://github.com/niuroumiantt/inresearch.ai) 六
 
 一条主线：**需求 → 爬取 → 整理 → 输出**。为什么这样分、每段的边界，见 [框架](docs/framework-2026-09-30.md)；模块、落盘和机器见 [架构](docs/ARCHITECTURE.md)。
 
+仓库架构页（与 inews.today 同一约定，托管在 `inresearch.ai/admin/fetchspec/reporg.html`）由 `python3 scripts/reporg.py --upstream <inresearch checkout>` 从本仓库的子命令、厂商档案与规则、架构图和目标表生成到 `public/admin/reporg.html`；`--check` 可在提交前确认它没过期。
+
 ![Fetchspec 架构：需求 → 爬取 → 整理 → 输出](docs/architecture.svg)
 
 ## 给 inresearch 提供什么（供给卡，2026-09-30）
