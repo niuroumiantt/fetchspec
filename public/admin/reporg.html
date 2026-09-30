@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>仓库架构 · fetchspec</title>
+<meta name="description" content="Fetchspec 的仓库架构页：定位、需求、来源、环节、交付、实时计数、未完成。由 scripts/reporg.py 生成。">
+<style>
+:root{--bg:#fff;--fg:#1d1d1f;--muted:#6e6e73;--line:#e5e5ea;--soft:#f5f5f7;--accent:#2f6fde}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#111113;--fg:#ececf0;--muted:#9a9aa3;--line:#2a2a30;--soft:#1a1a1e;--accent:#6b9cff}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC",sans-serif}
+header{position:sticky;top:0;z-index:2;display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:12px 28px;border-bottom:1px solid var(--line);background:var(--bg)}
+header b{font-size:14px}header nav{display:flex;gap:14px;flex-wrap:wrap;font-size:13px}header nav a{color:var(--muted);text-decoration:none}header nav a:hover{color:var(--accent)}
+main{max-width:1080px;margin:0 auto;padding:28px 28px 64px}.eyebrow{color:var(--muted);font-size:13px;margin:0}h1{font-size:28px;margin:6px 0 10px}
+h2{font-size:20px;margin:36px 0 12px;padding-top:12px;border-top:1px solid var(--line)}.note{color:var(--muted);font-size:13px}
+code{font:12.5px ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--soft);padding:1px 5px;border-radius:4px}pre{background:var(--soft);padding:12px 14px;border-radius:8px;overflow:auto;font-size:12.5px}
+.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13.5px;margin:10px 0}th,td{text-align:left;vertical-align:top;padding:8px 10px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:500;white-space:nowrap}
+figure.svg{margin:12px 0 18px;padding:12px;border:1px solid var(--line);border-radius:10px;overflow-x:auto}figure.svg svg{max-width:100%;height:auto}
+@media (max-width:640px){header{padding:10px 16px}main{padding:20px 16px 48px}h1{font-size:23px}}
+</style>
+</head>
+<body>
+<header><b>仓库架构 · fetchspec</b><nav><a href="#s0">定位</a><a href="#s1">需求</a><a href="#s2">通道与来源</a><a href="#s3">环节</a><a href="#s4">交付</a><a href="#s5">实时计数</a><a href="#s6">还没做完的</a></nav></header>
+<main>
+<p class="eyebrow">inresearch.ai/admin/fetchspec/reporg.html</p>
+<h1>需求 → 爬取 → 整理 → 输出</h1>
+<p>这一页从 fetchspec 仓库自己的文件生成（<code>scripts/reporg.py</code>）：子命令、厂商档案与规则、架构图，以及 inresearch 目标表里 team = fetchspec 的行。改了这些，重新生成即可。</p>
+<section id="s0"><h2>定位</h2><p>六个采集队里的「产品与技术资料」队：按 inresearch 的目标行，从厂商官网取回官方产品规格，保留原件与原表，整理成可比较的参数，打包交付并拿回回执。收到不等于采用，研究事实由 inresearch 判断。</p><p class="note">不给什么：翻译、研究结论、目标表状态、全站 URL 清单；新闻、财报、研报、报价、统计归其他队（inews、fetchfilings、fetchreports、fetchquotes、fetchstat）。</p></section><section id="s1"><h2>需求</h2><p>领 <b>130</b> 行（涉及 63 个部件），只领构成与运行两类变量。</p><div class="scroll"><table><thead><tr><th>类别</th><th>行数</th></tr></thead><tbody><tr><td>因子 F.*</td><td>6</td></tr><tr><td>构成 P.*.spec</td><td>63</td></tr><tr><td>运行 P.*.operation</td><td>61</td></tr></tbody></table></div><p class="note">六个队的目标行：fetchspec 130 · fetchreports 62 · fetchfilings 62 · inews 50 · fetchstat 26 · fetchquotes 21</p><p class="note">来源：inresearch <code>framework/tco_targets.json</code> · commit <code>6f592ffe975b</code> · sha256 <code>9bcb56d8fe639020</code></p></section><section id="s2"><h2>通道与来源</h2><p>通道只有一种：<b>直连</b>，只取厂商官方站点，按 robots、节流、条件请求与内容 SHA 采集。3 家厂商有适配档案，4 家有采集规则（intel、nvidia、supermicro、vertiv）。</p><div class="scroll"><table><thead><tr><th>厂商</th><th>允许的主机</th><th>入口数</th><th>文档格式</th><th>目标部件</th><th>已知缺口</th></tr></thead><tbody><tr><td><b>NVIDIA</b><br><span class="note">research_scope_datacenter_networking_products</span></td><td><code>www.nvidia.com</code><br><code>nvidia.com</code><br><code>resources.nvidia.com</code><br><code>dam-cdn.nvd.orangelogic.com</code><br><code>docs.nvidia.com</code><br><code>images.nvidia.com</code><br><code>images.nvidia.cn</code><br><code>www.nvidia.cn</code><br><code>nvidia.cn</code><br><code>networking-docs.nvidia.com</code></td><td>1</td><td>pdf · doc · docx · docm · dot · dotx · dotm · xls · xlsx · xlsm · xlsb · xlt · xltx · xltm · csv · ppt · pptx · pptm · pps · ppsx · ppsm · pot · potx · potm · rtf · odt · ods · odp</td><td>gpu · cpu · rack-system · network-switch · switch-asic · nic · optics · copper-interconnect</td><td><a href="#s6">7 条</a></td></tr><tr><td><b>Supermicro</b><br><span class="note">first_company_crawl_with_explicit_coverage_gaps</span></td><td><code>www.supermicro.com</code><br><code>supermicro.com</code><br><code>learn-more.supermicro.com</code></td><td>18</td><td>pdf · doc · docx · xls · xlsx · docm · xlsm · xlsb</td><td>server · general-server · rack-system</td><td><a href="#s6">7 条</a></td></tr><tr><td><b>Vertiv</b><br><span class="note">target_driven_product_adapter</span></td><td><code>www.vertiv.com</code></td><td>3</td><td>pdf · docx · xlsx</td><td>ups · pdu · cdu</td><td><a href="#s6">4 条</a></td></tr></tbody></table></div><p class="note">执行机：<b>macmini</b> 采集执行机（目标表 host） · <b>M5</b> 开发与 NVIDIA 批次 · <b>AWS</b> inresearch 接收与展示 · <b>Spark</b> 永久归档与深读</p></section><section id="s3"><h2>环节</h2><figure class="svg"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 712" width="1600" height="712" role="img" aria-label="Fetchspec 架构：inresearch 的目标表、供应契约和出版方登记只读同步进来；Fetchspec 分四段——需求（快照与采集计划）、爬取（官方来源到不可变字节）、整理（原表原值到参数观测与目标绑定）、输出（包、回执、登记）；包交给 inresearch 接收，回执回到本地台账，登记经作者 deliveries import 把目标行翻成 delivered，并回到下一轮需求。"><title>Fetchspec 架构（2026-09-30）：需求 → 爬取 → 整理 → 输出</title><style>:root{--bg:#fbfaf7;--fg:#1f2a24;--mute:#5b6b63;--box:#ffffff;--bd:#7c8a82;--step:#eef4f1;--head:#dcebe4;--up:#f4f0e4;--store:#f7f6f1;--machine:#eef0f5;--accent:#1e6f5c} @media (prefers-color-scheme: dark){:root{--bg:#161a18;--fg:#e6e9e4;--mute:#a5b0aa;--box:#262d29;--bd:#8b9992;--step:#233029;--head:#1f3a31;--up:#2c2a21;--store:#1d2220;--machine:#23262e;--accent:#6fc7ac}}
+  .bg{fill:var(--bg)}
+  .title{fill:var(--fg);font:700 18px 'PingFang SC','Noto Sans CJK SC','Noto Sans SC',system-ui,-apple-system,sans-serif} .sub{fill:var(--mute);font:12px 'PingFang SC','Noto Sans CJK SC','Noto Sans SC',system-ui,-apple-system,sans-serif}
+  .lanet{fill:var(--fg);font:600 13px 'PingFang SC','Noto Sans CJK SC','Noto Sans SC',system-ui,-apple-system,sans-serif}
+  .box{fill:var(--box);stroke:var(--bd);stroke-width:1.2} .box.step{fill:var(--step)} .box.up{fill:var(--up)} .box.machine{fill:var(--machine)}
+  .head{fill:var(--head);stroke:var(--accent);stroke-width:1.4} .up{fill:var(--up);stroke:var(--bd);stroke-width:1.2}
+  .store{fill:var(--store);stroke:var(--bd);stroke-width:1.1;stroke-dasharray:4 3}
+  .t1{fill:var(--fg);font:600 13px 'PingFang SC','Noto Sans CJK SC','Noto Sans SC',system-ui,-apple-system,sans-serif} .t2{fill:var(--mute);font:11.5px 'PingFang SC','Noto Sans CJK SC','Noto Sans SC',system-ui,-apple-system,sans-serif}
+  .num{fill:var(--accent)} .numt{fill:var(--bg);font:700 12px 'PingFang SC','Noto Sans CJK SC','Noto Sans SC',system-ui,-apple-system,sans-serif}
+  .edge{stroke:var(--fg);stroke-width:1.3;fill:none} .edge.strong{stroke-width:2} .edge.dashed{stroke-dasharray:5 4;stroke:var(--mute)}
+  .edge.accent{stroke:var(--accent);stroke-width:1.8}
+  .lbl{fill:var(--mute);font:11px 'PingFang SC','Noto Sans CJK SC','Noto Sans SC',system-ui,-apple-system,sans-serif} .lbl.accent{fill:var(--accent);font-weight:600}
+  #ah path{fill:var(--fg)}
+</style><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"/></marker></defs><rect class="bg" x="0" y="0" width="1600" height="712"/><text class="title" x="20" y="34">Fetchspec · 需求 → 爬取 → 整理 → 输出（2026-09-30）</text>
+<text class="sub" x="20" y="56">inresearch.ai 六队之一，厂商规格队。只领 team = fetchspec 的目标行；只收英文中文官方来源；原值不改；目标是需求不是证据。实线已实现，虚线未接或需人工。</text>
+<rect class="up" x="20" y="104" width="220" height="58" rx="6"/>
+<text class="t1" x="32" y="126">inresearch.ai · 需求源</text>
+<text class="t2" x="32" y="148">Git 权威，Fetchspec 只读</text>
+<rect class="box up" x="20" y="176" width="220" height="76" rx="6"/>
+<text class="t1" x="32" y="198">tco_targets.json</text>
+<text class="t2" x="32" y="220">team = fetchspec 130 行</text>
+<text class="t2" x="32" y="238">部件 × 数据类别 × 出版方</text>
+<rect class="box up" x="20" y="266" width="220" height="76" rx="6"/>
+<text class="t1" x="32" y="288">supply_contract.json</text>
+<text class="t2" x="32" y="310">1.6 · 生成目标契约 2.0</text>
+<text class="t2" x="32" y="328">parameter_observation_fields</text>
+<rect class="box up" x="20" y="356" width="220" height="76" rx="6"/>
+<text class="t1" x="32" y="378">part_fetch.json</text>
+<text class="t2" x="32" y="400">每个部件的出版方实例</text>
+<text class="t2" x="32" y="418">人工登记 → 目标行 instances</text>
+<rect class="store up" x="20" y="452" width="220" height="76" rx="6"/>
+<text class="t1" x="32" y="474">状态四态</text>
+<text class="t2" x="32" y="496">needed → delivered → sourced</text>
+<text class="t2" x="32" y="514">delivered 只认 Git 内载体</text>
+<rect class="head" x="262" y="104" width="250" height="58" rx="6"/>
+<circle class="num" cx="280" cy="122" r="11"/>
+<text class="numt" x="280" y="126" text-anchor="middle">1</text>
+<text class="t1" x="298" y="126">需求</text>
+<text class="t2" x="274" y="148">目标行 → 采集计划</text>
+<rect class="box step" x="262" y="176" width="250" height="76" rx="6"/>
+<text class="t1" x="274" y="198">sync-targets</text>
+<text class="t2" x="274" y="220">只读 Git 快照：commit + SHA</text>
+<text class="t2" x="274" y="238">契约 1.5+ 1.x；越队与漂移拒绝</text>
+<rect class="box step" x="262" y="266" width="250" height="76" rx="6"/>
+<text class="t1" x="274" y="288">plan · coverage</text>
+<text class="t2" x="274" y="310">下一步队列：在途 / 可抓 / 复核 / 缺适配器</text>
+<text class="t2" x="274" y="328">按 next_due 与敏感度；附参数提示</text>
+<rect class="box step" x="262" y="356" width="250" height="76" rx="6"/>
+<text class="t1" x="274" y="378">适配器声明 profiles/*.json</text>
+<text class="t2" x="274" y="400">target_parts：服务哪些部件</text>
+<text class="t2" x="274" y="418">instance_aliases：对上目标行实例</text>
+<rect class="store" x="262" y="452" width="250" height="76" rx="6"/>
+<text class="t1" x="274" y="474">落盘</text>
+<text class="t2" x="274" y="496">targets/snapshots/&lt;id&gt;/</text>
+<text class="t2" x="274" y="514">targets/current.json</text>
+<rect class="head" x="534" y="104" width="250" height="58" rx="6"/>
+<circle class="num" cx="552" cy="122" r="11"/>
+<text class="numt" x="552" y="126" text-anchor="middle">2</text>
+<text class="t1" x="570" y="126">爬取</text>
+<text class="t2" x="546" y="148">官方来源 → 不可变字节</text>
+<rect class="box step" x="534" y="176" width="250" height="76" rx="6"/>
+<text class="t1" x="546" y="198">map-sync · map-ack</text>
+<text class="t2" x="546" y="220">官方产品 sitemap 只给候选</text>
+<text class="t2" x="546" y="238">lastmod 变化待人工确认</text>
+<rect class="box step" x="534" y="266" width="250" height="76" rx="6"/>
+<text class="t1" x="546" y="288">collect</text>
+<text class="t2" x="546" y="310">种子 + 请求预算；robots · 节流</text>
+<text class="t2" x="546" y="328">ETag / Last-Modified + 内容 SHA</text>
+<rect class="box step" x="534" y="356" width="250" height="76" rx="6"/>
+<text class="t1" x="546" y="378">四个通道</text>
+<text class="t2" x="546" y="400">产品页 · 文档 · 浏览器 · 人工</text>
+<text class="t2" x="546" y="418">一个来源只属一个通道一台机</text>
+<rect class="store" x="534" y="452" width="250" height="76" rx="6"/>
+<text class="t1" x="546" y="474">落盘</text>
+<text class="t2" x="546" y="496">blobs/&lt;sha&gt;（只增不改）</text>
+<text class="t2" x="546" y="514">acquisition/&lt;公司&gt;/sources.sqlite3</text>
+<rect class="head" x="806" y="104" width="250" height="58" rx="6"/>
+<circle class="num" cx="824" cy="122" r="11"/>
+<text class="numt" x="824" y="126" text-anchor="middle">3</text>
+<text class="t1" x="842" y="126">整理</text>
+<text class="t2" x="818" y="148">原表原值 → 参数观测</text>
+<rect class="box step" x="806" y="176" width="250" height="76" rx="6"/>
+<text class="t1" x="818" y="198">原生提取</text>
+<text class="t2" x="818" y="220">HTML 表 → 原生 PDF → OOXML</text>
+<text class="t2" x="818" y="238">不执行脚本；不用 OCR 猜值</text>
+<rect class="box step" x="806" y="266" width="250" height="76" rx="6"/>
+<text class="t1" x="818" y="288">候选库</text>
+<text class="t2" x="818" y="310">公司 → 分类 → 系列 → 型号</text>
+<text class="t2" x="818" y="328">原表 · 单元格 · 版本 · 变化</text>
+<rect class="box step" x="806" y="356" width="250" height="76" rx="6"/>
+<text class="t1" x="818" y="378">bind · map-field</text>
+<text class="t2" x="818" y="400">产品 ↔ 目标行，写明理由</text>
+<text class="t2" x="818" y="418">单元格 → 参数：原文 · 单位 · 条件</text>
+<rect class="store" x="806" y="452" width="250" height="76" rx="6"/>
+<text class="t1" x="818" y="474">落盘</text>
+<text class="t2" x="818" y="496">products/catalog.sqlite3</text>
+<text class="t2" x="818" y="514">export → CSV 供人抽查</text>
+<rect class="head" x="1078" y="104" width="250" height="58" rx="6"/>
+<circle class="num" cx="1096" cy="122" r="11"/>
+<text class="numt" x="1096" y="126" text-anchor="middle">4</text>
+<text class="t1" x="1114" y="126">输出</text>
+<text class="t2" x="1090" y="148">一个包 · 一张回执 · 一份登记</text>
+<rect class="box step" x="1078" y="176" width="250" height="76" rx="6"/>
+<text class="t1" x="1090" y="198">package</text>
+<text class="t2" x="1090" y="220">v2.0 manifest · SHA256SUMS · files/</text>
+<text class="t2" x="1090" y="238">target_ids · 原表 · 参数观测</text>
+<rect class="box step" x="1078" y="266" width="250" height="76" rx="6"/>
+<text class="t1" x="1090" y="288">receipt</text>
+<text class="t2" x="1090" y="310">接收端回执按环境入账</text>
+<text class="t2" x="1090" y="328">packaged ≠ received</text>
+<rect class="box step" x="1078" y="356" width="250" height="76" rx="6"/>
+<text class="t1" x="1090" y="378">assignments</text>
+<text class="t2" x="1090" y="400">deliveries import 的输入</text>
+<text class="t2" x="1090" y="418">每目标行一条 · 官方 URL</text>
+<rect class="store" x="1078" y="452" width="250" height="76" rx="6"/>
+<text class="t1" x="1090" y="474">落盘</text>
+<text class="t2" x="1090" y="496">deliveries/&lt;delivery_id&gt;/</text>
+<text class="t2" x="1090" y="514">delivery-ledger.sqlite</text>
+<rect class="up" x="1350" y="104" width="230" height="58" rx="6"/>
+<text class="t1" x="1362" y="126">inresearch.ai · 接收与采用</text>
+<text class="t2" x="1362" y="148">运行库与作者 checkout</text>
+<rect class="box up" x="1350" y="176" width="230" height="76" rx="6"/>
+<text class="t1" x="1362" y="198">fetchspec-receive</text>
+<text class="t2" x="1362" y="220">逐文件 SHA；目标须属 fetchspec</text>
+<text class="t2" x="1362" y="238">参数观测：只归档，未入库</text>
+<rect class="box up" x="1350" y="266" width="230" height="76" rx="6"/>
+<text class="t1" x="1362" y="288">研究采用</text>
+<text class="t2" x="1362" y="310">Reader 深读 → 证据 → C3</text>
+<text class="t2" x="1362" y="328">delivered → sourced</text>
+<rect class="box up" x="1350" y="356" width="230" height="76" rx="6"/>
+<text class="t1" x="1362" y="378">deliveries import</text>
+<text class="t2" x="1362" y="400">作者 checkout → event_cards</text>
+<text class="t2" x="1362" y="418">重跑目标表 · PR · 审阅</text>
+<rect class="store up" x="1350" y="452" width="230" height="76" rx="6"/>
+<text class="t1" x="1362" y="474">目标行翻状态</text>
+<text class="t2" x="1362" y="496">needed → delivered（逐行）</text>
+<text class="t2" x="1362" y="514">补丁待合：docs/upstream/</text>
+<line class="edge strong" x1="512" y1="133" x2="531" y2="133" marker-end="url(#ah)"/>
+<line class="edge strong" x1="784" y1="133" x2="803" y2="133" marker-end="url(#ah)"/>
+<line class="edge strong" x1="1056" y1="133" x2="1075" y2="133" marker-end="url(#ah)"/>
+<line class="edge" x1="240" y1="214" x2="259" y2="214" marker-end="url(#ah)"/>
+<path class="edge" d="M240 304 L251 304 L251 228 L259 228" fill="none" marker-end="url(#ah)"/>
+<path class="edge" d="M240 394 L251 394 L251 314 L259 314" fill="none" marker-end="url(#ah)"/>
+<line class="edge" x1="387" y1="252" x2="387" y2="264" marker-end="url(#ah)"/>
+<line class="edge" x1="387" y1="342" x2="387" y2="354" marker-end="url(#ah)"/>
+<line class="edge" x1="659" y1="252" x2="659" y2="264" marker-end="url(#ah)"/>
+<line class="edge" x1="659" y1="342" x2="659" y2="354" marker-end="url(#ah)"/>
+<line class="edge" x1="931" y1="252" x2="931" y2="264" marker-end="url(#ah)"/>
+<line class="edge" x1="931" y1="342" x2="931" y2="354" marker-end="url(#ah)"/>
+<line class="edge" x1="1203" y1="252" x2="1203" y2="264" marker-end="url(#ah)"/>
+<line class="edge" x1="1203" y1="342" x2="1203" y2="354" marker-end="url(#ah)"/>
+<line class="edge" x1="512" y1="304" x2="531" y2="304" marker-end="url(#ah)"/>
+<path class="edge" d="M784 316 L795 316 L795 214 L803 214" fill="none" marker-end="url(#ah)"/>
+<path class="edge" d="M1056 394 L1067 394 L1067 214 L1075 214" fill="none" marker-end="url(#ah)"/>
+<line class="edge" x1="1328" y1="204" x2="1347" y2="204" marker-end="url(#ah)"/>
+<path class="edge" d="M1350 226 L1339 226 L1339 304 L1331 304" fill="none" marker-end="url(#ah)"/>
+<line class="edge dashed" x1="1465" y1="252" x2="1465" y2="263" marker-end="url(#ah)"/>
+<line class="edge" x1="1328" y1="394" x2="1347" y2="394" marker-end="url(#ah)"/>
+<line class="edge accent" x1="1465" y1="432" x2="1465" y2="449" marker-end="url(#ah)"/>
+<path class="edge accent" d="M1580 490 L1592 490 L1592 80 L130 80 L130 101" fill="none" marker-end="url(#ah)"/>
+<text class="lbl accent" x="800" y="74" text-anchor="middle">目标行状态回写 inresearch 的 Git，成为下一轮需求</text>
+<path class="edge dashed" d="M1465 528 L1465 546 L387 546 L387 531" fill="none" marker-end="url(#ah)"/>
+<text class="lbl" x="795.0" y="541" text-anchor="middle">回流（未接）：哪些行仍缺、缺哪类出版方；本地先用 plan / coverage 顶上</text>
+<text class="lanet" x="20" y="590">在哪台机器上跑</text>
+<rect class="box machine" x="20.0" y="602" width="373.5" height="70" rx="6"/>
+<text class="t1" x="32.0" y="624">macmini</text>
+<text class="t2" x="32.0" y="646">采集执行机：目标表 host = macmini</text>
+<text class="t2" x="32.0" y="664">原件与台账 ~/.local/share/fetchspec</text>
+<rect class="box machine" x="415.5" y="602" width="373.5" height="70" rx="6"/>
+<text class="t1" x="427.5" y="624">M5</text>
+<text class="t2" x="427.5" y="646">开发与 NVIDIA 批次</text>
+<text class="t2" x="427.5" y="664">可完整跑十个命令；装有历史目录</text>
+<rect class="box machine" x="811.0" y="602" width="373.5" height="70" rx="6"/>
+<text class="t1" x="823.0" y="624">AWS</text>
+<text class="t2" x="823.0" y="646">inresearch 网站与接收端</text>
+<text class="t2" x="823.0" y="664">运行库回执；不放规格原件长期档</text>
+<rect class="box machine" x="1206.5" y="602" width="373.5" height="70" rx="6"/>
+<text class="t1" x="1218.5" y="624">Spark</text>
+<text class="t2" x="1218.5" y="646">永久原件归档与 Reader 深读</text>
+<text class="t2" x="1218.5" y="664">不执行采集</text>
+<text class="sub" x="20" y="698">命令都是 python3 -m fetchspec.pipeline &lt;命令&gt;。数据根 ~/.local/share/fetchspec/pipeline/；源码进 Git，原件、数据库、快照、包与回执都不进 Git。</text></svg></figure><div class="scroll"><table><thead><tr><th>段</th><th>命令</th><th>做什么</th></tr></thead><tbody><tr><td>① 需求</td><td><code>sync-targets</code></td><td>snapshot current inresearch demand and supply contract</td></tr><tr><td></td><td><code>plan</code></td><td>demand queue: next action per open target, ranked by due date and sensitivity</td></tr><tr><td></td><td><code>coverage</code></td><td>per-target rollout: adapter, binding, package, receipt</td></tr><tr><td>② 爬取</td><td><code>map-sync</code></td><td>reconcile official product sitemap candidates without collecting pages</td></tr><tr><td></td><td><code>map-ack</code></td><td>acknowledge reviewed sitemap candidates after collection/review</td></tr><tr><td></td><td><code>collect</code></td><td>bounded official product/source refresh for explicit target demand</td></tr><tr><td>③ 整理</td><td><code>migrate</code></td><td>read-only legacy import into this new data root</td></tr><tr><td></td><td><code>list</code></td><td>query candidate products by company/name/kind</td></tr><tr><td></td><td><code>export</code></td><td>export original cells and product map</td></tr><tr><td></td><td><code>bind</code></td><td>explicitly bind reviewed products to demand; no fuzzy inference</td></tr><tr><td></td><td><code>map-field</code></td><td>record a reviewed comparison key without altering the raw cell</td></tr><tr><td>④ 输出</td><td><code>package</code></td><td>build immutable v2 package from current bindings</td></tr><tr><td></td><td><code>receipt</code></td><td>verify receiver acknowledgement against local package</td></tr><tr><td></td><td><code>assignments</code></td><td>export inresearch deliveries-import input from a validated receipt</td></tr><tr><td></td><td><code>author-proposal</code></td><td>export review proposal; never modifies author checkout</td></tr><tr><td></td><td><code>catalog</code></td><td>export structured candidate catalog; NVIDIA schema remains receiver compatible</td></tr><tr><td>运维</td><td><code>status</code></td><td></td></tr></tbody></table></div><p class="note">所有命令：<code>PYTHONPATH=src python3 -m fetchspec.pipeline [--root 数据根] &lt;命令&gt;</code></p></section><section id="s4"><h2>交付</h2><div class="scroll"><table><thead><tr><th>项</th><th>内容</th></tr></thead><tbody><tr><td>包</td><td>v2.0：manifest.json + SHA256SUMS + files/</td></tr><tr><td>每项带</td><td>target_ids、part_ids、来源与语言、版本关系、产品身份、厂商原表、人审过的参数观测（值为厂商原文）</td></tr><tr><td>接收</td><td>inresearch <code>manage.py fetchspec-receive</code> 逐文件验 SHA256 与契约，回执 JSON</td></tr><tr><td>登记</td><td><code>assignments</code> 生成每目标行一条的登记；作者 checkout 跑 <code>deliveries import</code>，走 PR 与审阅</td></tr><tr><td>不写</td><td>Fetchspec 不写 inresearch 的 Git，不改目标表状态</td></tr></tbody></table></div></section><section id="s5"><h2>实时计数</h2><p>在采集机（macmini）上：</p><pre>PYTHONPATH=src python3 -m fetchspec.pipeline coverage
+PYTHONPATH=src python3 -m fetchspec.pipeline status</pre><p class="note">数据根 <code>~/.local/share/fetchspec/pipeline/</code>，原件、数据库、目标快照、包与回执都不进 Git。</p></section><section id="s6"><h2>还没做完的</h2><div class="scroll"><table><thead><tr><th>项</th><th>说明</th></tr></thead><tbody><tr><td>回流</td><td>inresearch 采用后的结果（哪些行 sourced、缺哪类出版方）还不回到 plan，现在只能看自己的 coverage。</td></tr><tr><td>实时计数</td><td>在途、已绑定、已打包、已回执在采集机的数据根里，本页不含；在 macmini 上跑 <code>coverage</code> 与 <code>status</code>。</td></tr><tr><td><b>NVIDIA</b></td><td>networking-docs.nvidia.com: spaces with at most space_page_archive.max_pages sitemap pages (hardware guides: adapters, DPUs, cables, transceivers, switches) are archived page by page as HTML snapshots; larger spaces (software manuals, firmware release notes; about 39 spaces and 50,000 pages on 2026-09-26) keep landing page and Download PDF only.</td></tr><tr><td><b>NVIDIA</b></td><td>Research scope only: Gaming/GeForce, drivers, on-demand video, GTC sessions and other site sections are intentionally not traversed.</td></tr><tr><td><b>NVIDIA</b></td><td>Other NVIDIA corporate hostnames and non-indexed microsites may have separate sitemaps and remain follow-up coverage.</td></tr><tr><td><b>NVIDIA</b></td><td>Gated resources, account-only downloads, robots-disallowed paths and JavaScript/API-only assets are intentionally excluded.</td></tr><tr><td><b>NVIDIA</b></td><td>Sitemap URLs are candidates, not proof of complete website or product coverage; document classification is an auditable URL heuristic.</td></tr><tr><td><b>NVIDIA</b></td><td>Official secondary hosts are accepted for direct documents but their HTML navigation is not crawled as a separate site.</td></tr><tr><td><b>NVIDIA</b></td><td>No Spark transfer, full-text reading or inresearch fact adoption occurs during acquisition.</td></tr><tr><td><b>Supermicro</b></td><td>Sitemap URLs are discovery candidates, not downloaded documents or a complete website inventory.</td></tr><tr><td><b>Supermicro</b></td><td>Coverage is limited to public Supermicro hosts, sitemap pages, document literals and the observed read-only Manuals form; the official learn-more.supermicro.com asset host is included, while unrelated external mirrors remain excluded. Undiscovered JavaScript APIs remain a review gap.</td></tr><tr><td><b>Supermicro</b></td><td>Image sitemap page URLs and all declared FAQ sitemaps are inventoried; image binaries themselves are not target documents.</td></tr><tr><td><b>Supermicro</b></td><td>Product role labels above name sitemap sources, not a replacement for the vendor&#x27;s first-level product categories.</td></tr><tr><td><b>Supermicro</b></td><td>User authorized execution on 2026-09-23; this records user authorization, not a vendor license. No public redistribution. Robots rules remain independently enforced.</td></tr><tr><td><b>Supermicro</b></td><td>HTML-only manuals are retained as discovery snapshots, not counted as PDF documents. Public completeness, PCN completeness and unavailable/deleted products are not inferred from queue exhaustion.</td></tr><tr><td><b>Supermicro</b></td><td>Vendor first-level labels are preserved; URL-based membership is explicitly inferred, and unresolved documents remain unassigned. Collections describe document purpose, not vendor taxonomy.</td></tr><tr><td><b>Vertiv</b></td><td>No official product sitemap: new models are found only through bounded collection from declared category pages.</td></tr><tr><td><b>Vertiv</b></td><td>Chinese product pages are not collected because they do not share en-us product identities.</td></tr><tr><td><b>Vertiv</b></td><td>Datasheet PDFs need pdftotext on the collection host; the HTML Models table is preferred when present.</td></tr><tr><td><b>Vertiv</b></td><td>A product page groups several models; per-model rows stay inside the vendor table and are not split into separate products.</td></tr></tbody></table></div></section>
+</main>
+</body>
+</html>
