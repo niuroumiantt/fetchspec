@@ -67,6 +67,7 @@ def main(argv=None):
         mapping.add_argument('--' + key, type=int, required=True)
     for key in ('field', 'unit', 'condition', 'reviewer'):
         mapping.add_argument('--' + key, required=True)
+    mapping.add_argument('--target', action='append', help='target rows this parameter answers; default all bound targets')
     listing = sub.add_parser('list', help='query candidate products by company/name/kind')
     listing.add_argument('--company', required=True)
     listing.add_argument('--name', default='')
@@ -78,6 +79,8 @@ def main(argv=None):
     coverage = sub.add_parser('coverage', help='per-target rollout: adapter, binding, package, receipt')
     coverage.add_argument('--csv', type=Path)
     coverage.add_argument('--stage', choices=['no_adapter', 'adapter_ready', 'bound', 'packaged', 'received_validation_only', 'received'])
+    planning = sub.add_parser('plan', help='demand queue: next action per open target, ranked by due date and sensitivity')
+    planning.add_argument('--limit', type=int, default=40)
     sub.add_parser('status')
     args = parser.parse_args(argv)
     root = (args.root or (default_data_root() / 'pipeline')).expanduser().resolve()
@@ -101,6 +104,9 @@ def execute(args, root):
         return import_receipt(root, args.input, snapshot=load_snapshot(root), environment=args.environment)
     if args.command == 'author-proposal':
         return export_author_proposal(root, args.delivery_id, snapshot=load_snapshot(root), output_path=args.output, environment=args.environment)
+    if args.command == 'plan':
+        from .coverage import build as build_coverage, plan
+        return plan(build_coverage(root, load_snapshot(root)), limit=max(1, args.limit))
     if args.command == 'coverage':
         from .coverage import build as build_coverage, write_csv
         report = build_coverage(root, load_snapshot(root))
@@ -131,7 +137,8 @@ def execute(args, root):
             result['counts'] = store.stats()
             return result
         if args.command == 'map-field':
-            return store.map_field(args.company,args.product,args.table,args.row,args.cell,args.field,args.unit,args.condition,args.reviewer)
+            return store.map_field(args.company,args.product,args.table,args.row,args.cell,args.field,args.unit,args.condition,args.reviewer,
+                                   target_ids=args.target, snapshot=load_snapshot(root) if args.target else None)
         if args.command == 'catalog':
             payload = store.export_catalog(args.company)
             atomic_json(args.output,payload)

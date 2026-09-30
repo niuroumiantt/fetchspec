@@ -23,6 +23,9 @@ from .targets import SHA, canonical_bytes, digest, load_snapshot, validate_targe
 SUPPORTED_FORMATS = FORMATS | {"html"}
 READER_FORMATS = {"pdf", "html", "csv", "docx", "pptx", "xlsx", "xls", "ppt"}
 DELIVERY_ID = re.compile(r"^[A-Za-z0-9._-]{1,160}$")
+# inresearch supply_contract generated_target_contract.parameter_observation_fields
+OBSERVATION_FIELDS = ("company_id", "product_id", "target_id", "part_id", "parameter_name", "value",
+                      "unit", "condition", "source_url", "source_sha256", "observed_at")
 
 
 def _database(state_root):
@@ -246,6 +249,16 @@ def _prepare(snapshot, company_id, raw_items):
                 refs = table.get("source_refs", [])
                 if not isinstance(refs, list) or any(not isinstance(ref, dict) or (ref.get("url"), ref.get("sha256")) not in source_keys for ref in refs):
                     raise ValueError("specification source reference is not included in package")
+            parameters = evidence.get("parameter_observations", [])
+            if not isinstance(parameters, list):
+                raise ValueError("parameter_observations must be a list")
+            for parameter in parameters:
+                if (not isinstance(parameter, dict) or any(key not in parameter for key in OBSERVATION_FIELDS)
+                        or parameter["company_id"] != company_id or parameter["product_id"] != evidence.get("product_id")
+                        or parameter["target_id"] not in evidence["target_ids"]
+                        or not isinstance(parameter["value"], str) or not isinstance(parameter["parameter_name"], str)
+                        or (parameter["source_url"], parameter["source_sha256"]) not in source_keys):
+                    raise ValueError("parameter observation must name a bound target, this product and an included source")
             product_evidence.append(evidence)
         item = {**observation, "product_evidence": product_evidence, "sha256": sha, "format": fmt, "bytes": blob.stat().st_size,
                 "content_type": raw.get("content_type") or MIME.get(fmt, "application/octet-stream"),
@@ -359,6 +372,11 @@ def build_package(state_root, snapshot, company_id, items, *, delivery_id=None, 
                         "collection_trigger": "generated_targets", "target_snapshot_id": snapshot["snapshot_id"],
                         "upstream": snapshot["upstream"], "intent_sha256": intent_sha,
                         "files_included": True, "acceptance": "candidate", "items": prepared}
+            observation_count = sum(len(e.get("parameter_observations", [])) for i in prepared for e in i["product_evidence"])
+            if observation_count:
+                manifest["parameter_observations"] = {"count": observation_count, "fields": list(OBSERVATION_FIELDS),
+                                                      "location": "items[].product_evidence[].parameter_observations",
+                                                      "value_policy": "original vendor cell text; reviewed unit/condition; no conversion"}
             package.parent.mkdir(parents=True, exist_ok=True)
             with tempfile.TemporaryDirectory(prefix=".package-", dir=package.parent) as temp:
                 stage = Path(temp) / "package"
@@ -561,6 +579,8 @@ def export_assignments(state_root, delivery_id, *, snapshot=None, output_path=No
         records.append({"target_id": target["id"], "assignee": by, "status": "已交付",
                         "delivery": {"evidence_path": url, "at": received_at, "by": by, "note": note[:500]},
                         "fetchspec": {"delivery_id": manifest["delivery_id"], "manifest_sha256": manifest_sha,
+                                      "parameter_observations": sum(1 for item in related for entry in item["product_evidence"]
+                                                                    for o in entry.get("parameter_observations", []) if o["target_id"] == target["id"]),
                                       "receipt_sha256": row["receipt_sha256"], "environment": environment,
                                       "part_id": target["part_id"], "product_ids": products,
                                       "source_sha256": sorted(i["sha256"] for i in related), "acceptance": "candidate"}})

@@ -1,3 +1,5 @@
+> **归档（2026-09-30）**：本文不是现行规则，只保留历史与兼容操作。现行框架见 [framework-2026-09-30.md](../framework-2026-09-30.md)，架构图见 [ARCHITECTURE.md](../ARCHITECTURE.md)。
+
 """Local archive layout (Spark is a later move, not the download target).
 
 This environment is isolated from Spark. Binaries stay on the machine that

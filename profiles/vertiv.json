@@ -66,6 +66,7 @@
     "Datasheet PDFs need pdftotext on the collection host; the HTML Models table is preferred when present.",
     "A product page groups several models; per-model rows stay inside the vendor table and are not split into separate products."
   ],
+  "instance_aliases": ["Vertiv", "Liebert", "维谛"],
   "target_parts": [
     "ups",
     "pdu",

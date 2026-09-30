@@ -94,6 +94,9 @@ class RobotsTests(unittest.TestCase):
         self.assertEqual(body, b"abcdef")
 
         clock = [0.0]
+        # The first request stored the real monotonic time; against the patched clock
+        # starting at 0 the throttle would otherwise sleep for the host's uptime.
+        f.last_request = 0.0
         with patch.object(inventory.time, "monotonic", side_effect=lambda: clock[0]):
             f.profile["max_response_seconds"] = 1
             f.opener = Opener(Response(Reader(clock)))

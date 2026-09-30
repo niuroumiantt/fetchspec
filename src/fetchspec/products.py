@@ -120,6 +120,9 @@ class ProductStore:
         CREATE TABLE IF NOT EXISTS comparisons(company_id TEXT, product_id TEXT, version TEXT,
           table_index INTEGER,row_index INTEGER,cell_index INTEGER,field TEXT,unit TEXT,condition TEXT,reviewer TEXT,
           PRIMARY KEY(company_id,product_id,version,table_index,row_index,cell_index,field));
+        CREATE TABLE IF NOT EXISTS comparison_targets(company_id TEXT, product_id TEXT, version TEXT,
+          table_index INTEGER,row_index INTEGER,cell_index INTEGER,field TEXT,target_id TEXT,
+          PRIMARY KEY(company_id,product_id,version,table_index,row_index,cell_index,field,target_id));
         ''')
 
     def close(self):
@@ -308,8 +311,9 @@ class ProductStore:
             if pid not in products:
                 raise ValueError(f'unknown product: {pid}')
             target_ids = [r[0] for r in self.db.execute('SELECT target_id FROM bindings WHERE snapshot_id=? AND company_id=? AND product_id=? ORDER BY target_id', (snapshot['snapshot_id'], company_id, pid))]
-            validate_target_ids(snapshot, target_ids)
+            target_rows = validate_target_ids(snapshot, target_ids)
             product = products[pid]
+            observations = self.parameter_observations(company_id, pid, product, target_rows, sources)
             for url, sha in evidence_refs(product):
                 source = sources.get((url, sha))
                 if not source:
@@ -328,13 +332,27 @@ class ProductStore:
                            'product_url': product.get('product_url'), 'target_ids': target_ids,
                            'part_ids': sorted({t['part_id'] for t in validate_target_ids(snapshot, target_ids) if t.get('part_id')}),
                            'version': fingerprint(semantic(product)), 'specification_tables': product.get('tables', [])}]}
+                attached = [o for o in observations if (o['source_url'], o['source_sha256']) == (url, sha)]
+                if attached:  # absent key keeps packages without mappings byte-identical to earlier releases
+                    item['product_evidence'][0]['parameter_observations'] = attached
                 items.append(item)
         return items
 
-    def map_field(self, company_id, product_id, table_index, row_index, cell_index, field, unit, condition, reviewer):
-        """Attach a reviewed comparison label to an exact original cell; never convert it."""
+    def map_field(self, company_id, product_id, table_index, row_index, cell_index, field, unit, condition, reviewer,
+                  target_ids=None, snapshot=None):
+        """Attach a reviewed comparison label to an exact original cell; never convert it.
+
+        ``target_ids`` narrows which bound target rows this parameter answers (for example a
+        TDP cell for P.gpu.operation but not P.gpu.spec); without it the mapping serves every
+        target the product is bound to.
+        """
         if not re.fullmatch(r'[a-z][a-z0-9_.-]*', field) or not reviewer.strip():
             raise ValueError('comparison field key and reviewer are required')
+        if target_ids:
+            from .targets import validate_target_ids
+            if snapshot is None:
+                raise ValueError('a target snapshot is required to scope a mapping to target rows')
+            validate_target_ids(snapshot, list(target_ids))
         with self.db:
             row = self.db.execute("""SELECT c.* FROM spec_cells c JOIN products p
                 ON p.company_id=c.company_id AND p.product_id=c.product_id AND p.version=c.version
@@ -344,8 +362,50 @@ class ProductStore:
                 raise ValueError('comparison must reference an existing current original cell')
             self.db.execute('INSERT OR REPLACE INTO comparisons VALUES(?,?,?,?,?,?,?,?,?,?)',
                 (company_id, product_id, row['version'], table_index, row_index, cell_index, field, unit, condition, reviewer))
+            self.db.execute('DELETE FROM comparison_targets WHERE company_id=? AND product_id=? AND version=? AND table_index=? AND row_index=? AND cell_index=? AND field=?',
+                (company_id, product_id, row['version'], table_index, row_index, cell_index, field))
+            for target_id in sorted(set(target_ids or ())):
+                self.db.execute('INSERT INTO comparison_targets VALUES(?,?,?,?,?,?,?,?)',
+                    (company_id, product_id, row['version'], table_index, row_index, cell_index, field, target_id))
         return {'field': field, 'original_text': row['text'], 'unit': unit, 'condition': condition,
-                'product_version': row['version'], 'authority': 'reviewed_mapping_candidate_only'}
+                'product_version': row['version'], 'target_ids': sorted(set(target_ids or ())) or 'all_bound_targets',
+                'authority': 'reviewed_mapping_candidate_only'}
+
+    def parameter_observations(self, company_id, product_id, product, target_rows, sources):
+        """Reviewed cell mappings of the current product version as contract observations.
+
+        The value is the vendor's original cell text; units, conditions and scope come from
+        the reviewed mapping and are never inferred or converted here.
+        """
+        current = self.db.execute('SELECT version FROM products WHERE company_id=? AND product_id=?', (company_id, product_id)).fetchone()
+        if current is None:
+            return []
+        bound = {row['id']: row for row in target_rows}
+        observations = []
+        for mapping in self.db.execute('''SELECT m.*, c.text FROM comparisons m JOIN spec_cells c
+                USING(company_id,product_id,version,table_index,row_index,cell_index)
+                WHERE m.company_id=? AND m.product_id=? AND m.version=?
+                ORDER BY m.field,m.table_index,m.row_index,m.cell_index''', (company_id, product_id, current['version'])).fetchall():
+            scoped = [r[0] for r in self.db.execute('''SELECT target_id FROM comparison_targets WHERE company_id=? AND product_id=?
+                AND version=? AND table_index=? AND row_index=? AND cell_index=? AND field=? ORDER BY target_id''',
+                (company_id, product_id, mapping['version'], mapping['table_index'], mapping['row_index'], mapping['cell_index'], mapping['field']))]
+            targets = [t for t in (scoped or sorted(bound)) if t in bound]
+            tables = product.get('tables', [])
+            if not targets or not 0 < mapping['table_index'] <= len(tables):
+                continue
+            refs = tables[mapping['table_index'] - 1].get('source_refs') or [{'url': product.get('source_url'), 'sha256': product.get('source_sha256')}]
+            source = sources.get((refs[0].get('url'), refs[0].get('sha256')))
+            if source is None:
+                continue
+            for target_id in targets:
+                observations.append({'company_id': company_id, 'product_id': product_id, 'target_id': target_id,
+                    'part_id': bound[target_id].get('part_id'), 'parameter_name': mapping['field'], 'value': mapping['text'],
+                    'unit': mapping['unit'], 'condition': mapping['condition'], 'source_url': source['source_url'],
+                    'source_sha256': source['sha256'], 'observed_at': source['observed_at'],
+                    'locator': {'table_index': mapping['table_index'], 'row_index': mapping['row_index'],
+                                'cell_index': mapping['cell_index'], 'product_version': mapping['version']},
+                    'reviewer': mapping['reviewer'], 'method': 'reviewed_original_cell_mapping', 'acceptance': 'candidate'})
+        return observations
 
     def export_csv(self, directory, company_id=None):
         directory = Path(directory)

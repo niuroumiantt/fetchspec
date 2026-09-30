@@ -14,6 +14,24 @@ from .adapters import ADAPTERS
 from .inventory import load_profile
 
 STAGES = ('no_adapter', 'adapter_ready', 'bound', 'packaged', 'received_validation_only', 'received')
+# Suggested parameter keys per data class, taken from the target rows' own disclosure_type
+# wording. They name what to look for in vendor tables; they are not values or mappings.
+PARAMETER_HINTS = {
+    'spec': ['model', 'form_factor', 'rated_capacity', 'rated_power', 'dimensions', 'weight', 'interfaces'],
+    'operation': ['rated_power', 'power_share', 'efficiency_curve', 'pue_contribution', 'lifetime', 'mtbf', 'utilization'],
+}
+
+
+def instance_adapters(target):
+    """Adapters whose company names appear in the row's own publisher instances."""
+    text = ' '.join(target.get('instances', []) + [target.get('publisher_category') or '']).casefold()
+    matched = []
+    for company in sorted(ADAPTERS):
+        profile = load_profile(company)
+        names = {company, profile.get('company_en', '')} | set(profile.get('instance_aliases', []))
+        if any(name and name.casefold() in text for name in names):
+            matched.append(company)
+    return matched
 
 
 def adapter_parts():
@@ -65,9 +83,14 @@ def build(root, snapshot):
         stage = ('received' if production else 'received_validation_only' if environments
                  else 'packaged' if tid in packaged else 'bound' if tid in bindings
                  else 'adapter_ready' if adapters else 'no_adapter')
+        kind = tid.rsplit('.', 1)[-1] if tid.startswith('P.') else 'factor'
         records.append({'target_id': tid, 'part_id': part, 'variable_class': target['variable_class'],
                         'upstream_status': target['status'], 'next_due': target.get('next_due'),
+                        'sensitivity_rank': target.get('sensitivity_rank'), 'model_inputs': target.get('model_inputs', []),
+                        'disclosure_type': target.get('disclosure_type'), 'data_kind': kind,
+                        'parameter_hints': PARAMETER_HINTS.get(kind, []),
                         'instances': target.get('instances', []), 'adapters': adapters,
+                        'instance_adapters': instance_adapters(target),
                         'bound_products': sorted(bindings.get(tid, ())), 'deliveries': sorted(packaged.get(tid, ())),
                         'receipt_environments': environments, 'stage': stage})
     summary = {stage: sum(r['stage'] == stage for r in records) for stage in STAGES}
@@ -87,3 +110,39 @@ def write_csv(report, path):
         writer.writeheader()
         for row in report['records']:
             writer.writerow({k: ';'.join(row[k]) if isinstance(row[k], list) else row[k] for k in fields})
+
+
+NEXT = {
+    'received': 'done locally; upstream import is the author\'s step',
+    'received_validation_only': 'send the package to the production receiver, then receipt --environment production',
+    'packaged': 'transfer the package and import the receiver receipt',
+    'bound': 'map-field the parameters this row asks for, then package',
+}
+
+
+def plan(report, limit=40):
+    """Rank what to do next for each target: the demand side of the pipeline.
+
+    Order: rows already moving, then rows an adapter can collect now (its vendor is named
+    in the row's own instances), then rows needing review or a new adapter. Within a group,
+    earlier next_due and higher sensitivity (lower rank) come first.
+    """
+    def action(row):
+        if row['stage'] in NEXT:
+            return 0, NEXT[row['stage']]
+        if row['instance_adapters']:
+            return 1, 'collect --company ' + ' | '.join(row['instance_adapters']) + ' from an official product page, then bind'
+        if row['adapters']:
+            return 2, 'adapter covers the part but the named vendors differ: review instances or pick an official page from ' + ', '.join(row['adapters'])
+        return 3, 'no adapter: add one for a vendor named in instances'
+    ranked = []
+    for row in report['records']:
+        if row['stage'] == 'received' or row['upstream_status'] in {'sourced', 'assumed'}:
+            continue
+        group, text = action(row)
+        ranked.append({'group': group, 'action': text, **{k: row[k] for k in (
+            'target_id', 'stage', 'next_due', 'sensitivity_rank', 'instances', 'model_inputs', 'parameter_hints')}})
+    ranked.sort(key=lambda r: (r['group'], r['next_due'] or '9999', r['sensitivity_rank'] or 99, r['target_id']))
+    groups = {name: sum(r['group'] == i for r in ranked) for i, name in enumerate(('in_flight', 'collect_now', 'review_instances', 'new_adapter'))}
+    return {'snapshot_id': report['snapshot_id'], 'actionable': len(ranked), 'groups': groups, 'queue': ranked[:limit],
+            'skipped': 'targets already sourced/assumed upstream or received in production'}
