@@ -1,9 +1,11 @@
-> 新生成目标任务的现行入口见 [目标驱动管线](TARGET_PIPELINE.md)。本文保留既有抓取/资料的兼容操作；不授权扩大新任务范围，也不把旧打包台账视为接收或正式采用。
+> **归档（2026-09-30）**：本文不是现行规则，只保留历史与兼容操作。现行框架见 [framework-2026-09-30.md](../framework-2026-09-30.md)，架构图见 [ARCHITECTURE.md](../ARCHITECTURE.md)。
+
+> 新生成目标任务的现行入口见 [目标驱动管线](../TARGET_PIPELINE.md)。本文保留既有抓取/资料的兼容操作；不授权扩大新任务范围，也不把旧打包台账视为接收或正式采用。
 
 # 代码在 Git，原件在哪台机器
 
 2026-09-23 更新：用户指定 **Macmini 为主力抓取机器**，不仅用于登录墙采集。
-Supermicro 当前机器、路径与操作以 [SUPERMICRO.md](SUPERMICRO.md) 为准：
+Supermicro 当前机器、路径与操作以 [SUPERMICRO.md](../adapters/supermicro.md) 为准：
 `hermes@macmini` 的 `/Users/hermes/.local/share/fetchspec` 保存原件与采集台账。
 下表中的 Linux/VPS 无 SSH 等描述是旧运行环境，不能用于判断当前任务权限或数据所在。
 

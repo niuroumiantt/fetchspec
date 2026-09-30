@@ -6,7 +6,7 @@
 
 ## 已完成
 
-新隔离分支 `codex/target-driven-pipeline`：目标快照、公共产品获取和公司适配、官方 sitemap 待处理计划、确定性 HTML/PDF/OOXML、版本 SQLite/CSV、明确绑定、v2 包、环境隔离回执及作者提案。NVIDIA 595产品/825表/39,327原单元格无损迁移，重复导入不增长；H200真实定向刷新保留既有规格。Supermicro SYS-821GE-TNHR真实单型号20表/107原单元格。源与方法见 `docs/REDESIGN_VERIFICATION.md`。
+新隔离分支 `codex/target-driven-pipeline`：目标快照、公共产品获取和公司适配、官方 sitemap 待处理计划、确定性 HTML/PDF/OOXML、版本 SQLite/CSV、明确绑定、v2 包、环境隔离回执及作者提案。NVIDIA 595产品/825表/39,327原单元格无损迁移，重复导入不增长；H200真实定向刷新保留既有规格。Supermicro SYS-821GE-TNHR真实单型号20表/107原单元格。源与方法见 `docs/records/2026-09-29-redesign-verification.md`。
 
 ## 入口
 
