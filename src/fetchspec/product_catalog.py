@@ -60,7 +60,8 @@ class Document(HTMLParser):
         self.feed(text)
 
     def handle_starttag(self, tag, attrs):
-        node = Node(tag, dict(attrs))
+        # Valueless attributes (<div class>) arrive as None; treat them as empty strings.
+        node = Node(tag, {key: value or '' for key, value in attrs})
         self.stack[-1].children.append(node)
         if tag not in self.VOID:
             self.stack.append(node)

@@ -3,10 +3,12 @@
   "company_id": "vertiv",
   "company_en": "Vertiv",
   "adapter_evidence": {
-    "verified_date": "2026-09-29",
-    "product_pages": "https://www.vertiv.com/en-us/products-catalog/<category>/<subcategory>/<product>/ carries a native HTML 'Models' table (rating, voltage, efficiency, dimensions per model) and links official Data Sheet PDFs under /<hex>/globalassets/.",
+    "verified_date": "2026-10-01",
+    "product_pages": "https://www.vertiv.com/en-<region>/products-catalog/<category>/<subcategory>/<product>/. Multi-model pages carry a native HTML 'Models' table; single-model pages carry no HTML table and expose their specification chart only as the pdfmake definition behind the page's Print button (var docDefinitionSpecs), read as literals without executing script. Data Sheet PDFs sit under /<hex>/globalassets/.",
     "sitemap": "https://www.vertiv.com/sitemap.xml redirects to a 404 page; no public product sitemap is declared in robots.txt.",
-    "chinese_site": "The zh-cn catalog does not mirror en-us product slugs (404); only en-us product pages are in scope until a mapped Chinese source is reviewed."
+    "chinese_site": "The zh-cn catalog does not mirror en-us product slugs (404); only en-us product pages are in scope until a mapped Chinese source is reviewed.",
+    "discovery": "Category pages render product lists by script and /en-us/search is disallowed by robots, so products are found through reviewed seeds in seeds/vertiv.json, not by expanding category pages.",
+    "regional_catalogs": "Some products (HPL, Monitored rPDU) exist only on English regional catalogs (en-emea, en-asia, en-latam…); several retired en-us pages answer HTTP 200 with site chrome only and are dropped from seeds."
   },
   "status": "target_driven_product_adapter",
   "allowed_hosts": [
@@ -61,15 +63,28 @@
     }
   ],
   "known_gaps": [
-    "No official product sitemap: new models are found only through bounded collection from declared category pages.",
+    "No official product sitemap and no crawlable product list: new models are found only through reviewed seeds (seeds/vertiv.json).",
     "Chinese product pages are not collected because they do not share en-us product identities.",
-    "Datasheet PDFs need pdftotext on the collection host; the HTML Models table is preferred when present.",
-    "A product page groups several models; per-model rows stay inside the vendor table and are not split into separate products."
+    "Datasheet PDFs need pdftotext on the collection host; the HTML Models table or Print-button chart is preferred when present.",
+    "A product page groups several models; per-model rows stay inside the vendor table and are not split into separate products.",
+    "Retired pages can answer HTTP 200 with an empty shell; such a seed reports no_product and must be replaced by review."
   ],
-  "instance_aliases": ["Vertiv", "Liebert", "维谛"],
+  "instance_aliases": [
+    "Vertiv",
+    "Liebert",
+    "维谛"
+  ],
   "target_parts": [
-    "ups",
+    "bbu",
+    "cdu",
+    "chiller",
+    "modular-dc",
     "pdu",
-    "cdu"
+    "power-shelf",
+    "rack-frame",
+    "room-cooling",
+    "sidecar-hx",
+    "ups",
+    "ups-battery"
   ]
 }

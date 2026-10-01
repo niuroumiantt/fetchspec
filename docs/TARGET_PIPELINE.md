@@ -52,6 +52,8 @@ PYTHONPATH=src python3 -m fetchspec.pipeline --root ~/.local/share/fetchspec/pip
 
 `collect --company ... --target ... --url ...` 仅从指定官方产品/目录展开，最大请求预算必需有界；产品页有可解析原表时优先使用 HTML，再选择 PDF、Office。只重试可恢复错误，受 robots 拒绝的内容不绕过。普通重跑恢复未完成项，`--refresh` 条件重查指定来源；`--reparse` 只重解析已保存字节，不请求网络；ETag/Last-Modified 与 SHA 分开计量。HTTP 请求成功但无法确定解析时明确保留缺口，OCR/模型没有实现时不会伪称已处理。
 
+`collect-seeds [--company ...] [--target ...] [--bind] --budget N` 对 `seeds/*.json` 里审过的种子批量执行同一条 `collect` 路径，整批共用一个请求预算；`--bind` 只绑定在种子 URL 本身观察到且有原生表的产品，理由取自种子。细则与实测见 [SEEDS.md](SEEDS.md)。
+
 NVIDIA 保留英文/中文现有身份映射与成熟原表；Supermicro 仅有轻量型号、官方路径和公开资源解析规则；Vertiv 只收 en-us 产品目录页，产品页原生 `Models` 表是主来源（无官方 sitemap，`map-sync` 明确拒绝，新型号从已声明分类页有界发现）。每个 profile 的 `target_parts` 声明它可服务的部件，`coverage` 据此列出无人覆盖的部件。目录页面不是产品型号；scope_exhausted 只说明本次有界队列耗尽，不表示公司目录完整。
 
 ## v2 交付与接收

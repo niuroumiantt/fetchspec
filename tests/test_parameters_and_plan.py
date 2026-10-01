@@ -110,8 +110,13 @@ class ParameterObservationTests(unittest.TestCase):
         self.assertIn(('P.transformer.spec', 3), order)
         self.assertEqual(result['groups']['new_adapter'], 1)
         ups = next(row for row in result['queue'] if row['target_id'] == 'P.ups.spec')
-        self.assertIn('vertiv', ups['action'])
+        self.assertTrue(ups['action'].startswith('collect-seeds --target P.ups.spec --bind'))  # reviewed seed in seeds/vertiv.json
+        self.assertTrue(ups['seeds'])
         self.assertIn('rated_power', ups['parameter_hints'])
+        unseeded = plan(coverage(self.state, self.snapshot, seed_dir=self.base / 'no-seeds'))
+        ups = next(row for row in unseeded['queue'] if row['target_id'] == 'P.ups.spec')
+        self.assertIn('collect --company vertiv', ups['action'])
+        self.assertEqual((ups['seeds'], unseeded['groups']), ([], result['groups']))
 
 
     def backflow(self, rows, **extra):

@@ -1,7 +1,7 @@
 {
   "company_id": "vertiv",
   "reviewed_at": "2026-10-01",
-  "note": "Vertiv category pages render product lists by script and site search is disallowed by robots, so these reviewed seeds are the discovery path. P.bbu.operation has no official product page (rack BBU appears only in a PDF brochure).",
+  "note": "Vertiv category pages render product lists by script and site search is disallowed by robots, so these reviewed seeds are the discovery path. Single-model pages carry their specification chart only in the Print-button definition, which the adapter reads as literals. Checked 2026-10-01 and dropped: Trinergy Cube, Liebert CRV, VR Rack2, HPL and en-us Monitored rPDU pages render as empty shells (HTTP 200, no product body); CoolChip row manifolds chart is all N/A; Environet Alert has no specification chart. P.manifold.spec and P.dcim.spec stay open for other vendors.",
   "seeds": [
     {
       "targets": [
@@ -15,21 +15,11 @@
     },
     {
       "targets": [
-        "P.ups.spec",
-        "P.ups.operation"
-      ],
-      "url": "https://www.vertiv.com/en-us/products-catalog/critical-power/uninterruptible-power-supplies-ups/liebert-trinergy-cube-ups-150-kw-3.4-mw/",
-      "product": "Liebert Trinergy Cube",
-      "reason": "目标行点名 Trinergy；官方页给出模块化 UPS 容量与效率",
-      "max_pages": 3
-    },
-    {
-      "targets": [
         "P.ups-battery.spec"
       ],
-      "url": "https://www.vertiv.com/en-us/products-catalog/critical-power/uninterruptible-power-supplies-ups/vertiv-hpl-lithium-ion-battery-energy-storage-system2/",
-      "product": "Vertiv HPL",
-      "reason": "目标行点名 Vertiv HPL 锂电柜；官方页给出容量、功率密度与模块数",
+      "url": "https://www.vertiv.com/en-us/products-catalog/critical-power/uninterruptible-power-supplies-ups/vertiv-energycore-10-module/",
+      "product": "EnergyCore Li5",
+      "reason": "目标行点名 Vertiv 锂电柜；HPL 页现为空壳，EnergyCore Li5 是在售锂电柜，官方规格表给出功率、能量与尺寸",
       "max_pages": 3
     },
     {
@@ -45,18 +35,18 @@
       "targets": [
         "P.pdu.operation"
       ],
-      "url": "https://www.vertiv.com/en-us/products-catalog/critical-power/power-distribution/vertiv-geist-rpdu-monitored/",
-      "product": "Vertiv Geist Monitored rPDU",
-      "reason": "目标行点名维谛 PDU；官方计量型 PDU 页给出额定功率与计量精度",
+      "url": "https://www.vertiv.com/en-latam/products-catalog/critical-power/power-distribution/vertiv-monitored-rack-pdu/",
+      "product": "PowerIT Monitored rPDU",
+      "reason": "目标行点名维谛；en-us 页现为空壳，英文 LATAM 目录同款 Models 表给出各型号容量、输入输出电压与插座",
       "max_pages": 3
     },
     {
       "targets": [
         "P.power-shelf.spec"
       ],
-      "url": "https://www.vertiv.com/en-us/products-catalog/critical-power/dc-power-systems/vertiv-powerdirect-rack/",
-      "product": "Vertiv PowerDirect Rack",
-      "reason": "目标行点名 OCP ORv3 电源架与 Vertiv；官方 33kW 50V 直流电源架页",
+      "url": "https://www.vertiv.com/en-us/products-catalog/critical-power/dc-power-systems/Vertiv-PowerDirect-3000-33kW-50-VDC-Power-Systems/",
+      "product": "PowerDirect 3000 33kW",
+      "reason": "目标行点名 Vertiv 与 OCP ORv3；单型号页官方规格表给出 33kW、700A、50 VDC 输出与输入电压",
       "max_pages": 3
     },
     {
@@ -88,24 +78,6 @@
     },
     {
       "targets": [
-        "P.manifold.spec"
-      ],
-      "url": "https://www.vertiv.com/en-us/products-catalog/thermal-management/high-density-solutions/vertiv-coolchip-fluid-network-row-manifolds/",
-      "product": "Vertiv CoolChip Fluid Network Row Manifolds",
-      "reason": "目标行点名 Vertiv 歧管；官方行级歧管页给出主管与支管尺寸",
-      "max_pages": 3
-    },
-    {
-      "targets": [
-        "P.room-cooling.spec"
-      ],
-      "url": "https://www.vertiv.com/en-us/products-catalog/thermal-management/in-row-cooling/liebert-crv-row-based-cooling-unit-/",
-      "product": "Liebert CRV",
-      "reason": "目标行点名 Liebert CRV；官方列间空调页给出各型号制冷量与风量",
-      "max_pages": 3
-    },
-    {
-      "targets": [
         "P.room-cooling.spec"
       ],
       "url": "https://www.vertiv.com/en-us/products-catalog/thermal-management/room-cooling/liebert-dse-free-cooling-system-50-165kw/",
@@ -126,9 +98,9 @@
       "targets": [
         "P.rack-frame.spec"
       ],
-      "url": "https://www.vertiv.com/en-us/products-catalog/facilities-enclosures-and-racks/racks-and-containment/vertiv-vr-rack2/",
-      "product": "Vertiv VR Rack",
-      "reason": "目标行点名 Vertiv 机柜；官方 VR Rack 页给出 U 数、尺寸与承重",
+      "url": "https://www.vertiv.com/en-us/products-catalog/facilities-enclosures-and-racks/racks-and-containment/vertiv-rack/",
+      "product": "Vertiv Rack (VR)",
+      "reason": "目标行点名 Vertiv；VR Rack2 页现为空壳，Vertiv Rack 页 Models 表给出高度、宽深与承重",
       "max_pages": 3
     },
     {
@@ -142,11 +114,11 @@
     },
     {
       "targets": [
-        "P.dcim.spec"
+        "P.bbu.operation"
       ],
-      "url": "https://www.vertiv.com/en-us/products-catalog/monitoring-control-and-management/software/vertiv-environet-alert/",
-      "product": "Vertiv Environet Alert",
-      "reason": "目标行点名 Vertiv Environet；官方监控软件页给出功能与部署规格",
+      "url": "https://www.vertiv.com/en-us/products-catalog/critical-power/uninterruptible-power-supplies-ups/7-min-eol-runtime-10-module/",
+      "product": "EnergyCore Li7",
+      "reason": "目标行点名 Vertiv 锂电柜；EnergyCore Li7 官方规格表给出 7 分钟寿命末期备电设计的功率、能量与运行温度",
       "max_pages": 3
     }
   ]
