@@ -35,6 +35,13 @@ class ProductAdapter:
         suffix = urlsplit(url).path.rsplit('.', 1)[-1].lower()
         return suffix if suffix in FORMATS else None
 
+    def component_allowed(self, url, content_type):
+        """Whether a URL the product page names is an official JSON data component (none by default)."""
+        return False
+
+    def component_tables(self, body, url):
+        raise ValueError('no official data component parser for ' + self.company_id)
+
     def candidates(self, page, url, is_directory=False):
         rows = []
         for link in page.get('links', []):

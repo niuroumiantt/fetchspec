@@ -20,7 +20,7 @@ from .deliver import MIME, collector_revision as current_revision, sha256_file
 from .inventory import FORMATS, atomic_json, utc_now
 from .targets import SHA, canonical_bytes, digest, load_snapshot, validate_target_ids
 
-SUPPORTED_FORMATS = FORMATS | {"html"}
+SUPPORTED_FORMATS = FORMATS | {"html", "json"}  # json: official data components named by a product page
 READER_FORMATS = {"pdf", "html", "csv", "docx", "pptx", "xlsx", "xls", "ppt"}
 DELIVERY_ID = re.compile(r"^[A-Za-z0-9._-]{1,160}$")
 # inresearch supply_contract generated_target_contract.parameter_observation_fields
@@ -105,6 +105,12 @@ def _validate_format(path, fmt):
             pass
     elif fmt == "rtf":
         valid = head.lstrip().startswith(b"{\\rtf")
+    elif fmt == "json":
+        # Official data component named by a product page (e.g. Micron part specs): a UTF-8 JSON object.
+        try:
+            valid = path.stat().st_size <= 16 * 1024 * 1024 and isinstance(json.loads(path.read_bytes().decode("utf-8")), dict)
+        except (OSError, UnicodeError, ValueError):
+            pass
     elif fmt in {"doc", "xls", "ppt"}:
         valid = head.startswith(bytes.fromhex("d0cf11e0a1b11ae1"))
     else:
