@@ -39,6 +39,6 @@ python3 manage.py governance --check
 python3 manage.py validate --strict | tail -1
 PYTHONPATH=src python3 -m unittest discover -s tests/unit -p "test_*.py" -q 2>&1 | tail -3
 git add framework/verification_contract.json framework/repository_manifest.json docs/REPOSITORY_REGISTER.md
-git commit -q -m "评审：$(echo $FILES | tr ' ' '、') 摘要（$BRANCH）"
+git commit -q -m "评审：$(echo $FILES | tr ' ' '、') 摘要（${BRANCH}）"
 git push -q
 echo "Signed and pushed $BRANCH. Merge its PR after CI is green."
