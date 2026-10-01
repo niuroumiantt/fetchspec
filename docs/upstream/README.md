@@ -1,6 +1,7 @@
 # 需要 inresearch.ai 处理的事项
 
 - [回流接口申请](backflow-request.md)（2026-10-01）：按目标行告诉 Fetchspec 状态、已收原件数与厂商。
+- 接收端接受 `json` 格式（2026-10-01）：Micron 的规格只存在于零件页点名的官方 JSON 组件里，原件按原字节交付。接收端只收 UTF-8 JSON 对象、16 MiB 以内，归档为候选，阅读器交接为 `extractor_required`。改动与测试在 inresearch `fetchspec-backflow` 分支，与回流接口同一批审阅。
 - 下文：规格事件卡连带翻新闻行的补丁（2026-09-29）。
 
 ## 配套补丁

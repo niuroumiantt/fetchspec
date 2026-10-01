@@ -1,0 +1,28 @@
+{
+  "company_id": "micron",
+  "reviewed_at": "2026-10-01",
+  "note": "Micron family pages carry no specification table; each seed is a part-detail page whose official JSON component gives name/value rows. Chosen parts are in Production per that component on 2026-10-01. P.hbm.operation needs power figures that the component does not carry; CZ120 (P.cxl-memory.*) has no part page in the sitemap.",
+  "seeds": [
+    {
+      "targets": ["P.hbm.spec"],
+      "url": "https://www.micron.com/products/memory/hbm/hbm3e/part-catalog/part-detail/mt65b18g16120a00qh-92-a",
+      "product": "HBM3E 36GB 12-high",
+      "reason": "目标行点名 Micron HBM3E；官方零件规格给出 36GB 容量、9.2GT/s、1.1V I/O、工作温度与封装尺寸",
+      "max_pages": 2
+    },
+    {
+      "targets": ["P.dram.spec"],
+      "url": "https://www.micron.com/products/memory/dram-modules/rdimm/part-catalog/part-detail/mtc40f2046s1rc64bh1",
+      "product": "DDR5 RDIMM 64GB 6400",
+      "reason": "目标行点名 Micron 与 DDR5；量产中的 64GB DDR5-6400 RDIMM，官方零件规格给出容量、速率、电压、位宽与 CAS 延迟",
+      "max_pages": 2
+    },
+    {
+      "targets": ["P.ssd.spec"],
+      "url": "https://www.micron.com/products/storage/ssd/data-center-ssd/9550-ssd/part-catalog/part-detail/mtfdlbq15t3tha-1bk1jabyy",
+      "product": "9550 PRO 15.36TB E3.S",
+      "reason": "目标行点名 Micron 9550；官方零件规格给出 15.36TB 容量、接口、E3.S 外形与 TLC 介质",
+      "max_pages": 2
+    }
+  ]
+}

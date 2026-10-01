@@ -230,6 +230,8 @@ def collect(root, company_id, urls, *, fetcher=None, refresh=False, max_pages=20
                     kind = 'html'
                 if kind == 'html' and not adapter.page_allowed(final):
                     raise ValueError('redirect outside official product page scope')
+                if kind is None and row['role'] == 'specification' and adapter.component_allowed(final, meta.get('content_type', '')):
+                    kind = 'json'  # an official data component the product page itself names
                 if kind is None:
                     raise ValueError('unrecognized source content')
                 sha = _sha(body)
@@ -297,7 +299,7 @@ def collect(root, company_id, urls, *, fetcher=None, refresh=False, max_pages=20
                                 for parent in parents:
                                     _enqueue(db, link['url'], product_id=parent)
                 else:
-                    extracted = extract_document(body, kind)
+                    extracted = adapter.component_tables(body, final) if kind == 'json' else extract_document(body, kind)
                     owners = [r[0] for r in db.execute('SELECT product_id FROM source_products WHERE url=?', (row['url'],))]
                     _attach_tables(db, owners, extracted['tables'], source, extracted)
                 db.execute("UPDATE frontier SET state='done',etag=?,modified=?,latest_sha=?,error=NULL WHERE url=?",

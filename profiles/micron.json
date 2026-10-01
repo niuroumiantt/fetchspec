@@ -1,0 +1,50 @@
+{
+  "profile_version": 1,
+  "company_id": "micron",
+  "company_en": "Micron",
+  "adapter_evidence": {
+    "verified_date": "2026-10-01",
+    "product_pages": "https://www.micron.com/products/<family path>/part-catalog/part-detail/<part number> is the per-part page. Its specifications render by script from the JSON endpoint the page itself names in data-apiresource (/content/micron/us/en/products/…/_jcr_content.products.json/getproductinfo/-/-/-/en_US/-/<part>), which returns name/value rows (density, speed, MT/s, voltage, temperature, interface, form factor, status).",
+    "family_pages": "Family pages (e.g. /products/memory/hbm/hbm3e) carry marketing text only, no specification table.",
+    "robots": "robots.txt allows /products/ and /content/micron/; it declares https://www.micron.com/sitemap.xml (part-detail URLs are listed there)."
+  },
+  "status": "target_driven_product_adapter",
+  "allowed_hosts": [
+    "www.micron.com"
+  ],
+  "sitemaps": [],
+  "discovery_entrypoints": [],
+  "document_formats": [
+    "pdf"
+  ],
+  "locales": "en_us_only",
+  "supported_locales": [
+    "en"
+  ],
+  "delay_seconds": 2.0,
+  "timeout_seconds": 30,
+  "max_xml_bytes": 20971520,
+  "max_document_bytes": 134217728,
+  "min_free_bytes": 8589934592,
+  "max_requests": 2000,
+  "max_discovery_depth": 2,
+  "page_prefixes": [
+    "/products/"
+  ],
+  "category_roots": [],
+  "known_gaps": [
+    "Specifications come from the official JSON component behind each part page; family pages have no specification table.",
+    "Power figures are not in the part JSON, so operation rows (HBM power) stay open until datasheets are reviewed.",
+    "CZ120 CXL memory has no part-detail page in the sitemap (2026-10-01).",
+    "map-sync is not enabled: the sitemap is one 6,000-URL file mixing obsolete and SPD pages; seeds name part pages explicitly."
+  ],
+  "instance_aliases": [
+    "Micron",
+    "美光"
+  ],
+  "target_parts": [
+    "hbm",
+    "dram",
+    "ssd"
+  ]
+}
