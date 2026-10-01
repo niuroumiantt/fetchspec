@@ -82,6 +82,9 @@ class MicronCatalogTests(unittest.TestCase):
     def test_sitemap_roles(self):
         self.assertEqual(classify(PART), ('part', 'mtc40f2046s1rc64bh1'))
         self.assertEqual(classify(OBSOLETE), ('obsolete', 'mt18htf6472dy-53eb2'))
+        dotted = BASE + '/products/multichip-packages/nand-based-mcp/part-catalog/part-detail/mt29gz5a5bpgga-53it.87j'
+        self.assertEqual(classify(dotted), ('part', 'mt29gz5a5bpgga-53it.87j'), 'multichip part numbers carry a dot')
+        self.assertEqual(classify(dotted.replace('/multichip-packages/nand-based-mcp/', '/obsolete/obsolete-nand-mcp-catalog/'))[0], 'obsolete')
         self.assertEqual(classify(BASE + RDIMM)[0], 'directory')
         self.assertEqual(classify(BASE + RDIMM + '/part-catalog')[0], 'part_catalog_index')
         self.assertEqual(classify(BASE + '/products/obsolete/x/part-catalog/part-detail/spd-data/y')[0], 'spd')
@@ -100,7 +103,8 @@ class MicronCatalogTests(unittest.TestCase):
         self.assertEqual(part['parent_id'], directory_id(RDIMM))
         self.assertEqual([r[0]['text'] for r in part['tables'][0]['rows']], ['Density', 'Part Status Code'])
         self.assertEqual(len(part['listings']), 2, 'listed under two families: one product, both listings')
-        self.assertEqual(products[part_id('mtc20f1045s1rc64bd2')]['extraction_status'], 'vendor_specification_gap')
+        gap = products[part_id('mtc20f1045s1rc64bd2')]
+        self.assertEqual((gap['extraction_status'], gap['gap_reason']), ('vendor_specification_gap', 'specification_component_returned_no_rows'))
         self.assertEqual(products[part_id('mtc10f1084s1rc64bd1')]['extraction_status'], 'specification_unavailable')
         it = products[part_id('mt46v16m16cy-5b-it-m')]
         self.assertEqual((it['extraction_status'], it['official_status']), ('native_tables_extracted', 'End of Life'))

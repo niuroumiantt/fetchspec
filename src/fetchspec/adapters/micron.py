@@ -13,9 +13,10 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 from ..extraction import cell, html_page
 from .base import ProductAdapter
 
-PART_PAGE = re.compile(r'^/products/(?!obsolete/)(?:[a-z0-9][a-z0-9-]*/)+part-catalog/part-detail/([a-z0-9][a-z0-9-]*)/?$')
+# Part numbers may carry a dot (multichip packages: mt29gz5a5bpgga-53it.87j), so the part segment allows one.
+PART_PAGE = re.compile(r'^/products/(?!obsolete/)(?:[a-z0-9][a-z0-9-]*/)+part-catalog/part-detail/([a-z0-9][a-z0-9.-]*)/?$')
 COMPONENT = re.compile(r'^/content/micron/us/en/products/(?:[a-z0-9][a-z0-9-]*/)+part-catalog/part-detail/'
-                       r'_jcr_content\.products\.json/getproductinfo/-/-/-/en_US/-/([a-z0-9][a-z0-9-]*)$')
+                       r'_jcr_content\.products\.json/getproductinfo/-/-/-/en_US/-/([a-z0-9][a-z0-9.-]*)$')
 API_RESOURCE = re.compile(r'data-apiresource="(/content/micron/[^"<>\s]+)"')
 TITLE = re.compile(r'^\s*([A-Z0-9][A-Z0-9:.-]+)\b')
 
