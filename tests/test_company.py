@@ -61,6 +61,31 @@ class RobotsTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 f.check(url)
 
+    def test_inventory_fetcher_decodes_chunked_transfer_encoding(self):
+        import http.client
+        import io
+
+        body = b"%PDF-1.7\n" + b"x" * 70000 + b"\n%%EOF\n"
+        chunked = b"".join(b"%x\r\n%s\r\n" % (len(part), part) for part in (body[:40000], body[40000:])) + b"0\r\n\r\n"
+        raw = b"HTTP/1.1 200 OK\r\nContent-Type: application/pdf\r\nTransfer-Encoding: chunked\r\n\r\n" + chunked
+
+        class Socket:
+            def makefile(self, mode): return io.BufferedReader(io.BytesIO(raw))
+
+        response = http.client.HTTPResponse(Socket())
+        response.begin()
+        response.url = BASE + "/assets/chunked.pdf"
+
+        class Opener:
+            def open(self, request, timeout): return response
+
+        f = InventoryFetcher(load_profile("supermicro"))
+        f.profile["delay_seconds"] = 0
+        f.robots["www.supermicro.com"] = Robots("User-agent: *\nAllow: /", "InResearchFetchspec/0.2")
+        f.opener = Opener()
+        fetched, _ = f.get(BASE + "/assets/chunked.pdf", cap=200000)
+        self.assertEqual(fetched, body)  # no chunk-size lines inside the PDF bytes
+
     def test_inventory_fetcher_reads_available_chunks_and_enforces_body_deadline(self):
         import fetchspec.inventory as inventory
 

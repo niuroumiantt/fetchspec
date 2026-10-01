@@ -61,7 +61,7 @@
 
 | 通道 | 定义 | 执行机 | 现在 |
 |---|---|---|---|
-| 官方产品页 | 厂商官网产品、系列、对比页里的原生 HTML 表，以及产品页自己引用的官方数据组件（Vertiv 打印规格表、Micron 零件规格 JSON） | macmini（目标表 `host`） | NVIDIA、Supermicro、Vertiv、Micron、Siemens Energy 五个适配器 |
+| 官方产品页 | 厂商官网产品、系列、对比页里的原生 HTML 表，以及产品页自己引用的官方数据组件（Vertiv 打印规格表、Micron 零件规格 JSON），以及产品页链接的官方样本 PDF（Siemens，按版面行保留） | macmini（目标表 `host`） | NVIDIA、Supermicro、Vertiv、Micron、Siemens、Siemens Energy 六个适配器 |
 | 官方文档 | 同一厂商公开的 datasheet、手册：PDF、Office、独立文档站 | macmini | NVIDIA 历史抽取可用；新管线的 PDF 需要执行机装 `pdftotext` |
 | 浏览器 | 需要登录或渲染的门户（目标表机制 `js_page`、`pdf_registered`） | macmini，人工辅助 | 未做；当前 130 行全是 `vendor_page` |
 | 人工 | 前三类拿不到时由人投递原件 | m4 / m5 上传 | 未做 |
@@ -135,5 +135,5 @@
 1. **本次**：本框架与架构图；`plan`（需求队列）；参数观测进包（整理 → 输出）；文档目录重整。
 2. **inresearch 侧**：合入 [upstream/](upstream/README.md) 补丁；接收端把 `parameter_observations` 入库；上线回流接口（[申请](upstream/backflow-request.md)，2026-10-01）；登记参数名与模型输入的对应。
 3. **生产闭环**：在 macmini 数据根重跑已验证的四条目标，交生产接收端，取回生产回执，作者导入并审阅合并；执行机装 `pdftotext`。
-4. **按 `plan` 铺开**：先做"现在可抓"的 27 行（2026-10-01：23 个种子已覆盖并绑定 24 行，剩 `P.switch-asic.spec`、`P.manifold.spec`、`P.dcim.spec`）；再按"缺适配器"88 行里被点名最多的厂商加适配器，依次是 Siemens / Siemens Energy（10 行）、Micron 与 Samsung（各 6 行，内存与存储）、ABB（5 行）、Delta（4 行）、Schneider 与 Eaton。2026-10-01：Micron 已加（3 行绑定）；Samsung 半导体与 ABB 官网对 robots 返回 403，不绕过，转浏览器通道；Siemens Energy 已加（燃气轮机、变压器 3 行绑定）；siemens.com 的开关柜、母线槽、消防规格只在官方样本 PDF 里，需要专用版式解析，下一步。
+4. **按 `plan` 铺开**：先做"现在可抓"的 27 行（2026-10-01：23 个种子已覆盖并绑定 24 行，剩 `P.switch-asic.spec`、`P.manifold.spec`、`P.dcim.spec`）；再按"缺适配器"88 行里被点名最多的厂商加适配器，依次是 Siemens / Siemens Energy（10 行）、Micron 与 Samsung（各 6 行，内存与存储）、ABB（5 行）、Delta（4 行）、Schneider 与 Eaton。2026-10-01：Micron 已加（3 行绑定）；Samsung 半导体与 ABB 官网对 robots 返回 403，不绕过，转浏览器通道；Siemens Energy 已加（燃气轮机、变压器 3 行绑定）；siemens.com 的中低压开关柜与母线槽经样本 PDF 版面行解析接上（3 行绑定）；Cerberus 消防不链样本，仍缺。
 5. **定时**：按目标行 `calendar` 定期 `map-sync` 与 `collect --refresh`。调度还没实现。

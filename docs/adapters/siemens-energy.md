@@ -8,4 +8,4 @@
 - **缺口**：
   - `P.hv-switchyard.*`：没有 8DA/8DQ 产品页；GIS 系列页与 LIFE Blue GIS 页没有表。
   - `P.transformer.operation`：损耗与寿命不在产品页上。
-  - **siemens.com（NXAIR、SIVACON S8、8PS 母线槽、Cerberus）**：产品页只有营销文字，额定值以文字出现（"up to 17.5 kV up to 40 kA"），规格在 `assets.new.siemens.com` 的官方样本 PDF 里（如 HA 25.73，60 页）。样本表的标签跨行、单位单列、数值跨多列合并，现有 PDF 解析器只认 "Specifications" 标题，取不到；为它写通用解析容易把数值对错列，按规则留缺口。下一步需要一个只认 Siemens 样本"Technical data / Rated values"版式、并以原页码与行定位的专用解析器，配人工核对。
+  - siemens.com（NXAIR、SIVACON、8PS、Cerberus）由单独的 [Siemens 适配器](siemens.md) 处理：规格只在官方样本 PDF 里，用版面行解析。
