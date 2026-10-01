@@ -1,0 +1,153 @@
+{
+  "company_id": "vertiv",
+  "reviewed_at": "2026-10-01",
+  "note": "Vertiv category pages render product lists by script and site search is disallowed by robots, so these reviewed seeds are the discovery path. P.bbu.operation has no official product page (rack BBU appears only in a PDF brochure).",
+  "seeds": [
+    {
+      "targets": [
+        "P.ups.spec",
+        "P.ups.operation"
+      ],
+      "url": "https://www.vertiv.com/en-us/products-catalog/critical-power/uninterruptible-power-supplies-ups/liebert-exl-s1/",
+      "product": "Liebert EXL S1",
+      "reason": "目标行点名 Liebert EXL；官方 Models 表给出额定功率、电压与双变换效率",
+      "max_pages": 3
+    },
+    {
+      "targets": [
+        "P.ups.spec",
+        "P.ups.operation"
+      ],
+      "url": "https://www.vertiv.com/en-us/products-catalog/critical-power/uninterruptible-power-supplies-ups/liebert-trinergy-cube-ups-150-kw-3.4-mw/",
+      "product": "Liebert Trinergy Cube",
+      "reason": "目标行点名 Trinergy；官方页给出模块化 UPS 容量与效率",
+      "max_pages": 3
+    },
+    {
+      "targets": [
+        "P.ups-battery.spec"
+      ],
+      "url": "https://www.vertiv.com/en-us/products-catalog/critical-power/uninterruptible-power-supplies-ups/vertiv-hpl-lithium-ion-battery-energy-storage-system2/",
+      "product": "Vertiv HPL",
+      "reason": "目标行点名 Vertiv HPL 锂电柜；官方页给出容量、功率密度与模块数",
+      "max_pages": 3
+    },
+    {
+      "targets": [
+        "P.pdu.spec"
+      ],
+      "url": "https://www.vertiv.com/en-us/products-catalog/critical-power/power-distribution/vertiv-geist-switched-rack-pdu/",
+      "product": "Vertiv Geist Switched rPDU",
+      "reason": "目标行点名 Vertiv Geist；官方机架 PDU 页给出输入、插口与电流规格",
+      "max_pages": 3
+    },
+    {
+      "targets": [
+        "P.pdu.operation"
+      ],
+      "url": "https://www.vertiv.com/en-us/products-catalog/critical-power/power-distribution/vertiv-geist-rpdu-monitored/",
+      "product": "Vertiv Geist Monitored rPDU",
+      "reason": "目标行点名维谛 PDU；官方计量型 PDU 页给出额定功率与计量精度",
+      "max_pages": 3
+    },
+    {
+      "targets": [
+        "P.power-shelf.spec"
+      ],
+      "url": "https://www.vertiv.com/en-us/products-catalog/critical-power/dc-power-systems/vertiv-powerdirect-rack/",
+      "product": "Vertiv PowerDirect Rack",
+      "reason": "目标行点名 OCP ORv3 电源架与 Vertiv；官方 33kW 50V 直流电源架页",
+      "max_pages": 3
+    },
+    {
+      "targets": [
+        "P.cdu.spec"
+      ],
+      "url": "https://www.vertiv.com/en-us/products-catalog/thermal-management/high-density-solutions/vertiv-coolchip-cdu/",
+      "product": "Vertiv CoolChip CDU",
+      "reason": "目标行点名 Vertiv CoolChip CDU；官方 Models 表给出各型号换热量与形式",
+      "max_pages": 3
+    },
+    {
+      "targets": [
+        "P.cdu.operation"
+      ],
+      "url": "https://www.vertiv.com/en-us/products-catalog/thermal-management/high-density-solutions/vertiv-coolchip-cdu-600/",
+      "product": "Vertiv CoolChip CDU 600",
+      "reason": "目标行要 CDU 容量与泵功率；官方 CDU 600 页给出额定容量与流量",
+      "max_pages": 3
+    },
+    {
+      "targets": [
+        "P.sidecar-hx.spec"
+      ],
+      "url": "https://www.vertiv.com/en-us/products-catalog/thermal-management/high-density-solutions/vertiv-liebert-xdu070-coolant-distribution-unit/",
+      "product": "Vertiv CoolChip CDU 70",
+      "reason": "目标行点名 Vertiv 液-气换热器；CDU 70 是官方液-气侧柜换热单元",
+      "max_pages": 3
+    },
+    {
+      "targets": [
+        "P.manifold.spec"
+      ],
+      "url": "https://www.vertiv.com/en-us/products-catalog/thermal-management/high-density-solutions/vertiv-coolchip-fluid-network-row-manifolds/",
+      "product": "Vertiv CoolChip Fluid Network Row Manifolds",
+      "reason": "目标行点名 Vertiv 歧管；官方行级歧管页给出主管与支管尺寸",
+      "max_pages": 3
+    },
+    {
+      "targets": [
+        "P.room-cooling.spec"
+      ],
+      "url": "https://www.vertiv.com/en-us/products-catalog/thermal-management/in-row-cooling/liebert-crv-row-based-cooling-unit-/",
+      "product": "Liebert CRV",
+      "reason": "目标行点名 Liebert CRV；官方列间空调页给出各型号制冷量与风量",
+      "max_pages": 3
+    },
+    {
+      "targets": [
+        "P.room-cooling.spec"
+      ],
+      "url": "https://www.vertiv.com/en-us/products-catalog/thermal-management/room-cooling/liebert-dse-free-cooling-system-50-165kw/",
+      "product": "Liebert DSE",
+      "reason": "目标行点名 Liebert DSE；官方房间级空调页给出 50-165kW 各型号",
+      "max_pages": 3
+    },
+    {
+      "targets": [
+        "P.chiller.spec"
+      ],
+      "url": "https://www.vertiv.com/en-us/products-catalog/thermal-management/free-cooling-chillers/ff3175/",
+      "product": "Liebert AFC FF3175",
+      "reason": "目标行点名 Vertiv Liebert AFC；官方 AFC 型号页给出制冷量与压缩机形式",
+      "max_pages": 3
+    },
+    {
+      "targets": [
+        "P.rack-frame.spec"
+      ],
+      "url": "https://www.vertiv.com/en-us/products-catalog/facilities-enclosures-and-racks/racks-and-containment/vertiv-vr-rack2/",
+      "product": "Vertiv VR Rack",
+      "reason": "目标行点名 Vertiv 机柜；官方 VR Rack 页给出 U 数、尺寸与承重",
+      "max_pages": 3
+    },
+    {
+      "targets": [
+        "P.modular-dc.spec"
+      ],
+      "url": "https://www.vertiv.com/en-us/products-catalog/facilities-enclosures-and-racks/integrated-solutions/smartmod-max/",
+      "product": "Vertiv SmartMod Max",
+      "reason": "目标行点名 Vertiv SmartMod；官方预制模块化数据中心页",
+      "max_pages": 3
+    },
+    {
+      "targets": [
+        "P.dcim.spec"
+      ],
+      "url": "https://www.vertiv.com/en-us/products-catalog/monitoring-control-and-management/software/vertiv-environet-alert/",
+      "product": "Vertiv Environet Alert",
+      "reason": "目标行点名 Vertiv Environet；官方监控软件页给出功能与部署规格",
+      "max_pages": 3
+    }
+  ]
+}

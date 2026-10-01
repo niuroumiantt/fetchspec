@@ -33,7 +33,7 @@ TEAM = "fetchspec"
 # 子命令 → 四段。新增子命令不在这里就生成失败（测试也会挡）：每条命令都要归到一段。
 STAGES = {
     "① 需求": ["sync-targets", "plan", "coverage"],
-    "② 爬取": ["map-sync", "map-ack", "collect"],
+    "② 爬取": ["map-sync", "map-ack", "collect", "collect-seeds"],
     "③ 整理": ["migrate", "list", "export", "bind", "map-field"],
     "④ 输出": ["package", "receipt", "assignments", "author-proposal", "catalog"],
     "运维": ["status"],

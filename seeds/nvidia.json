@@ -1,0 +1,23 @@
+{
+  "company_id": "nvidia",
+  "reviewed_at": "2026-10-01",
+  "note": "Official NVIDIA pages named in the target rows' own instances. Networking, NIC and optics specs are published as HTML on networking-docs.nvidia.com, not on the marketing pages.",
+  "seeds": [
+    {"targets": ["P.gpu.spec", "P.gpu.operation"], "url": "https://www.nvidia.com/en-us/data-center/h200/", "product": "NVIDIA H200",
+     "reason": "官方 H200 型号页原生规格表：显存、带宽、外形（构成）与最大 TDP（运行）", "max_pages": 2},
+    {"targets": ["P.gpu.spec"], "url": "https://www.nvidia.com/en-us/data-center/hgx/", "product": "NVIDIA HGX B300 / B200",
+     "reason": "目标行点名 B200 / B300；官方 HGX 平台页给出各代 8-GPU 板的规格对比表", "max_pages": 2},
+    {"targets": ["P.gpu.operation"], "url": "https://www.nvidia.com/en-us/data-center/dgx-b200/", "product": "NVIDIA DGX B200",
+     "reason": "目标行要 B200 功耗；官方 DGX B200 页规格表给出 GPU 数与系统最大功耗", "max_pages": 2},
+    {"targets": ["P.rack-system.spec"], "url": "https://www.nvidia.com/en-us/data-center/gb300-nvl72/", "product": "NVIDIA GB300 NVL72",
+     "reason": "目标行点名 GB300 NVL72 参考架构；官方页给出整柜 GPU/CPU 数、内存与带宽规格表", "max_pages": 2},
+    {"targets": ["P.cpu.spec"], "url": "https://www.nvidia.com/en-us/data-center/grace-cpu-superchip/", "product": "NVIDIA Grace CPU Superchip",
+     "reason": "目标行点名 NVIDIA Grace；官方 Superchip 页给出核数、内存、带宽与 TDP", "max_pages": 2},
+    {"targets": ["P.nic.spec"], "url": "https://networking-docs.nvidia.com/connectx8hw/specifications", "product": "NVIDIA ConnectX-8 SuperNIC",
+     "reason": "目标行点名 ConnectX-8；官方硬件手册的规格页给出各型号物理、接口、功耗与环境规格", "max_pages": 1},
+    {"targets": ["P.network-switch.spec", "P.network-switch.operation"], "url": "https://networking-docs.nvidia.com/sn5000hw/specifications", "product": "NVIDIA Spectrum-4 SN5000",
+     "reason": "目标行点名 Spectrum-X 交换机与功耗；官方 SN5000 硬件手册规格页给出端口、吞吐与典型功耗", "max_pages": 1},
+    {"targets": ["P.optics.spec"], "url": "https://networking-docs.nvidia.com/mms4x00nmt800g/specifications", "product": "NVIDIA MMS4X00-NM-T 800G OSFP",
+     "reason": "目标行点名 NVIDIA Spectrum-X Photonics 一类光模块；官方 800G 双口 OSFP 规格页给出电光参数与功耗", "max_pages": 1}
+  ]
+}

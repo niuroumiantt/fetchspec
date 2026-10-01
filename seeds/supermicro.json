@@ -1,0 +1,11 @@
+{
+  "company_id": "supermicro",
+  "reviewed_at": "2026-10-01",
+  "note": "Official Supermicro system pages for rows that name Supermicro GPU servers and racks.",
+  "seeds": [
+    {"targets": ["P.server.spec", "P.server.operation"], "url": "https://www.supermicro.com/en/products/system/gpu/8u/sys-821ge-tnhr", "product": "SYS-821GE-TNHR",
+     "reason": "目标行点名 Supermicro GPU 服务器与整机功耗；官方 8U HGX 系统页给出处理器、GPU、内存与电源规格", "max_pages": 3},
+    {"targets": ["P.rack-system.spec"], "url": "https://www.supermicro.com/en/products/system/gpu/48u/srs-gb300-nvl72", "product": "SRS-GB300-NVL72",
+     "reason": "目标行点名 Supermicro 整柜与 GB300 NVL72；官方整柜页给出机柜级 GPU、CPU、网络与供电规格", "max_pages": 3}
+  ]
+}
