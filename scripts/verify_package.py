@@ -9,8 +9,8 @@ receiver and the author will rely on.
 - every target row on an item exists in the target table and belongs to team fetchspec;
 - every parameter observation has all contract fields, cites the SHA of the very item it
   sits on, names a target on that item with the row's own part_id, and its value appears
-  verbatim in that source (an official JSON component's ``details[].value``, otherwise the
-  source bytes);
+  verbatim in that source (an official JSON component's ``details[].value``; for HTML the
+  visible text with tags removed and entities decoded; otherwise the source bytes);
 - with ``--require-format``, every target row carries each listed format (e.g. the product
   page ``html`` and its ``json`` component).
 
@@ -18,7 +18,9 @@ Prints a per-target summary and exits 1 when anything is missing.
 """
 import argparse
 import hashlib
+import html
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -28,6 +30,12 @@ FIELDS = ('company_id', 'product_id', 'target_id', 'part_id', 'parameter_name', 
 
 def _sha(body):
     return hashlib.sha256(body).hexdigest()
+
+
+def _visible_text(body):
+    """HTML as a reader sees it: tags removed, entities decoded, whitespace collapsed."""
+    text = re.sub(r'<(script|style)\b.*?</\1>', ' ', body.decode('utf-8', 'replace'), flags=re.S | re.I)
+    return ' '.join(html.unescape(re.sub(r'<[^>]+>', ' ', text)).split())
 
 
 def verify(package, targets_path, require_formats=()):
@@ -72,7 +80,12 @@ def verify(package, targets_path, require_formats=()):
                     problems.append(f'{name}: target {obs["target_id"]} is not on its item')
                 if rows.get(obs['target_id'], {}).get('part_id') != obs['part_id']:
                     problems.append(f'{name}: part_id differs from the target row')
-                found = obs['value'] in component if component is not None else obs['value'].encode() in body
+                if component is not None:
+                    found = obs['value'] in component
+                elif item['format'] == 'html':
+                    found = ' '.join(obs['value'].split()) in _visible_text(body)
+                else:
+                    found = obs['value'].encode() in body
                 if not found:
                     problems.append(f'{name}: value {obs["value"]!r} not found in its source')
                 if obs['target_id'] in per_target:

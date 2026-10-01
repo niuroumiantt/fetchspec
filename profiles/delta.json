@@ -1,0 +1,52 @@
+{
+  "profile_version": 1,
+  "company_id": "delta",
+  "company_en": "Delta",
+  "adapter_evidence": {
+    "verified_date": "2026-10-01",
+    "product_pages": "https://www.deltaww.com/en-US/products/<path> (Next.js). Section content is in the response's server-component payload (self.__next_f.push). 'Product Specifications' is either HTML text (CDUs, Li-ion battery systems: 'Label: value' lines) or an embedded published Google document Delta maintains as the specification table (ORV3 power shelves and PSUs).",
+    "robots": "www.deltaww.com disallows /api/, /_next/, /admin/ and declares /sitemap.xml (products-1.xml lists ~4,000 product URLs). docs.google.com allows /document.",
+    "google_documents": "Only https://docs.google.com/document/d/e/<id>/pub documents named inside a Delta product page's specification section are fetched; they are not reachable any other way."
+  },
+  "status": "target_driven_product_adapter",
+  "allowed_hosts": [
+    "www.deltaww.com",
+    "docs.google.com"
+  ],
+  "sitemaps": [],
+  "discovery_entrypoints": [],
+  "document_formats": [
+    "pdf"
+  ],
+  "locales": "en_us_only",
+  "supported_locales": [
+    "en-US"
+  ],
+  "delay_seconds": 2.0,
+  "timeout_seconds": 40,
+  "max_xml_bytes": 20971520,
+  "max_document_bytes": 134217728,
+  "min_free_bytes": 8589934592,
+  "max_requests": 2000,
+  "max_discovery_depth": 2,
+  "page_prefixes": [
+    "/en-US/products/"
+  ],
+  "category_roots": [],
+  "known_gaps": [
+    "Specification sections in HTML text are kept as rows split only at the vendor's colon; multi-model lines stay as printed.",
+    "Efficiency figures for ORV3 PSUs appear in the introduction prose, not in the specification table; operation rows need review.",
+    "map-sync is not enabled; product pages are named by reviewed seeds."
+  ],
+  "instance_aliases": [
+    "Delta",
+    "台达"
+  ],
+  "target_parts": [
+    "power-shelf",
+    "psu",
+    "bbu",
+    "cdu",
+    "coldplate"
+  ]
+}
