@@ -29,6 +29,7 @@ Fetchspec 是 [inresearch.ai](https://github.com/niuroumiantt/inresearch.ai) 六
 | | `plan` · `coverage` | 每条目标的下一步：在途 / 现在可抓 / 复核实例 / 缺适配器；`--backflow` 读 inresearch 回流（[申请中](docs/upstream/backflow-request.md)） |
 | ② 爬取 | `map-sync` · `map-ack` | 官方产品 sitemap 的新增与变化候选，人工确认 |
 | | `collect` | 从明确种子有界采集：robots、节流、条件请求、内容 SHA |
+| | `collect-seeds` | 按 `seeds/*.json` 里审过的种子批量采集，一个请求预算；`--bind` 只绑种子页上有表的产品（[说明](docs/SEEDS.md)） |
 | ③ 整理 | `list` · `export` | 查看候选产品；导出产品图、原单元格、参数映射 CSV |
 | | `bind` | 把产品显式绑定到目标行并写理由 |
 | | `map-field` | 把一个原单元格标成参数（单位、条件、复核人、回答哪几行） |
@@ -41,6 +42,7 @@ Fetchspec 是 [inresearch.ai](https://github.com/niuroumiantt/inresearch.ai) 六
 export PYTHONPATH=src
 python3 -m fetchspec.pipeline sync-targets --upstream ~/code/inresearch.ai
 python3 -m fetchspec.pipeline plan --limit 20
+python3 -m fetchspec.pipeline collect-seeds --bind --budget 200     # 审过的种子：23 个，覆盖 24 行
 python3 -m fetchspec.pipeline collect --company vertiv --target P.ups.spec \
   --url https://www.vertiv.com/en-us/products-catalog/critical-power/uninterruptible-power-supplies-ups/liebert-exl-s1/ --max-pages 4
 python3 -m fetchspec.pipeline list --company vertiv

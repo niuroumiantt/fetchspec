@@ -66,7 +66,7 @@
 | 浏览器 | 需要登录或渲染的门户（目标表机制 `js_page`、`pdf_registered`） | macmini，人工辅助 | 未做；当前 130 行全是 `vendor_page` |
 | 人工 | 前三类拿不到时由人投递原件 | m4 / m5 上传 | 未做 |
 
-**发现**有三条路：已声明的官方产品 sitemap（`map-sync` 只给候选，`lastmod` 变化待人工 `map-ack`）；已声明分类页的有界展开；目标行点名的明确种子 URL。没有官方 sitemap 的厂商（如 Vertiv）`map-sync` 直接拒绝。
+**发现**有三条路：已声明的官方产品 sitemap（`map-sync` 只给候选，`lastmod` 变化待人工 `map-ack`）；已声明分类页的有界展开；审过的种子（`seeds/<公司>.json`，每条写明回答哪几行、为什么，`collect-seeds` 批量采集，见 [SEEDS.md](SEEDS.md)）。没有官方 sitemap、分类页又由脚本渲染的厂商（如 Vertiv），种子是唯一的发现路径。
 
 **取数**：`collect` 必须给种子和请求预算。遵守 robots，逐主机节流，ETag / Last-Modified 条件请求与内容 SHA 分开计量；同 SHA 不重复存，旧字节不覆盖。只收英文和中文，不执行网页脚本。
 
@@ -135,5 +135,5 @@
 1. **本次**：本框架与架构图；`plan`（需求队列）；参数观测进包（整理 → 输出）；文档目录重整。
 2. **inresearch 侧**：合入 [upstream/](upstream/README.md) 补丁；接收端把 `parameter_observations` 入库；上线回流接口（[申请](upstream/backflow-request.md)，2026-10-01）；登记参数名与模型输入的对应。
 3. **生产闭环**：在 macmini 数据根重跑已验证的四条目标，交生产接收端，取回生产回执，作者导入并审阅合并；执行机装 `pdftotext`。
-4. **按 `plan` 铺开**：先做"现在可抓"的 27 行；再按"缺适配器"88 行里被点名最多的厂商加适配器，依次是 Siemens / Siemens Energy（10 行）、Micron 与 Samsung（各 6 行，内存与存储）、ABB（5 行）、Delta（4 行）、Schneider 与 Eaton。
+4. **按 `plan` 铺开**：先做"现在可抓"的 27 行（2026-10-01：23 个种子已覆盖并绑定 24 行，剩 `P.switch-asic.spec`、`P.manifold.spec`、`P.dcim.spec`）；再按"缺适配器"88 行里被点名最多的厂商加适配器，依次是 Siemens / Siemens Energy（10 行）、Micron 与 Samsung（各 6 行，内存与存储）、ABB（5 行）、Delta（4 行）、Schneider 与 Eaton。
 5. **定时**：按目标行 `calendar` 定期 `map-sync` 与 `collect --refresh`。调度还没实现。

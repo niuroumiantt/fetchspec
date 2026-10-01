@@ -55,9 +55,11 @@ def _rows(path, query, args=()):
             return []
 
 
-def build(root, snapshot):
+def build(root, snapshot, seed_dir=None):
+    from .seeds import by_target as seeds_by_target, load as load_seeds
     root = Path(root).expanduser()
     parts = adapter_parts()
+    seeded = seeds_by_target(load_seeds(seed_dir))
     bindings = {}
     for row in _rows(root / 'products' / 'catalog.sqlite3',
                      'SELECT target_id,company_id,product_id FROM bindings WHERE snapshot_id=?', (snapshot['snapshot_id'],)):
@@ -92,9 +94,11 @@ def build(root, snapshot):
                         'parameter_hints': PARAMETER_HINTS.get(kind, []),
                         'instances': target.get('instances', []), 'adapters': adapters,
                         'instance_adapters': instance_adapters(target),
+                        'seeds': sorted(seed['url'] for seed in seeded.get(tid, [])),
                         'bound_products': sorted(bindings.get(tid, ())), 'deliveries': sorted(packaged.get(tid, ())),
                         'receipt_environments': environments, 'stage': stage})
     summary = {stage: sum(r['stage'] == stage for r in records) for stage in STAGES}
+    summary['seeded'] = sum(bool(r['seeds']) for r in records)
     uncovered = sorted({r['part_id'] for r in records if r['stage'] == 'no_adapter' and r['part_id']})
     return {'schema_version': 1, 'snapshot_id': snapshot['snapshot_id'], 'upstream_commit': snapshot['upstream']['commit'],
             'targets': len(records), 'summary': summary, 'adapter_parts': parts, 'parts_without_adapter': uncovered,
@@ -104,7 +108,7 @@ def build(root, snapshot):
 def write_csv(report, path):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    fields = ['target_id', 'part_id', 'variable_class', 'upstream_status', 'stage', 'adapters',
+    fields = ['target_id', 'part_id', 'variable_class', 'upstream_status', 'stage', 'adapters', 'seeds',
               'bound_products', 'deliveries', 'receipt_environments', 'next_due', 'instances']
     with path.open('w', newline='', encoding='utf-8') as stream:
         writer = csv.DictWriter(stream, fieldnames=fields)
@@ -167,8 +171,9 @@ def load_backflow(source, snapshot, *, timeout=20):
 def plan(report, limit=40, backflow=None):
     """Rank what to do next for each target: the demand side of the pipeline.
 
-    Order: rows already moving, then rows an adapter can collect now (its vendor is named
-    in the row's own instances), then rows needing review or a new adapter. Within a group,
+    Order: rows already moving, then rows that can be collected now (a reviewed seed page,
+    or an adapter whose vendor is named in the row's own instances), then rows needing
+    review or a new adapter. Within a group,
     earlier next_due and higher sensitivity (lower rank) come first.
     """
     upstream = (backflow or {}).get('by_target', {})
@@ -179,8 +184,11 @@ def plan(report, limit=40, backflow=None):
             return 0, 'inresearch received ' + str(flow['received_items']) + ' item(s); waiting for the author\'s deliveries import'
         if row['stage'] in NEXT:
             return 0, NEXT[row['stage']]
+        if row['seeds']:
+            return 1, f"collect-seeds --target {row['target_id']} --bind ({len(row['seeds'])} reviewed seed page(s)), then map-field"
         if row['instance_adapters']:
-            return 1, 'collect --company ' + ' | '.join(row['instance_adapters']) + ' from an official product page, then bind'
+            return 1, ('collect --company ' + ' | '.join(row['instance_adapters'])
+                       + ' from an official product page, then bind; no reviewed seed yet (seeds/<company>.json)')
         if row['adapters']:
             return 2, 'adapter covers the part but the named vendors differ: review instances or pick an official page from ' + ', '.join(row['adapters'])
         return 3, 'no adapter: add one for a vendor named in instances'
@@ -195,7 +203,7 @@ def plan(report, limit=40, backflow=None):
             continue
         group, text = action(row)
         ranked.append({'group': group, 'action': text, **{k: row[k] for k in (
-            'target_id', 'stage', 'next_due', 'sensitivity_rank', 'instances', 'model_inputs', 'parameter_hints')},
+            'target_id', 'stage', 'next_due', 'sensitivity_rank', 'instances', 'seeds', 'model_inputs', 'parameter_hints')},
             **({'upstream': flow} if flow else {})})
     ranked.sort(key=lambda r: (r['group'], r['next_due'] or '9999', r['sensitivity_rank'] or 99, r['target_id']))
     groups = {name: sum(r['group'] == i for r in ranked) for i, name in enumerate(('in_flight', 'collect_now', 'review_instances', 'new_adapter'))}

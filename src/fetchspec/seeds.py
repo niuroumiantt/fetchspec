@@ -55,7 +55,7 @@ def by_target(seeds):
     return index
 
 
-def collect_targets(root, store, snapshot, company, urls, targets, *, max_pages, refresh=False, reparse=False):
+def collect_targets(root, store, snapshot, company, urls, targets, *, max_pages, refresh=False, reparse=False, fetcher=None):
     """The single collect path shared by `collect` and `collect-seeds`. Returns (result, payload)."""
     from .acquisition import collect
     from .targets import validate_target_ids
@@ -66,7 +66,7 @@ def collect_targets(root, store, snapshot, company, urls, targets, *, max_pages,
              'target_ids': sorted(set(targets)), 'urls': sorted(set(urls))}
     scope_id = fingerprint(scope)
     atomic_json(Path(root) / 'scopes' / (scope_id + '.json'), scope)
-    payload = collect(root, company, urls, max_pages=max_pages, refresh=refresh, reparse=reparse,
+    payload = collect(root, company, urls, fetcher=fetcher, max_pages=max_pages, refresh=refresh, reparse=reparse,
                       known_catalog=store.export_catalog(company))
     result = store.ingest_catalog(payload, root)
     result.update(scope_id=scope_id, acquisition_report=payload.get('acquisition_report'),
@@ -75,21 +75,26 @@ def collect_targets(root, store, snapshot, company, urls, targets, *, max_pages,
 
 
 def _seed_products(payload, adapter, url):
-    """Named products observed at the seed URL itself (or its redirect target)."""
-    named = [p for p in payload.get('products', []) if p.get('kind') == 'named_product']
+    """Products observed at the seed URL itself (or its redirect target).
+
+    Any kind counts: the seed is the human review, and a reviewed family page whose official
+    comparison table lists the models (NVIDIA HGX) is a valid carrier. Binding still needs tables.
+    """
+    found = payload.get('products', [])
     def urls(product):
-        found = {product.get('source_url'), product.get('product_url')}
-        found.update(page.get('url') for page in product.get('official_pages', []))
-        return {adapter.normalize(u) for u in found if isinstance(u, str)}
-    exact = [p for p in named if url in urls(p)]
+        seen = {product.get('source_url'), product.get('product_url')}
+        seen.update(page.get('url') for page in product.get('official_pages', []))
+        return {adapter.normalize(u) for u in seen if isinstance(u, str)}
+    exact = [p for p in found if url in urls(p)]
     if exact:
         return exact
     finals = {s.get('source_url') for s in payload.get('sources', []) if s.get('requested_url') == url}
-    redirected = [p for p in named if urls(p) & {adapter.normalize(u) for u in finals if u}]
+    redirected = [p for p in found if urls(p) & {adapter.normalize(u) for u in finals if u}]
     return redirected
 
 
-def run(root, store, snapshot, seeds, *, budget=200, bind=False, refresh=False, dry_run=False, include_closed=False):
+def run(root, store, snapshot, seeds, *, budget=200, bind=False, refresh=False, dry_run=False, include_closed=False,
+        fetcher=None):
     """Collect every selected seed within one request budget; optionally bind from seed reasons."""
     rows = {row['id']: row for row in snapshot['targets']}
     remaining, report = budget, []
@@ -110,18 +115,19 @@ def run(root, store, snapshot, seeds, *, budget=200, bind=False, refresh=False, 
             continue
         try:
             result, payload = collect_targets(root, store, snapshot, seed['company_id'], [seed['url']], targets,
-                                              max_pages=min(seed['max_pages'], remaining), refresh=refresh)
+                                              max_pages=min(seed['max_pages'], remaining), refresh=refresh,
+                                              fetcher=fetcher)
         except (ValueError, OSError, KeyError) as exc:
             report.append({**entry, 'status': 'error', 'error': str(exc)})
             continue
         acquisition = result.get('acquisition_report') or {}
         remaining -= acquisition.get('attempted', 0)
         products = _seed_products(payload, adapter_for(seed['company_id']), seed['url'])
-        entry.update(status='collected' if products else 'no_product',
-                     products=[{'id': p['id'], 'name': p['name'], 'tables': len(p.get('tables', [])),
+        with_tables = [p['id'] for p in products if p.get('tables')]
+        entry.update(status='collected' if with_tables else 'no_tables' if products else 'no_product',
+                     products=[{'id': p['id'], 'name': p['name'], 'kind': p.get('kind'), 'tables': len(p.get('tables', [])),
                                 'extraction_status': p.get('extraction_status')} for p in products],
                      attempted=acquisition.get('attempted', 0), errors=acquisition.get('errors', []))
-        with_tables = [p['id'] for p in products if p.get('tables')]
         if bind and with_tables:
             store.bind(snapshot, seed['company_id'], with_tables, targets, 'seed: ' + seed['reason'])
             entry['bound'] = {'products': with_tables, 'targets': targets}
