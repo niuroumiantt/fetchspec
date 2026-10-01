@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from urllib.error import HTTPError
 
-from fetchspec.micron_catalog import FAMILY_BRIEFS, SITEMAP, Catalog, brief_rows, classify, directory_id, part_id, taxonomy_path
+from fetchspec.micron_catalog import FAMILY_BRIEFS, SITEMAP, Catalog, brief_rows, classify, directory_id, part_id, taxonomy_path, title_case
 
 BASE = 'https://www.micron.com'
 RDIMM = '/products/memory/dram-modules/rdimm'
@@ -153,6 +153,15 @@ BRIEF = """Micron 6600 ION SSD key specifications
                                    writes
   Table 4: Micron 6600 ION SSD specifications overview
 """
+
+
+class TitleCaseTests(unittest.TestCase):
+    def test_untitled_segments_keep_the_vendor_spelling_of_product_lines(self):
+        self.assertEqual(title_case('obsolete-lpddr4'), 'Obsolete LPDDR4')
+        self.assertEqual(title_case('obsolete-ddr-sdram'), 'Obsolete DDR SDRAM')
+        self.assertEqual(title_case('obsolete-emmc'), 'Obsolete e.MMC')
+        self.assertEqual(title_case('4150at-ssd'), '4150AT SSD')
+        self.assertEqual(title_case('obsolete-universal-flash-storage'), 'Obsolete Universal Flash Storage')
 
 
 class ProductBriefTests(unittest.TestCase):
