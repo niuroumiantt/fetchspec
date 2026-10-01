@@ -10,7 +10,10 @@ receiver and the author will rely on.
 - every parameter observation has all contract fields, cites the SHA of the very item it
   sits on, names a target on that item with the row's own part_id, and its value appears
   verbatim in that source (an official JSON component's ``details[].value``; for HTML the
-  visible text with tags removed and entities decoded; otherwise the source bytes);
+  visible text with tags removed and entities decoded, including the HTML a Next.js page
+  carries in its ``self.__next_f.push`` payload; for PDF the text ``pdftotext`` reads, plain
+  and ``-layout``; otherwise the source bytes). Text sources compare with whitespace
+  removed on both sides, since markup and layout move spaces (``V<span>DC</span>``);
 - with ``--require-format``, every target row carries each listed format (e.g. the product
   page ``html`` and its ``json`` component).
 
@@ -21,6 +24,8 @@ import hashlib
 import html
 import json
 import re
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -36,6 +41,31 @@ def _visible_text(body):
     """HTML as a reader sees it: tags removed, entities decoded, whitespace collapsed."""
     text = re.sub(r'<(script|style)\b.*?</\1>', ' ', body.decode('utf-8', 'replace'), flags=re.S | re.I)
     return ' '.join(html.unescape(re.sub(r'<[^>]+>', ' ', text)).split())
+
+
+def _next_payload(body):
+    """The HTML text a Next.js page pushes to ``self.__next_f`` (JSON string literals; never executed)."""
+    parts = []
+    for chunk in re.findall(r'self\.__next_f\.push\((\[.*?\])\)</script>', body.decode('utf-8', 'replace'), re.S):
+        try:
+            value = json.loads(chunk)
+        except ValueError:
+            continue
+        parts.extend(v for v in value[1:] if isinstance(v, str))
+    return _visible_text(''.join(parts).encode('utf-8')) if parts else ''
+
+
+def _pdf_text(path):
+    """pdftotext output, plain and -layout; None when Poppler is not installed."""
+    tool = shutil.which('pdftotext')
+    if not tool:
+        return None
+    return '\n'.join(subprocess.run([tool, *flags, str(path), '-'], capture_output=True, timeout=120).stdout.decode('utf-8', 'replace')
+                     for flags in ([], ['-layout']))
+
+
+def _squeeze(text):
+    return re.sub(r'\s+', '', text)
 
 
 def verify(package, targets_path, require_formats=()):
@@ -64,9 +94,16 @@ def verify(package, targets_path, require_formats=()):
             entry = per_target.setdefault(target, {'formats': set(), 'items': 0, 'observations': []})
             entry['formats'].add(item['format'])
             entry['items'] += 1
-        component = None
+        component, text = None, None
         if item['format'] == 'json':
             component = {d.get('value') for d in json.loads(body).get('details', []) if isinstance(d, dict)}
+        elif item['format'] == 'html':
+            text = _squeeze(_visible_text(body) + ' ' + _next_payload(body))
+        elif item['format'] == 'pdf':
+            pdf = _pdf_text(package / item['path'])
+            if pdf is None and any(e.get('parameter_observations') for e in item.get('product_evidence', [])):
+                problems.append('pdftotext (Poppler) is not installed; cannot check values in ' + item['path'])
+            text = _squeeze(pdf or '')
         for evidence in item.get('product_evidence', []):
             for obs in evidence.get('parameter_observations', []):
                 name = obs.get('parameter_name', '?')
@@ -82,8 +119,8 @@ def verify(package, targets_path, require_formats=()):
                     problems.append(f'{name}: part_id differs from the target row')
                 if component is not None:
                     found = obs['value'] in component
-                elif item['format'] == 'html':
-                    found = ' '.join(obs['value'].split()) in _visible_text(body)
+                elif text is not None:
+                    found = bool(_squeeze(obs['value'])) and _squeeze(obs['value']) in text
                 else:
                     found = obs['value'].encode() in body
                 if not found:

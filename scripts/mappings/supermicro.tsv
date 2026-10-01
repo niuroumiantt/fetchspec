@@ -1,0 +1,13 @@
+# product	table	row	cell	field	unit	condition	target	(unit "-" means none)
+supermicro-41bf0ae92e96aa514248	2	2	2	rack_system.gpu_count	-	SRS-GB300-NVL72: 72 B300 GPUs via GB300 superchips	P.rack-system.spec
+supermicro-41bf0ae92e96aa514248	3	4	2	rack_system.power_rating	kW	SRS-GB300-NVL72 power shelves: 8x 1U 33kW (6x 5.5kW PSUs), vendor states total power 132kW although 8x33kW is 264kW (likely N+N redundancy, not stated)	P.rack-system.spec
+supermicro-41bf0ae92e96aa514248	4	3	2	rack_system.dimensions	mm	SRS-GB300-NVL72 rack enclosure W x D x H; unit not printed on page, values read as mm	P.rack-system.spec
+supermicro-41bf0ae92e96aa514248	4	2	2	rack_system.form_factor	-	SRS-GB300-NVL72 48U, 19-inch rack enclosure	P.rack-system.spec
+supermicro-41bf0ae92e96aa514248	3	5	2	rack_system.cooling_capacity	kW	SRS-GB300-NVL72 in-rack CDU capacity	P.rack-system.spec
+supermicro-c02984328cb770136e5f	13	2	2	server.form_factor	-	SYS-821GE-TNHR chassis CSE-GP801TS	P.server.spec
+supermicro-c02984328cb770136e5f	4	2	2	server.gpu_count	-	SYS-821GE-TNHR max GPU count	P.server.spec
+supermicro-c02984328cb770136e5f	4	3	2	server.supported_gpu	-	SYS-821GE-TNHR supported GPU boards (HGX H100 / H200 8-GPU)	P.server.spec
+supermicro-c02984328cb770136e5f	3	2	2	server.supported_cpu	-	SYS-821GE-TNHR, dual socket	P.server.spec
+supermicro-c02984328cb770136e5f	19	2	2	server.power_supply_rating	W	SYS-821GE-TNHR per PSU: 2880W at 200-207Vac, 3000W at 207-240Vac; section heading says 6x 3000W redundant (4+2) Titanium (96%)	P.server.operation
+supermicro-c02984328cb770136e5f	3	4	2	server.cpu_tdp	W	SYS-821GE-TNHR max supported CPU TDP per socket, air cooled	P.server.operation
+supermicro-c02984328cb770136e5f	20	2	2	server.operating_temperature	°C	SYS-821GE-TNHR operating 10-35°C; cell also gives non-operating and humidity	P.server.operation
