@@ -1,44 +1,44 @@
-# product	table	row	cell	field	unit	condition	target	(unit "-" means none)
-nvidia-2581a6bf65496ab0a579	1	1	2	rack_system.gpu_count	-	GB300 NVL72 rack: 72 Blackwell Ultra GPUs plus 36 Grace CPUs (same cell)	P.rack-system.spec
-nvidia-2581a6bf65496ab0a579	1	4	2	rack_system.memory_capacity	TB	GB300 NVL72 rack total GPU memory 20 TB; same cell also gives GPU memory bandwidth up to 576 TB/s	P.rack-system.spec
-nvidia-2581a6bf65496ab0a579	1	2	2	rack_system.interconnect_bandwidth	TB/s	GB300 NVL72 rack aggregate NVLink bandwidth	P.rack-system.spec
-nvidia-2581a6bf65496ab0a579	1	8	2	rack_system.fp8_throughput	PFLOPS	GB300 NVL72 rack, FP8/FP6 Tensor Core, with sparsity (page footnote 1: all Tensor Core specs with sparsity unless noted)	P.rack-system.spec
-nvidia-4ba154ab5ea81a7f23a1	1	10	2	gpu.memory_capacity	GB	H200 SXM (SXM column; H200 NVL also 141GB), HBM3e per GPU	P.gpu.spec
-nvidia-4ba154ab5ea81a7f23a1	1	11	2	gpu.memory_bandwidth	TB/s	H200 SXM, per GPU	P.gpu.spec
-nvidia-4ba154ab5ea81a7f23a1	1	8	2	gpu.fp8_throughput	TFLOPS	H200 SXM, FP8 Tensor Core, with sparsity (footnote 2); preliminary spec (footnote 1)	P.gpu.spec
-nvidia-4ba154ab5ea81a7f23a1	1	6	2	gpu.bf16_throughput	TFLOPS	H200 SXM, BFLOAT16 Tensor Core, with sparsity (footnote 2); preliminary spec (footnote 1)	P.gpu.spec
-nvidia-4ba154ab5ea81a7f23a1	1	17	2	gpu.interconnect_bandwidth	GB/s	H200 SXM; cell lists NVLink 900GB/s and PCIe Gen5 128GB/s	P.gpu.spec
-nvidia-4ba154ab5ea81a7f23a1	1	16	2	gpu.form_factor	-	H200 SXM column	P.gpu.spec
-nvidia-4ba154ab5ea81a7f23a1	1	14	2	gpu.power_consumption	W	H200 SXM max TDP, up to 700W, configurable	P.gpu.operation
-nvidia-798f5473c5a8cd768d94	3	2	2	gpu.form_factor	-	HGX B300 board (representative model on HGX page; Rubin columns not used): 8x Blackwell Ultra SXM	P.gpu.spec
-nvidia-798f5473c5a8cd768d94	3	10	2	gpu.memory_capacity	TB	HGX B300 8-GPU board total GPU memory (all 8 GPUs combined)	P.gpu.spec
-nvidia-798f5473c5a8cd768d94	3	3	2	gpu.fp4_throughput	PFLOPS	HGX B300 8-GPU board, FP4 Tensor Core, sparse | dense (page footnote 1)	P.gpu.spec
-nvidia-798f5473c5a8cd768d94	3	4	2	gpu.fp8_throughput	PFLOPS	HGX B300 8-GPU board, FP8/FP6 Tensor Core, with sparsity; dense is half (page footnote 2)	P.gpu.spec
-nvidia-798f5473c5a8cd768d94	3	13	2	gpu.interconnect_bandwidth	TB/s	HGX B300, NVLink 5 GPU-to-GPU bandwidth per GPU	P.gpu.spec
-nvidia-80d998af3e9a46dc6bee	1	6	2	gpu.power_consumption	kW	DGX B200 whole system (8x B200 GPUs, 2x Xeon 8570), max system power; system-level, not per GPU	P.gpu.operation
-nvidia-80d998af3e9a46dc6bee	1	1	2	gpu.gpu_count	-	DGX B200 system GPU count, for normalising the system power figure per GPU	P.gpu.operation
-nvidia-80d998af3e9a46dc6bee	1	2	2	gpu.memory_capacity	GB	DGX B200 total across 8 GPUs; same cell gives 64 TB/s aggregate HBM3e bandwidth	P.gpu.operation
-nvidia-80d998af3e9a46dc6bee	1	3	2	gpu.fp4_throughput	PFLOPS	DGX B200 system (8 GPUs): FP4 Tensor Core 144 sparse | 72 dense (footnote *), FP8 Tensor Core 72 sparse (footnote **, dense is half)	P.gpu.operation
-nvidia-80d998af3e9a46dc6bee	1	5	2	gpu.interconnect_bandwidth	TB/s	DGX B200 system aggregate NVLink bandwidth (8 GPUs)	P.gpu.operation
-nvidia-80d998af3e9a46dc6bee	1	15	2	gpu.operating_temperature	°C	DGX B200 system operating temperature range	P.gpu.operation
-nvidia-8ffd0b76b6046dbf863d	1	3	3	cpu.core_count	-	NVIDIA Grace CPU Superchip (2x Grace CPU) column	P.cpu.spec
-nvidia-8ffd0b76b6046dbf863d	1	7	3	cpu.memory_capacity	GB	Grace CPU Superchip, LPDDR5X on-module options 240/480/960GB	P.cpu.spec
-nvidia-8ffd0b76b6046dbf863d	1	8	3	cpu.memory_bandwidth	GB/s	Grace CPU Superchip; up to 768 GB/s with 960GB, up to 1024 GB/s with 240GB/480GB	P.cpu.spec
-nvidia-8ffd0b76b6046dbf863d	1	9	3	cpu.interconnect_bandwidth	GB/s	Grace CPU Superchip, NVLink-C2C between the two Grace dies	P.cpu.spec
-nvidia-8ffd0b76b6046dbf863d	1	10	3	cpu.pcie_links	-	Grace CPU Superchip, up to 8x PCIe Gen5 x16, bifurcatable	P.cpu.spec
-nvidia-5de81141224defa3e55d	1	7	2	nic.port_speed	Gb/s	ConnectX-8 C8180 (900-9X81E-00EX-ST0/-DT0), Ethernet mode	P.nic.spec
-nvidia-5de81141224defa3e55d	1	6	3	nic.data_rate	-	ConnectX-8 C8180, InfiniBand mode (default) rate names; XDR is 4 lanes x 200Gb/s per the Protocol Support row	P.nic.spec
-nvidia-5de81141224defa3e55d	1	5	1	nic.port_count	-	ConnectX-8 C8180: single-cage OSFP; row carries its label and value in one cell	P.nic.spec
-nvidia-5de81141224defa3e55d	1	3	2	nic.host_interface	-	ConnectX-8 C8180 host interface PCIe Gen6 x16 at 64GT/s	P.nic.spec
-nvidia-5de81141224defa3e55d	1	1	2	nic.form_factor	-	ConnectX-8 C8180, PCIe HHHL card	P.nic.spec
-nvidia-925400a40f3e388eaad0	2	5	5	optics.power_consumption	W	MMS4X00-NM-T 800G twin-port OSFP 2x400G SMF 500m, maximum power dissipation (Max column; Typ 16 W)	P.optics.spec
-nvidia-925400a40f3e388eaad0	2	7	4	optics.signaling_rate	GBd	MMS4X00-NM-T, signaling rate per lane, typical (PAM4)	P.optics.spec
-nvidia-925400a40f3e388eaad0	2	2	4	optics.input_voltage	V	MMS4X00-NM-T, power supply voltage VCC, typical	P.optics.spec
-nvidia-925400a40f3e388eaad0	1	3	4	optics.operating_temperature	°C	MMS4X00-NM-T, operating case temperature maximum (min 0 °C); from Absolute Maximum table	P.optics.spec
-nvidia-c31b03a84fdd833872c5	2	5	2	network_switch.port_speed	Gb/s	SN5600 (representative SN5000 model): ports 1-64 up to 800G, port 65 up to 25G	P.network-switch.spec
-nvidia-c31b03a84fdd833872c5	2	6	2	network_switch.port_count	-	SN5600: 64 OSFP ports plus 1 SFP28 port	P.network-switch.spec
-nvidia-c31b03a84fdd833872c5	2	18	2	network_switch.bandwidth	Tbps	SN5600 aggregate switching throughput	P.network-switch.spec
-nvidia-c31b03a84fdd833872c5	2	2	3	network_switch.dimensions	mm	SN5600 2U chassis; cell gives inches then 88mm (H) x 438mm (W) x 720mm (D), 745mm with fan levers	P.network-switch.spec
-nvidia-c31b03a84fdd833872c5	2	13	2	network_switch.power_consumption	W	SN5600 typical power with passive cables (ATIS)	P.network-switch.operation
-nvidia-c31b03a84fdd833872c5	2	12	3	network_switch.input_voltage	V	SN5600 AC input, rated 220-240 Vac (200-264 Vac), 16A; 210-300 VDC Chinese model only	P.network-switch.operation
-nvidia-c31b03a84fdd833872c5	2	7	3	network_switch.operating_temperature	°C	SN5600 operational 0-35°C	P.network-switch.operation
+# product	table	row	cell	field	unit	condition	target	expect	(unit "-" means none)
+nvidia-2581a6bf65496ab0a579	1	1	2	rack_system.gpu_count	-	GB300 NVL72 rack: 72 Blackwell Ultra GPUs plus 36 Grace CPUs (same cell)	P.rack-system.spec	72 NVIDIA Blackwell Ultra GPUs, 36 NVIDIA Grace CPUs
+nvidia-2581a6bf65496ab0a579	1	4	2	rack_system.memory_capacity	TB	GB300 NVL72 rack total GPU memory 20 TB; same cell also gives GPU memory bandwidth up to 576 TB/s	P.rack-system.spec	20 TB | Up to 576 TB/s
+nvidia-2581a6bf65496ab0a579	1	2	2	rack_system.interconnect_bandwidth	TB/s	GB300 NVL72 rack aggregate NVLink bandwidth	P.rack-system.spec	130 TB/s
+nvidia-2581a6bf65496ab0a579	1	8	2	rack_system.fp8_throughput	PFLOPS	GB300 NVL72 rack, FP8/FP6 Tensor Core, with sparsity (page footnote 1: all Tensor Core specs with sparsity unless noted)	P.rack-system.spec	720 PFLOPS
+nvidia-4ba154ab5ea81a7f23a1	1	10	2	gpu.memory_capacity	GB	H200 SXM (SXM column; H200 NVL also 141GB), HBM3e per GPU	P.gpu.spec	141GB
+nvidia-4ba154ab5ea81a7f23a1	1	11	2	gpu.memory_bandwidth	TB/s	H200 SXM, per GPU	P.gpu.spec	4.8TB/s
+nvidia-4ba154ab5ea81a7f23a1	1	8	2	gpu.fp8_throughput	TFLOPS	H200 SXM, FP8 Tensor Core, with sparsity (footnote 2); preliminary spec (footnote 1)	P.gpu.spec	3,958 TFLOPS
+nvidia-4ba154ab5ea81a7f23a1	1	6	2	gpu.bf16_throughput	TFLOPS	H200 SXM, BFLOAT16 Tensor Core, with sparsity (footnote 2); preliminary spec (footnote 1)	P.gpu.spec	1,979 TFLOPS
+nvidia-4ba154ab5ea81a7f23a1	1	17	2	gpu.interconnect_bandwidth	GB/s	H200 SXM; cell lists NVLink 900GB/s and PCIe Gen5 128GB/s	P.gpu.spec	NVIDIA NVLink™: 900GB/s PCIe Gen5: 128GB/s
+nvidia-4ba154ab5ea81a7f23a1	1	16	2	gpu.form_factor	-	H200 SXM column	P.gpu.spec	SXM
+nvidia-4ba154ab5ea81a7f23a1	1	14	2	gpu.power_consumption	W	H200 SXM max TDP, up to 700W, configurable	P.gpu.operation	Up to 700W (configurable)
+nvidia-798f5473c5a8cd768d94	3	2	2	gpu.form_factor	-	HGX B300 board (representative model on HGX page; Rubin columns not used): 8x Blackwell Ultra SXM	P.gpu.spec	8x NVIDIA Blackwell Ultra SXM
+nvidia-798f5473c5a8cd768d94	3	10	2	gpu.memory_capacity	TB	HGX B300 8-GPU board total GPU memory (all 8 GPUs combined)	P.gpu.spec	2.1 TB
+nvidia-798f5473c5a8cd768d94	3	3	2	gpu.fp4_throughput	PFLOPS	HGX B300 8-GPU board, FP4 Tensor Core, sparse | dense (page footnote 1)	P.gpu.spec	144 PFLOPS | 108 PFLOPS
+nvidia-798f5473c5a8cd768d94	3	4	2	gpu.fp8_throughput	PFLOPS	HGX B300 8-GPU board, FP8/FP6 Tensor Core, with sparsity; dense is half (page footnote 2)	P.gpu.spec	72 PFLOPS
+nvidia-798f5473c5a8cd768d94	3	13	2	gpu.interconnect_bandwidth	TB/s	HGX B300, NVLink 5 GPU-to-GPU bandwidth per GPU	P.gpu.spec	1.8 TB/s
+nvidia-80d998af3e9a46dc6bee	1	6	2	gpu.power_consumption	kW	DGX B200 whole system (8x B200 GPUs, 2x Xeon 8570), max system power; system-level, not per GPU	P.gpu.operation	~14.3 kW max
+nvidia-80d998af3e9a46dc6bee	1	1	2	gpu.gpu_count	-	DGX B200 system GPU count, for normalising the system power figure per GPU	P.gpu.operation	8x NVIDIA Blackwell GPUs
+nvidia-80d998af3e9a46dc6bee	1	2	2	gpu.memory_capacity	GB	DGX B200 total across 8 GPUs; same cell gives 64 TB/s aggregate HBM3e bandwidth	P.gpu.operation	1,440 GB total, 64 TB/s HBM3e bandwidth
+nvidia-80d998af3e9a46dc6bee	1	3	2	gpu.fp4_throughput	PFLOPS	DGX B200 system (8 GPUs): FP4 Tensor Core 144 sparse | 72 dense (footnote *), FP8 Tensor Core 72 sparse (footnote **, dense is half)	P.gpu.operation	FP4 Tensor Core: 144 PFLOPS | 72 PFLOPS* FP8 Tensor Core: 72 PFLOPS**
+nvidia-80d998af3e9a46dc6bee	1	5	2	gpu.interconnect_bandwidth	TB/s	DGX B200 system aggregate NVLink bandwidth (8 GPUs)	P.gpu.operation	14.4 TB/s aggregate bandwidth
+nvidia-80d998af3e9a46dc6bee	1	15	2	gpu.operating_temperature	°C	DGX B200 system operating temperature range	P.gpu.operation	10-35°C (50-90°F)
+nvidia-8ffd0b76b6046dbf863d	1	3	3	cpu.core_count	-	NVIDIA Grace CPU Superchip (2x Grace CPU) column	P.cpu.spec	144 Arm Neoverse V2 Cores with 4x 128b SVE2
+nvidia-8ffd0b76b6046dbf863d	1	7	3	cpu.memory_capacity	GB	Grace CPU Superchip, LPDDR5X on-module options 240/480/960GB	P.cpu.spec	240GB, 480GB and 960GB options available
+nvidia-8ffd0b76b6046dbf863d	1	8	3	cpu.memory_bandwidth	GB/s	Grace CPU Superchip; up to 768 GB/s with 960GB, up to 1024 GB/s with 240GB/480GB	P.cpu.spec	Up to 768 GB/s for 960GB Up to 1024 GB/s for 240GB, 480GB
+nvidia-8ffd0b76b6046dbf863d	1	9	3	cpu.interconnect_bandwidth	GB/s	Grace CPU Superchip, NVLink-C2C between the two Grace dies	P.cpu.spec	Up to 900 GB/s
+nvidia-8ffd0b76b6046dbf863d	1	10	3	cpu.pcie_links	-	Grace CPU Superchip, up to 8x PCIe Gen5 x16, bifurcatable	P.cpu.spec	Up to 8x PCIe Gen 5x16 with option to bifurcate
+nvidia-5de81141224defa3e55d	1	7	2	nic.port_speed	Gb/s	ConnectX-8 C8180 (900-9X81E-00EX-ST0/-DT0), Ethernet mode	P.nic.spec	400/200/100 Gb/s Ethernet
+nvidia-5de81141224defa3e55d	1	6	3	nic.data_rate	-	ConnectX-8 C8180, InfiniBand mode (default) rate names; XDR is 4 lanes x 200Gb/s per the Protocol Support row	P.nic.spec	XDR/NDR/HDR/HDR100/EDR/SDR
+nvidia-5de81141224defa3e55d	1	5	1	nic.port_count	-	ConnectX-8 C8180: single-cage OSFP; row carries its label and value in one cell	P.nic.spec	Networking Port: Single cage OSFP InfiniBand and Ethernet
+nvidia-5de81141224defa3e55d	1	3	2	nic.host_interface	-	ConnectX-8 C8180 host interface PCIe Gen6 x16 at 64GT/s	P.nic.spec	Gen6 SERDES @ 64GT/s, x16 lanes (Gen 5 compatible)
+nvidia-5de81141224defa3e55d	1	1	2	nic.form_factor	-	ConnectX-8 C8180, PCIe HHHL card	P.nic.spec	SuperNIC Dimensions: PCIe Half Height, Half Length 2.69 in. x 6.58 in. (68.50mm x 168.40mm)
+nvidia-925400a40f3e388eaad0	2	5	5	optics.power_consumption	W	MMS4X00-NM-T 800G twin-port OSFP 2x400G SMF 500m, maximum power dissipation (Max column; Typ 16 W)	P.optics.spec	17
+nvidia-925400a40f3e388eaad0	2	7	4	optics.signaling_rate	GBd	MMS4X00-NM-T, signaling rate per lane, typical (PAM4)	P.optics.spec	53.125
+nvidia-925400a40f3e388eaad0	2	2	4	optics.input_voltage	V	MMS4X00-NM-T, power supply voltage VCC, typical	P.optics.spec	3.3
+nvidia-925400a40f3e388eaad0	1	3	4	optics.operating_temperature	°C	MMS4X00-NM-T, operating case temperature maximum (min 0 °C); from Absolute Maximum table	P.optics.spec	70
+nvidia-c31b03a84fdd833872c5	2	5	2	network_switch.port_speed	Gb/s	SN5600 (representative SN5000 model): ports 1-64 up to 800G, port 65 up to 25G	P.network-switch.spec	Ports #1-64: 10/25/50/100/200/400/800G Port #65: 1G/10G/25G
+nvidia-c31b03a84fdd833872c5	2	6	2	network_switch.port_count	-	SN5600: 64 OSFP ports plus 1 SFP28 port	P.network-switch.spec	Ports #1-64: OSFP Port #65: SFP28
+nvidia-c31b03a84fdd833872c5	2	18	2	network_switch.bandwidth	Tbps	SN5600 aggregate switching throughput	P.network-switch.spec	51.2 Tbps
+nvidia-c31b03a84fdd833872c5	2	2	3	network_switch.dimensions	mm	SN5600 2U chassis; cell gives inches then 88mm (H) x 438mm (W) x 720mm (D), 745mm with fan levers	P.network-switch.spec	3.46” (H) × 17.2’’ (W) × 28.3’’/29.3” (D) with fan levers 88mm (H) × 438mm (W) × 720mm (D) / 745mm with fan levers
+nvidia-c31b03a84fdd833872c5	2	13	2	network_switch.power_consumption	W	SN5600 typical power with passive cables (ATIS)	P.network-switch.operation	Typical power with passive cables (ATIS): 940W
+nvidia-c31b03a84fdd833872c5	2	12	3	network_switch.input_voltage	V	SN5600 AC input, rated 220-240 Vac (200-264 Vac), 16A; 210-300 VDC Chinese model only	P.network-switch.operation	1x/2x, High Line, Rated VAC 220V-240V VAC Minimum 200 VAC Maximum 264 AC current rating 16A 210-300 VDC, 14A (Chinese model only) 50/60Hz
+nvidia-c31b03a84fdd833872c5	2	7	3	network_switch.operating_temperature	°C	SN5600 operational 0-35°C	P.network-switch.operation	Operational: 0° to 35°C Non-Operational: -40° to 70°C

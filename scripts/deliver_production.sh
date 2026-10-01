@@ -11,7 +11,8 @@
 #   REVIEWER     name recorded on every parameter mapping    (default $USER)
 #
 # Parameter mappings are reviewed decisions; they live in scripts/mappings/<company>.tsv
-# (product, table, row, cell, field, unit, condition, target) so every run maps the same cells.
+# (product, table, row, cell, field, unit, condition, target, expect) so every run maps the same cells;
+# expect is the cell's original text at review time, and any difference stops the run before packaging.
 set -euo pipefail
 
 COMPANY="${1:?usage: deliver_production.sh <company> [--check]}"
@@ -42,12 +43,20 @@ say "2/7 collect reviewed seeds for $COMPANY"
 
 say "3/7 map reviewed parameters ($MAPPINGS, reviewer $REVIEWER)"
 PRODUCTS=()
-while IFS=$'\t' read -r product table row cell field unit condition target; do
+while IFS=$'\t' read -r product table row cell field unit condition target expect; do
   [[ -z "$product" || "$product" == \#* ]] && continue
   [[ "$unit" == "-" ]] && unit=""   # read collapses empty tab fields, so the file writes "-" for no unit
-  "${P[@]}" map-field --company "$COMPANY" --product "$product" --table "$table" --row "$row" --cell "$cell" \
-    --field "$field" --unit "$unit" --condition "$condition" --reviewer "$REVIEWER" --target "$target" \
-    | json "'  $field <-', repr(d.get('original_text'))"
+  out=$("${P[@]}" map-field --company "$COMPANY" --product "$product" --table "$table" --row "$row" --cell "$cell" \
+    --field "$field" --unit "$unit" --condition "$condition" --reviewer "$REVIEWER" --target "$target") \
+    || { echo "  $field: cell $product t$table r$row c$cell not found: $out"; echo "the page's table changed since review; stopping"; exit 1; }
+  text=$(json "' '.join((d.get('original_text') or '').split())" <<<"$out")
+  echo "  $field <- '$text'"
+  # the reviewed original text: a shifted or re-parsed table must never map a neighbouring cell silently
+  if [[ -n "${expect:-}" && "$text" != "$expect" ]]; then
+    echo "  $field: expected '$expect' as reviewed; the cell now reads '$text'. Stopping before packaging."
+    echo "  (the page or its parse changed: re-review scripts/mappings/$COMPANY.tsv; with an old data root, try a fresh FETCHSPEC_DATA_ROOT)"
+    exit 1
+  fi
   [[ " ${PRODUCTS[*]-} " == *" $product "* ]] || PRODUCTS+=("$product")
 done < "$MAPPINGS"
 

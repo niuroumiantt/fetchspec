@@ -1,9 +1,12 @@
 # Reviewed parameter mappings
 
 One file per company, read by `scripts/deliver_production.sh` step 3. Each line maps one official cell
-to a comparison key: `product  table  row  cell  field  unit  condition  target` (tab separated,
+to a comparison key: `product  table  row  cell  field  unit  condition  target  expect` (tab separated,
 1-based indices, unit `-` for none). The raw cell text is never changed; `unit` says what the text is
-written in and `condition` names the model/variant and any qualifier from the page.
+written in and `condition` names the model/variant and any qualifier from the page. `expect` is the cell's
+original text (whitespace collapsed) when it was reviewed: if a later run reads anything else in that cell
+(the page changed, or an older data root parsed it differently), the run stops before packaging. This
+caught an M5 data root whose earlier NVIDIA H200 parse had its rows two places apart.
 
 ## Rules used
 

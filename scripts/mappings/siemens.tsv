@@ -1,15 +1,15 @@
-# product	table	row	cell	field	unit	condition	target	(unit "-" means none)
-siemens-1425439f6a312fd5d78f	1	3	5	mv_switchgear.rated_voltage	kV	NXAIR up to 17.5 kV / 40 kA (catalog HA 25.73 p.33 Electrical data), 17.5 kV column of the 7.2 / 12 / 17.5 kV rated voltages	P.mv-switchgear.spec
-siemens-1425439f6a312fd5d78f	1	11	3	mv_switchgear.short_circuit_breaking_current	kA	NXAIR up to 40 kA, max. rated short-circuit breaking current, one value spanning the 7.2 / 12 / 17.5 kV columns	P.mv-switchgear.spec
-siemens-1425439f6a312fd5d78f	1	15	3	mv_switchgear.rated_current	A	NXAIR, max. rated continuous current of the busbar (feeder with circuit-breaker also max. 4000 A)	P.mv-switchgear.spec
-siemens-1425439f6a312fd5d78f	2	13	3	mv_switchgear.width	mm	NXAIR circuit-breaker panel 4000 A, 40 kA short-time withstand column (p.41 Dimensions; the row label Width W, Circuit-breaker panel, disconnecting panel is printed on the 630 A line above)	P.mv-switchgear.spec
-siemens-1425439f6a312fd5d78f	2	29	4	mv_switchgear.height	mm	NXAIR panel height H4 with optional arc absorber, 40 kA column; catalog applies H4 for 12 kV > 25 kA or generally for 17.5 kV (standard panel H1 is 2300 mm)	P.mv-switchgear.spec
-siemens-4acab582c08ab7cd71ba	4	1	3	lv_switchgear.rated_voltage	V	SIVACON S8plus catalog p.41, rated operational voltage Ue of the main circuit at 50 Hz; the qualifier continues on the next printed line: and in-line design, fixed-mounted	P.lv-switchgear.spec
-siemens-4acab582c08ab7cd71ba	4	6	3	lv_switchgear.rated_current	A	SIVACON S8plus, main busbars horizontal, rated current (maximum)	P.lv-switchgear.spec
-siemens-4acab582c08ab7cd71ba	4	8	2	lv_switchgear.short_time_withstand_current	kA	SIVACON S8plus, main busbars horizontal, rated short-time withstand current Icw (1 s); rated peak withstand current Ipk is up to 330 kA	P.lv-switchgear.spec
-siemens-4acab582c08ab7cd71ba	4	19	3	lv_switchgear.height	mm	SIVACON S8plus cubicle height without base, two options; optional base adds 100 or 200 mm	P.lv-switchgear.spec
-siemens-4acab582c08ab7cd71ba	4	21	2	lv_switchgear.width	mm	SIVACON S8plus cubicle width options	P.lv-switchgear.spec
-siemens-4acab582c08ab7cd71ba	4	22	2	lv_switchgear.depth	mm	SIVACON S8plus cubicle depth options, single-front and double-front arrangements	P.lv-switchgear.spec
-siemens-85efa9f942524c7d47ba	3	5	2	busway.rated_current	A	SIVACON 8PS LI system (brochure p.30), rated current InA range across the LI ratings	P.busway.spec
-siemens-85efa9f942524c7d47ba	3	2	2	busway.rated_voltage	V	SIVACON 8PS LI system, rated operational voltage Ue (rated insulation voltage Ui is also 1,000 V AC)	P.busway.spec
-siemens-85efa9f942524c7d47ba	3	7	2	busway.short_time_withstand_current	kA	SIVACON 8PS LI system, rated short-time withstand current Icw (1 s), maximum over the LI ratings	P.busway.spec
+# product	table	row	cell	field	unit	condition	target	expect	(unit "-" means none)
+siemens-1425439f6a312fd5d78f	1	3	5	mv_switchgear.rated_voltage	kV	NXAIR up to 17.5 kV / 40 kA (catalog HA 25.73 p.33 Electrical data), 17.5 kV column of the 7.2 / 12 / 17.5 kV rated voltages	P.mv-switchgear.spec	17.5
+siemens-1425439f6a312fd5d78f	1	11	3	mv_switchgear.short_circuit_breaking_current	kA	NXAIR up to 40 kA, max. rated short-circuit breaking current, one value spanning the 7.2 / 12 / 17.5 kV columns	P.mv-switchgear.spec	40
+siemens-1425439f6a312fd5d78f	1	15	3	mv_switchgear.rated_current	A	NXAIR, max. rated continuous current of the busbar (feeder with circuit-breaker also max. 4000 A)	P.mv-switchgear.spec	4000
+siemens-1425439f6a312fd5d78f	2	13	3	mv_switchgear.width	mm	NXAIR circuit-breaker panel 4000 A, 40 kA short-time withstand column (p.41 Dimensions; the row label Width W, Circuit-breaker panel, disconnecting panel is printed on the 630 A line above)	P.mv-switchgear.spec	1000 mm
+siemens-1425439f6a312fd5d78f	2	29	4	mv_switchgear.height	mm	NXAIR panel height H4 with optional arc absorber, 40 kA column; catalog applies H4 for 12 kV > 25 kA or generally for 17.5 kV (standard panel H1 is 2300 mm)	P.mv-switchgear.spec	2500 mm
+siemens-4acab582c08ab7cd71ba	4	1	3	lv_switchgear.rated_voltage	V	SIVACON S8plus catalog p.41, rated operational voltage Ue of the main circuit at 50 Hz; the qualifier continues on the next printed line: and in-line design, fixed-mounted	P.lv-switchgear.spec	up to 690 V / up to 800 V for circuit-breaker design (FCB1)
+siemens-4acab582c08ab7cd71ba	4	6	3	lv_switchgear.rated_current	A	SIVACON S8plus, main busbars horizontal, rated current (maximum)	P.lv-switchgear.spec	up to 7,010 A
+siemens-4acab582c08ab7cd71ba	4	8	2	lv_switchgear.short_time_withstand_current	kA	SIVACON S8plus, main busbars horizontal, rated short-time withstand current Icw (1 s); rated peak withstand current Ipk is up to 330 kA	P.lv-switchgear.spec	up to 150 kA, 1s
+siemens-4acab582c08ab7cd71ba	4	19	3	lv_switchgear.height	mm	SIVACON S8plus cubicle height without base, two options; optional base adds 100 or 200 mm	P.lv-switchgear.spec	2,000, 2,200 mm
+siemens-4acab582c08ab7cd71ba	4	21	2	lv_switchgear.width	mm	SIVACON S8plus cubicle width options	P.lv-switchgear.spec	200, 350, 400, 600, 800, 850, 1,000, 1,200, 1,400 mm
+siemens-4acab582c08ab7cd71ba	4	22	2	lv_switchgear.depth	mm	SIVACON S8plus cubicle depth options, single-front and double-front arrangements	P.lv-switchgear.spec	single front 500, 600, 800; double front 1,000, 1,200 mm
+siemens-85efa9f942524c7d47ba	3	5	2	busway.rated_current	A	SIVACON 8PS LI system (brochure p.30), rated current InA range across the LI ratings	P.busway.spec	800 A to 6,300 A
+siemens-85efa9f942524c7d47ba	3	2	2	busway.rated_voltage	V	SIVACON 8PS LI system, rated operational voltage Ue (rated insulation voltage Ui is also 1,000 V AC)	P.busway.spec	1,000 V AC
+siemens-85efa9f942524c7d47ba	3	7	2	busway.short_time_withstand_current	kA	SIVACON 8PS LI system, rated short-time withstand current Icw (1 s), maximum over the LI ratings	P.busway.spec	Up to 150 kA

@@ -1,68 +1,68 @@
-# product	table	row	cell	field	unit	condition	target	(unit "-" means none)
-vertiv-2c8f4e685d0d29ab9e7f	1	3	2	bbu.power_rating	kW	EnergyCore Li7 lithium-ion battery cabinet, range across cabinet configurations	P.bbu.operation
-vertiv-2c8f4e685d0d29ab9e7f	1	4	2	bbu.energy_capacity	kWh	EnergyCore Li7 cabinet; vendor labels this row Output Voltage Range; value is energy	P.bbu.operation
-vertiv-2c8f4e685d0d29ab9e7f	1	6	2	bbu.weight	kg	EnergyCore Li7 cabinet, range across configurations (lbs duplicate in row 5)	P.bbu.operation
-vertiv-2c8f4e685d0d29ab9e7f	1	14	2	bbu.operating_temperature	°C	EnergyCore Li7 cabinet, operating ambient	P.bbu.operation
-vertiv-47ed68bedcb4b7a990d1	1	15	2	cdu.cooling_capacity	kW	CoolChip CDU 2300 (largest of family table), at 7.2°F (4°C) approach temperature difference; vendor writes a superscript zero instead of a degree sign	P.cdu.spec
-vertiv-47ed68bedcb4b7a990d1	1	15	3	cdu.heat_exchange_type	-	CoolChip CDU 2300	P.cdu.spec
-vertiv-47ed68bedcb4b7a990d1	1	15	4	cdu.form_factor	-	CoolChip CDU 2300, placement	P.cdu.spec
-vertiv-47ed68bedcb4b7a990d1	1	15	5	cdu.height	in	CoolChip CDU 2300	P.cdu.spec
-vertiv-47ed68bedcb4b7a990d1	1	15	6	cdu.width	in	CoolChip CDU 2300	P.cdu.spec
-vertiv-47ed68bedcb4b7a990d1	1	15	7	cdu.depth	in	CoolChip CDU 2300	P.cdu.spec
-vertiv-5cbbb59857497fa0e6ff	1	3	2	cdu.cooling_capacity	kW	CoolChip CDU 600 liquid-to-liquid, net sensible nominal at 4°C approach temperature difference; vendor label says kBtuh[kW] but value is given in kW only; vendor writes a superscript zero instead of a degree sign	P.cdu.operation
-vertiv-5cbbb59857497fa0e6ff	1	9	2	cdu.height	mm	CoolChip CDU 600 (inch duplicate in row 8)	P.cdu.operation
-vertiv-5cbbb59857497fa0e6ff	1	11	2	cdu.width	mm	CoolChip CDU 600 (inch duplicate in row 10)	P.cdu.operation
-vertiv-5cbbb59857497fa0e6ff	1	13	2	cdu.depth	mm	CoolChip CDU 600 (inch duplicate in row 12)	P.cdu.operation
-vertiv-6afa3950d17d77b9e397	1	3	2	sidecar_hx.cooling_capacity	kW	CoolChip CDU 70 liquid-to-air in-row unit, net sensible nominal at 11°C approach temperature difference	P.sidecar-hx.spec
-vertiv-6afa3950d17d77b9e397	1	4	2	sidecar_hx.airflow	m3/h	CoolChip CDU 70, nominal data center air side; cell also gives 5,945 CFM in parentheses	P.sidecar-hx.spec
-vertiv-6afa3950d17d77b9e397	1	10	2	sidecar_hx.height	mm	CoolChip CDU 70 (inch duplicate in row 9)	P.sidecar-hx.spec
-vertiv-6afa3950d17d77b9e397	1	12	2	sidecar_hx.width	mm	CoolChip CDU 70 (inch duplicate in row 11)	P.sidecar-hx.spec
-vertiv-6afa3950d17d77b9e397	1	14	2	sidecar_hx.depth	mm	CoolChip CDU 70 (inch duplicate in row 13)	P.sidecar-hx.spec
-vertiv-71e3368af8abd2ca8364	1	9	2	pdu.rated_current	A	PowerIT Switched rPDU VP7N30AQ, 100-120/200-240V WYE three-phase, vertical (largest: 30A WYE, 36 outlets)	P.pdu.spec
-vertiv-71e3368af8abd2ca8364	1	9	3	pdu.input_voltage	V	PowerIT Switched rPDU VP7N30AQ, three-phase WYE input	P.pdu.spec
-vertiv-71e3368af8abd2ca8364	1	9	5	pdu.outlet_configuration	-	PowerIT Switched rPDU VP7N30AQ, outlet types and count	P.pdu.spec
-vertiv-71e3368af8abd2ca8364	1	9	7	pdu.height	in	PowerIT Switched rPDU VP7N30AQ, vertical 0U strip length	P.pdu.spec
-vertiv-71e3368af8abd2ca8364	1	9	8	pdu.width	in	PowerIT Switched rPDU VP7N30AQ	P.pdu.spec
-vertiv-71e3368af8abd2ca8364	1	9	9	pdu.depth	in	PowerIT Switched rPDU VP7N30AQ	P.pdu.spec
-vertiv-79985e4665f8b9fc7ed2	1	10	2	chiller.cooling_capacity	kW	FF3175 total nominal capacity; cell gives 565 tons | 1987 kW; vendor label says kBtuh [kW] but value is in tons and kW	P.chiller.spec
-vertiv-79985e4665f8b9fc7ed2	1	11	2	chiller.chiller_type	-	FF3175 version	P.chiller.spec
-vertiv-79985e4665f8b9fc7ed2	1	4	2	chiller.height	mm	FF3175 (inch duplicate in row 3)	P.chiller.spec
-vertiv-79985e4665f8b9fc7ed2	1	6	2	chiller.width	mm	FF3175 (inch duplicate in row 5)	P.chiller.spec
-vertiv-79985e4665f8b9fc7ed2	1	8	2	chiller.depth	mm	FF3175 unit length as printed (inch duplicate 527 in in row 7)	P.chiller.spec
-vertiv-c580d330ec302cd02a00	1	3	2	power_shelf.power_rating	kW	PowerDirect 3000 33kW 50 VDC power shelf for NVIDIA GB200/GB300	P.power-shelf.spec
-vertiv-c580d330ec302cd02a00	1	4	2	power_shelf.rated_current	A	PowerDirect 3000; shelf 700A, cell also lists per-PSU 112 A at 49.0 VDC (5500 W max)	P.power-shelf.spec
-vertiv-c580d330ec302cd02a00	1	8	2	power_shelf.input_voltage	V	PowerDirect 3000, AC input options 3P+N+PE / 3P+PE / L+N (duplicate in row 6)	P.power-shelf.spec
-vertiv-c580d330ec302cd02a00	1	10	2	power_shelf.output_voltage	V	PowerDirect 3000, nominal DC output at no load (duplicate in row 5)	P.power-shelf.spec
-vertiv-dcc9017e1659e8abc309	1	24	3	rack_frame.rack_units	U	Vertiv Rack VR3357 networking rack (largest model with complete data incl. weight)	P.rack-frame.spec
-vertiv-dcc9017e1659e8abc309	1	24	5	rack_frame.height	in	Vertiv Rack VR3357, 48U	P.rack-frame.spec
-vertiv-dcc9017e1659e8abc309	1	24	6	rack_frame.width	in	Vertiv Rack VR3357, 48U	P.rack-frame.spec
-vertiv-dcc9017e1659e8abc309	1	24	7	rack_frame.depth	in	Vertiv Rack VR3357, 48U	P.rack-frame.spec
-vertiv-dcc9017e1659e8abc309	1	24	8	rack_frame.weight	lb	Vertiv Rack VR3357, 48U, rack weight as listed	P.rack-frame.spec
-vertiv-dd3a2cce0af89fb09f94	1	3	2	pdu.rated_current	A	PowerIT Monitored rPDU VP4N60AE, 200-240V DELTA three-phase, vertical (largest: 60A)	P.pdu.operation
-vertiv-dd3a2cce0af89fb09f94	1	3	3	pdu.input_voltage	V	PowerIT Monitored rPDU VP4N60AE, three-phase DELTA input	P.pdu.operation
-vertiv-dd3a2cce0af89fb09f94	1	3	5	pdu.outlet_configuration	-	PowerIT Monitored rPDU VP4N60AE, outlet types and count	P.pdu.operation
-vertiv-e7cf0b123bd890634572	1	3	2	ups_battery.power_rating	kW	EnergyCore Li5 lithium-ion battery cabinet, range across cabinet configurations	P.ups-battery.spec
-vertiv-e7cf0b123bd890634572	1	4	2	ups_battery.energy_capacity	kWh	EnergyCore Li5 cabinet; vendor labels this row Output Voltage Range; value is energy	P.ups-battery.spec
-vertiv-e7cf0b123bd890634572	1	6	2	ups_battery.weight	kg	EnergyCore Li5 cabinet, range across configurations (lbs duplicate in row 5)	P.ups-battery.spec
-vertiv-e7cf0b123bd890634572	1	8	2	ups_battery.height	mm	EnergyCore Li5 cabinet (inch duplicate in row 7)	P.ups-battery.spec
-vertiv-e7cf0b123bd890634572	1	10	2	ups_battery.width	mm	EnergyCore Li5 cabinet (inch duplicate in row 9)	P.ups-battery.spec
-vertiv-e7cf0b123bd890634572	1	12	2	ups_battery.depth	mm	EnergyCore Li5 cabinet (inch duplicate in row 11)	P.ups-battery.spec
-vertiv-f215655d97d0c27624ab	1	3	2	modular_dc.power_rating	kW	SmartMod Max modular data center, UPS/IT rating options 100, 150 or 200 kW	P.modular-dc.spec
-vertiv-f215655d97d0c27624ab	1	6	2	modular_dc.input_voltage	V	SmartMod Max, utility input 480 VAC 60 Hz	P.modular-dc.spec
-vertiv-f215655d97d0c27624ab	1	7	2	modular_dc.rack_count	-	SmartMod Max, IT racks per variant (DX up to 26, CW up to 24)	P.modular-dc.spec
-vertiv-f215655d97d0c27624ab	1	11	2	modular_dc.operating_temperature	°C	SmartMod Max enclosure, operating ambient	P.modular-dc.spec
-vertiv-f215655d97d0c27624ab	1	16	2	modular_dc.height	mm	SmartMod Max enclosure (inch duplicate in row 15); no depth listed on page	P.modular-dc.spec
-vertiv-f215655d97d0c27624ab	1	18	2	modular_dc.width	mm	SmartMod Max enclosure (inch duplicate in row 17)	P.modular-dc.spec
-vertiv-fa3a1de6512468bf5f73	1	12	2	ups.power_rating	kW	Liebert EXL S1 1000-1200kW frame, ratings 1000/1100/1200; vendor writes kVA/kW (kVA equals kW, unity power factor)	P.ups.spec
-vertiv-fa3a1de6512468bf5f73	1	12	3	ups.input_voltage	V	Liebert EXL S1 1000-1200kW frame	P.ups.spec
-vertiv-fa3a1de6512468bf5f73	1	12	4	ups.output_voltage	V	Liebert EXL S1 1000-1200kW frame	P.ups.spec
-vertiv-fa3a1de6512468bf5f73	1	12	8	ups.width	in	Liebert EXL S1 1000-1200kW frame	P.ups.spec
-vertiv-fa3a1de6512468bf5f73	1	12	9	ups.depth	in	Liebert EXL S1 1000-1200kW frame	P.ups.spec
-vertiv-fa3a1de6512468bf5f73	1	12	10	ups.weight	lb	Liebert EXL S1 1000-1200kW frame	P.ups.spec
-vertiv-fa3a1de6512468bf5f73	1	12	5	ups.efficiency	%	Liebert EXL S1 1000-1200kW frame, up to, double conversion mode	P.ups.operation
-vertiv-ff5aaade19c3a8d2586d	1	24	2	room_cooling.cooling_capacity	kBtuh [kW]	Liebert DSE DA265 (largest), total nominal; 905 kBtuh with 265 kW in brackets	P.room-cooling.spec
-vertiv-ff5aaade19c3a8d2586d	1	24	3	room_cooling.sensible_capacity	kBtuh [kW]	Liebert DSE DA265, net sensible; 905 kBtuh with 265 kW in brackets	P.room-cooling.spec
-vertiv-ff5aaade19c3a8d2586d	1	24	4	room_cooling.airflow	CFM	Liebert DSE DA265, nominal airflow	P.room-cooling.spec
-vertiv-ff5aaade19c3a8d2586d	1	24	6	room_cooling.width	in	Liebert DSE DA265	P.room-cooling.spec
-vertiv-ff5aaade19c3a8d2586d	1	24	7	room_cooling.depth	in	Liebert DSE DA265	P.room-cooling.spec
-vertiv-ff5aaade19c3a8d2586d	1	24	8	room_cooling.weight	lb	Liebert DSE DA265	P.room-cooling.spec
+# product	table	row	cell	field	unit	condition	target	expect	(unit "-" means none)
+vertiv-2c8f4e685d0d29ab9e7f	1	3	2	bbu.power_rating	kW	EnergyCore Li7 lithium-ion battery cabinet, range across cabinet configurations	P.bbu.operation	108 kW - 183.6 kW
+vertiv-2c8f4e685d0d29ab9e7f	1	4	2	bbu.energy_capacity	kWh	EnergyCore Li7 cabinet; vendor labels this row Output Voltage Range; value is energy	P.bbu.operation	20.4 kWh - 34.6 kWh
+vertiv-2c8f4e685d0d29ab9e7f	1	6	2	bbu.weight	kg	EnergyCore Li7 cabinet, range across configurations (lbs duplicate in row 5)	P.bbu.operation	443-582 kg
+vertiv-2c8f4e685d0d29ab9e7f	1	14	2	bbu.operating_temperature	°C	EnergyCore Li7 cabinet, operating ambient	P.bbu.operation	18°C to 28°C
+vertiv-47ed68bedcb4b7a990d1	1	15	2	cdu.cooling_capacity	kW	CoolChip CDU 2300 (largest of family table), at 7.2°F (4°C) approach temperature difference; vendor writes a superscript zero instead of a degree sign	P.cdu.spec	2300 kW at 7.2°F (4⁰C) ATD
+vertiv-47ed68bedcb4b7a990d1	1	15	3	cdu.heat_exchange_type	-	CoolChip CDU 2300	P.cdu.spec	Liquid-to-Liquid
+vertiv-47ed68bedcb4b7a990d1	1	15	4	cdu.form_factor	-	CoolChip CDU 2300, placement	P.cdu.spec	In-Row
+vertiv-47ed68bedcb4b7a990d1	1	15	5	cdu.height	in	CoolChip CDU 2300	P.cdu.spec	94.5 in
+vertiv-47ed68bedcb4b7a990d1	1	15	6	cdu.width	in	CoolChip CDU 2300	P.cdu.spec	48 in
+vertiv-47ed68bedcb4b7a990d1	1	15	7	cdu.depth	in	CoolChip CDU 2300	P.cdu.spec	48 in
+vertiv-5cbbb59857497fa0e6ff	1	3	2	cdu.cooling_capacity	kW	CoolChip CDU 600 liquid-to-liquid, net sensible nominal at 4°C approach temperature difference; vendor label says kBtuh[kW] but value is given in kW only; vendor writes a superscript zero instead of a degree sign	P.cdu.operation	600 kW at 7.2⁰F (4⁰C) approach temperature difference
+vertiv-5cbbb59857497fa0e6ff	1	9	2	cdu.height	mm	CoolChip CDU 600 (inch duplicate in row 8)	P.cdu.operation	2000 mm
+vertiv-5cbbb59857497fa0e6ff	1	11	2	cdu.width	mm	CoolChip CDU 600 (inch duplicate in row 10)	P.cdu.operation	600 mm
+vertiv-5cbbb59857497fa0e6ff	1	13	2	cdu.depth	mm	CoolChip CDU 600 (inch duplicate in row 12)	P.cdu.operation	1200 mm
+vertiv-6afa3950d17d77b9e397	1	3	2	sidecar_hx.cooling_capacity	kW	CoolChip CDU 70 liquid-to-air in-row unit, net sensible nominal at 11°C approach temperature difference	P.sidecar-hx.spec	70.0 kW at 11°C approach temperature difference
+vertiv-6afa3950d17d77b9e397	1	4	2	sidecar_hx.airflow	m3/h	CoolChip CDU 70, nominal data center air side; cell also gives 5,945 CFM in parentheses	P.sidecar-hx.spec	10,100 m3/h (5,945 CFM)
+vertiv-6afa3950d17d77b9e397	1	10	2	sidecar_hx.height	mm	CoolChip CDU 70 (inch duplicate in row 9)	P.sidecar-hx.spec	2300mm
+vertiv-6afa3950d17d77b9e397	1	12	2	sidecar_hx.width	mm	CoolChip CDU 70 (inch duplicate in row 11)	P.sidecar-hx.spec	600 mm
+vertiv-6afa3950d17d77b9e397	1	14	2	sidecar_hx.depth	mm	CoolChip CDU 70 (inch duplicate in row 13)	P.sidecar-hx.spec	1200 mm
+vertiv-71e3368af8abd2ca8364	1	9	2	pdu.rated_current	A	PowerIT Switched rPDU VP7N30AQ, 100-120/200-240V WYE three-phase, vertical (largest: 30A WYE, 36 outlets)	P.pdu.spec	30A
+vertiv-71e3368af8abd2ca8364	1	9	3	pdu.input_voltage	V	PowerIT Switched rPDU VP7N30AQ, three-phase WYE input	P.pdu.spec	100-120V/200-240V WYE
+vertiv-71e3368af8abd2ca8364	1	9	5	pdu.outlet_configuration	-	PowerIT Switched rPDU VP7N30AQ, outlet types and count	P.pdu.spec	Combination C13/C19 (36)
+vertiv-71e3368af8abd2ca8364	1	9	7	pdu.height	in	PowerIT Switched rPDU VP7N30AQ, vertical 0U strip length	P.pdu.spec	72in
+vertiv-71e3368af8abd2ca8364	1	9	8	pdu.width	in	PowerIT Switched rPDU VP7N30AQ	P.pdu.spec	2in
+vertiv-71e3368af8abd2ca8364	1	9	9	pdu.depth	in	PowerIT Switched rPDU VP7N30AQ	P.pdu.spec	2.6in
+vertiv-79985e4665f8b9fc7ed2	1	10	2	chiller.cooling_capacity	kW	FF3175 total nominal capacity; cell gives 565 tons | 1987 kW; vendor label says kBtuh [kW] but value is in tons and kW	P.chiller.spec	565 tons | 1987 kW
+vertiv-79985e4665f8b9fc7ed2	1	11	2	chiller.chiller_type	-	FF3175 version	P.chiller.spec	Direct Free Cooling - Full Inverter Screw
+vertiv-79985e4665f8b9fc7ed2	1	4	2	chiller.height	mm	FF3175 (inch duplicate in row 3)	P.chiller.spec	2896 mm
+vertiv-79985e4665f8b9fc7ed2	1	6	2	chiller.width	mm	FF3175 (inch duplicate in row 5)	P.chiller.spec	2362 mm
+vertiv-79985e4665f8b9fc7ed2	1	8	2	chiller.depth	mm	FF3175 unit length as printed (inch duplicate 527 in in row 7)	P.chiller.spec	13386 mm
+vertiv-c580d330ec302cd02a00	1	3	2	power_shelf.power_rating	kW	PowerDirect 3000 33kW 50 VDC power shelf for NVIDIA GB200/GB300	P.power-shelf.spec	33kW
+vertiv-c580d330ec302cd02a00	1	4	2	power_shelf.rated_current	A	PowerDirect 3000; shelf 700A, cell also lists per-PSU 112 A at 49.0 VDC (5500 W max)	P.power-shelf.spec	Current, Shelf: 700A Current, Power Supply Unit: 112 amps at 49.0 VDC (5500 watts maximum)
+vertiv-c580d330ec302cd02a00	1	8	2	power_shelf.input_voltage	V	PowerDirect 3000, AC input options 3P+N+PE / 3P+PE / L+N (duplicate in row 6)	P.power-shelf.spec	3P+N+PE (311 to 457VAC) / 3P+PE (180 to 260VAC) / L+N (176 to 305VAC)
+vertiv-c580d330ec302cd02a00	1	10	2	power_shelf.output_voltage	V	PowerDirect 3000, nominal DC output at no load (duplicate in row 5)	P.power-shelf.spec	50 VDC at no load
+vertiv-dcc9017e1659e8abc309	1	24	3	rack_frame.rack_units	U	Vertiv Rack VR3357 networking rack (largest model with complete data incl. weight)	P.rack-frame.spec	48U
+vertiv-dcc9017e1659e8abc309	1	24	5	rack_frame.height	in	Vertiv Rack VR3357, 48U	P.rack-frame.spec	89.2 in
+vertiv-dcc9017e1659e8abc309	1	24	6	rack_frame.width	in	Vertiv Rack VR3357, 48U	P.rack-frame.spec	31.5 in
+vertiv-dcc9017e1659e8abc309	1	24	7	rack_frame.depth	in	Vertiv Rack VR3357, 48U	P.rack-frame.spec	47.8 in
+vertiv-dcc9017e1659e8abc309	1	24	8	rack_frame.weight	lb	Vertiv Rack VR3357, 48U, rack weight as listed	P.rack-frame.spec	397 lbs
+vertiv-dd3a2cce0af89fb09f94	1	3	2	pdu.rated_current	A	PowerIT Monitored rPDU VP4N60AE, 200-240V DELTA three-phase, vertical (largest: 60A)	P.pdu.operation	60A
+vertiv-dd3a2cce0af89fb09f94	1	3	3	pdu.input_voltage	V	PowerIT Monitored rPDU VP4N60AE, three-phase DELTA input	P.pdu.operation	200-240V DELTA
+vertiv-dd3a2cce0af89fb09f94	1	3	5	pdu.outlet_configuration	-	PowerIT Monitored rPDU VP4N60AE, outlet types and count	P.pdu.operation	Combination C13/C19 (30)
+vertiv-e7cf0b123bd890634572	1	3	2	ups_battery.power_rating	kW	EnergyCore Li5 lithium-ion battery cabinet, range across cabinet configurations	P.ups-battery.spec	146 kW - 263 kW
+vertiv-e7cf0b123bd890634572	1	4	2	ups_battery.energy_capacity	kWh	EnergyCore Li5 cabinet; vendor labels this row Output Voltage Range; value is energy	P.ups-battery.spec	17.3 kWh - 31.1 kWh
+vertiv-e7cf0b123bd890634572	1	6	2	ups_battery.weight	kg	EnergyCore Li5 cabinet, range across configurations (lbs duplicate in row 5)	P.ups-battery.spec	400-590 kg
+vertiv-e7cf0b123bd890634572	1	8	2	ups_battery.height	mm	EnergyCore Li5 cabinet (inch duplicate in row 7)	P.ups-battery.spec	2000 mm
+vertiv-e7cf0b123bd890634572	1	10	2	ups_battery.width	mm	EnergyCore Li5 cabinet (inch duplicate in row 9)	P.ups-battery.spec	600 mm
+vertiv-e7cf0b123bd890634572	1	12	2	ups_battery.depth	mm	EnergyCore Li5 cabinet (inch duplicate in row 11)	P.ups-battery.spec	750 mm
+vertiv-f215655d97d0c27624ab	1	3	2	modular_dc.power_rating	kW	SmartMod Max modular data center, UPS/IT rating options 100, 150 or 200 kW	P.modular-dc.spec	100, 150, 200 kW
+vertiv-f215655d97d0c27624ab	1	6	2	modular_dc.input_voltage	V	SmartMod Max, utility input 480 VAC 60 Hz	P.modular-dc.spec	480 VAC, 60 Hz
+vertiv-f215655d97d0c27624ab	1	7	2	modular_dc.rack_count	-	SmartMod Max, IT racks per variant (DX up to 26, CW up to 24)	P.modular-dc.spec	SmartMod Max DX: Up to 26; SmartMod Max CW: Up to 24
+vertiv-f215655d97d0c27624ab	1	11	2	modular_dc.operating_temperature	°C	SmartMod Max enclosure, operating ambient	P.modular-dc.spec	-30°C to +50°C
+vertiv-f215655d97d0c27624ab	1	16	2	modular_dc.height	mm	SmartMod Max enclosure (inch duplicate in row 15); no depth listed on page	P.modular-dc.spec	3330mm (enclosure)
+vertiv-f215655d97d0c27624ab	1	18	2	modular_dc.width	mm	SmartMod Max enclosure (inch duplicate in row 17)	P.modular-dc.spec	5810mm (enclosure)
+vertiv-fa3a1de6512468bf5f73	1	12	2	ups.power_rating	kW	Liebert EXL S1 1000-1200kW frame, ratings 1000/1100/1200; vendor writes kVA/kW (kVA equals kW, unity power factor)	P.ups.spec	1000, 1100, 1200 kVA/kW
+vertiv-fa3a1de6512468bf5f73	1	12	3	ups.input_voltage	V	Liebert EXL S1 1000-1200kW frame	P.ups.spec	480 volts
+vertiv-fa3a1de6512468bf5f73	1	12	4	ups.output_voltage	V	Liebert EXL S1 1000-1200kW frame	P.ups.spec	480 volts
+vertiv-fa3a1de6512468bf5f73	1	12	8	ups.width	in	Liebert EXL S1 1000-1200kW frame	P.ups.spec	104.5 in
+vertiv-fa3a1de6512468bf5f73	1	12	9	ups.depth	in	Liebert EXL S1 1000-1200kW frame	P.ups.spec	36.0 in
+vertiv-fa3a1de6512468bf5f73	1	12	10	ups.weight	lb	Liebert EXL S1 1000-1200kW frame	P.ups.spec	4667 lbs
+vertiv-fa3a1de6512468bf5f73	1	12	5	ups.efficiency	%	Liebert EXL S1 1000-1200kW frame, up to, double conversion mode	P.ups.operation	Up to 97% double conversion
+vertiv-ff5aaade19c3a8d2586d	1	24	2	room_cooling.cooling_capacity	kBtuh [kW]	Liebert DSE DA265 (largest), total nominal; 905 kBtuh with 265 kW in brackets	P.room-cooling.spec	905 [265]
+vertiv-ff5aaade19c3a8d2586d	1	24	3	room_cooling.sensible_capacity	kBtuh [kW]	Liebert DSE DA265, net sensible; 905 kBtuh with 265 kW in brackets	P.room-cooling.spec	905 [265]
+vertiv-ff5aaade19c3a8d2586d	1	24	4	room_cooling.airflow	CFM	Liebert DSE DA265, nominal airflow	P.room-cooling.spec	36,500
+vertiv-ff5aaade19c3a8d2586d	1	24	6	room_cooling.width	in	Liebert DSE DA265	P.room-cooling.spec	120 1/8 in
+vertiv-ff5aaade19c3a8d2586d	1	24	7	room_cooling.depth	in	Liebert DSE DA265	P.room-cooling.spec	83 1/2 in
+vertiv-ff5aaade19c3a8d2586d	1	24	8	room_cooling.weight	lb	Liebert DSE DA265	P.room-cooling.spec	6455 lb
