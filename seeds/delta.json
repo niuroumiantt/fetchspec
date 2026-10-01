@@ -1,0 +1,35 @@
+{
+  "company_id": "delta",
+  "reviewed_at": "2026-10-01",
+  "note": "deltaww.com product pages carry 'Product Specifications' in the page payload: HTML text (CDU, BBU) or an embedded published Google document Delta maintains (ORV3 power). The AI GPU cold plate page has no specification section (P.coldplate.spec open); server fan pages are not yet reviewed.",
+  "seeds": [
+    {
+      "targets": ["P.power-shelf.spec", "P.power-shelf.operation"],
+      "url": "https://www.deltaww.com/en-US/products/orv3-server-power/orv3-33kw-power-system",
+      "product": "ORV3 33kW Power System",
+      "reason": "目标行点名 Delta 电源架；官方规格文档给出 18/33 kW 电源架与 3/5.5 kW PSU 的最大输出功率、输出电压与电流、输入电压与尺寸重量",
+      "max_pages": 2
+    },
+    {
+      "targets": ["P.psu.spec", "P.psu.operation"],
+      "url": "https://www.deltaww.com/en-US/products/orv3-server-power/orv3-5.5-kw-psu",
+      "product": "ORV3 5.5 kW PSU",
+      "reason": "目标行点名 Delta / 台达 PSU；官方规格文档给出 5,500 W 输出、48/50 VDC、110 A 与满载效率 >97.5%",
+      "max_pages": 2
+    },
+    {
+      "targets": ["P.bbu.spec"],
+      "url": "https://www.deltaww.com/en-US/products/dc-power-systems/battery-backup-system-33kw",
+      "product": "Battery Backup System 33 kW",
+      "reason": "目标行点名 Delta BBU；官方规格段给出 33 kW BBU 架与 5.5 kW 模块的电压、电流、放电功率与时长、效率和尺寸",
+      "max_pages": 1
+    },
+    {
+      "targets": ["P.cdu.spec"],
+      "url": "https://www.deltaww.com/en-US/products/data-center-cooling/liquid-to-liquid-coolant-distribution-unit-1500kw",
+      "product": "LTL CDU GoCool-1500",
+      "reason": "目标行点名 Delta CDU；官方规格段给出 1500 kW 名义冷量与对应温差流量、一二次侧参数、供电与尺寸重量",
+      "max_pages": 1
+    }
+  ]
+}

@@ -83,6 +83,7 @@ class ParameterObservationTests(unittest.TestCase):
         self.assertTrue(result['complete'], result['problems'])
         self.assertEqual(result['targets']['P.gpu.spec']['observations'], ['gpu.memory.capacity=141GB [GB]'])
         self.assertFalse(verifier.verify(package, targets, ['html', 'json'])['complete'], 'a required format is missing')
+        self.assertEqual(verifier._visible_text(b'<td>&gt;97.5 <b>@100%</b>\n Load</td>'), '>97.5 @100% Load')
         manifest = json.loads((package / 'manifest.json').read_text())
         manifest['items'][0]['product_evidence'][0]['parameter_observations'][0]['value'] = '142GB'
         (package / 'manifest.json').write_text(json.dumps(manifest))
