@@ -1,0 +1,49 @@
+{
+  "profile_version": 1,
+  "company_id": "siemens-energy",
+  "company_en": "Siemens Energy",
+  "adapter_evidence": {
+    "verified_date": "2026-10-01",
+    "product_pages": "https://www.siemens-energy.com/global/en/home/products-services/product/<slug>.html. Gas turbine pages (SGT-800, SGT6-5000F …) carry native HTML 'Performance data for simple cycle / combined cycle' and 'Physical dimensions and weight' tables with one column per rating; power-transformers.html carries a type comparison table (voltage range, power rating, cooling).",
+    "no_tables": "Gas-insulated switchgear (no 8DA/8DQ product page; the GIS family page and LIFE Blue GIS have no table), HVDC, GEAFOL and fluid-immersed distribution transformer pages have no specification table.",
+    "robots": "robots.txt disallows only /xy/ and declares https://www.siemens-energy.com/sitemap.xml (per-country indexes; /global/en.sitemap.xml lists every product page)."
+  },
+  "status": "target_driven_product_adapter",
+  "allowed_hosts": [
+    "www.siemens-energy.com"
+  ],
+  "sitemaps": [],
+  "discovery_entrypoints": [],
+  "document_formats": [
+    "pdf"
+  ],
+  "locales": "en_global_only",
+  "supported_locales": [
+    "en"
+  ],
+  "delay_seconds": 2.0,
+  "timeout_seconds": 30,
+  "max_xml_bytes": 20971520,
+  "max_document_bytes": 134217728,
+  "min_free_bytes": 8589934592,
+  "max_requests": 2000,
+  "max_discovery_depth": 2,
+  "page_prefixes": [
+    "/global/en/home/products-services/product/"
+  ],
+  "category_roots": [],
+  "known_gaps": [
+    "High-voltage switchgear (8DA/8DQ GIS) has no product page with a table; P.hv-switchyard.* stays open.",
+    "Transformer losses and lifetime (P.transformer.operation) are not on the product pages.",
+    "Datasheets on other hosts are outside allowed_hosts; only the product pages' own tables are read.",
+    "map-sync is not enabled; product pages are named by reviewed seeds."
+  ],
+  "instance_aliases": [
+    "Siemens Energy",
+    "西门子能源"
+  ],
+  "target_parts": [
+    "gas-turbine",
+    "transformer"
+  ]
+}

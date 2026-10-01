@@ -1,0 +1,21 @@
+{
+  "company_id": "siemens-energy",
+  "reviewed_at": "2026-10-01",
+  "note": "Global English product pages with native tables. No 8DA/8DQ GIS product page carries a table (P.hv-switchyard.* open); transformer losses and lifetime are not published on the product pages (P.transformer.operation open).",
+  "seeds": [
+    {
+      "targets": ["P.gas-turbine.spec", "P.gas-turbine.operation"],
+      "url": "https://www.siemens-energy.com/global/en/home/products-services/product/sgt-800.html",
+      "product": "SGT-800",
+      "reason": "目标行点名 Siemens Energy SGT-800；官方性能表按 45–62 MW 各额定给出出力、效率与热耗率，另有外形尺寸与重量表",
+      "max_pages": 2
+    },
+    {
+      "targets": ["P.transformer.spec"],
+      "url": "https://www.siemens-energy.com/global/en/home/products-services/product/power-transformers.html",
+      "product": "Power transformers",
+      "reason": "目标行点名 Siemens Energy 变压器；官方类型对比表给出中型、大型与 HVDC 换流变压器的电压范围、额定容量与冷却方式",
+      "max_pages": 2
+    }
+  ]
+}

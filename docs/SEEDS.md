@@ -32,13 +32,14 @@ python3 -m fetchspec.pipeline collect-seeds --company vertiv --target P.ups.spec
 
 ## 现有种子与实测（2026-10-01）
 
-23 个种子，覆盖"现在可抓"27 行中的 24 行；另有新适配器 Micron 的 3 个种子（见表）。新数据根上一次真实运行：23 个种子全部 `collected`，用 25 个请求（预算 150），24 行完成绑定。`plan` 从"现在可抓 27"变为"在途 24、现在可抓 3"。
+23 个种子，覆盖"现在可抓"27 行中的 24 行；另有新适配器 Micron 的 3 个、Siemens Energy 的 2 个种子（见表）。新数据根上一次真实运行：23 个种子全部 `collected`，用 25 个请求（预算 150），24 行完成绑定。`plan` 从"现在可抓 27"变为"在途 24、现在可抓 3"。
 
 | 公司 | 种子 | 行 |
 |---|---:|---|
 | NVIDIA | 8 | `P.gpu.spec/.operation`、`P.rack-system.spec`、`P.cpu.spec`、`P.nic.spec`、`P.network-switch.spec/.operation`、`P.optics.spec` |
 | Supermicro | 2 | `P.server.spec/.operation`、`P.rack-system.spec` |
 | Micron | 3 | `P.hbm.spec`、`P.dram.spec`、`P.ssd.spec`（新适配器，同日实测 3/3） |
+| Siemens Energy | 2 | `P.gas-turbine.spec/.operation`、`P.transformer.spec`（新适配器，同日实测 2/2） |
 | Vertiv | 13 | `P.ups.spec/.operation`、`P.ups-battery.spec`、`P.bbu.operation`、`P.pdu.spec/.operation`、`P.power-shelf.spec`、`P.cdu.spec/.operation`、`P.sidecar-hx.spec`、`P.room-cooling.spec`、`P.chiller.spec`、`P.rack-frame.spec`、`P.modular-dc.spec` |
 
 仍缺的 3 行：
