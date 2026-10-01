@@ -72,7 +72,7 @@ ssh -o BatchMode=yes "$SPARK" true || {
   echo "or point SPARK at the right host, e.g. SPARK=spark@192.168.50.2"; exit 1; }
 if ! ssh "$SPARK" "grep -q '\"json\"' $SPARK_REPO/src/inresearch/materials/fetchspec_receive.py"; then
   if grep -q '"format": "json"' "$PKG/manifest.json"; then
-    echo "Spark's receiver does not accept json yet: merge inresearch fetchspec-backflow and git pull on Spark first."; exit 1
+    echo "Spark's inresearch checkout is older than GitHub main. Update it from this machine: scripts/update_spark.sh"; exit 1
   fi
 fi
 INCOMING=".local/share/inresearch.ai/incoming/$(date +%Y%m%d)-fetchspec/$ID"
