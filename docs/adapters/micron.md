@@ -24,3 +24,5 @@ PYTHONPATH=src python3 -m fetchspec.micron_catalog --out ~/Downloads/tempfetch-m
 - **覆盖率**两个分母分开：现行具体零件中有官方规格的 / 现行具体零件；全部目录实体中有表的 / 全部实体。组件返回空的是厂商规格缺口，取不到的单列 failed/unavailable，都不猜值。
 - **输出**：`<out>/catalog.json`（schema 1，`company_id: micron`，与 NVIDIA 同一接收格式）、`product-sitemap.json`、`blobs/`（原件按 SHA）、`micron-catalog.sqlite3`（状态与 ETag）。由 inresearch `manage.py product-catalog import|publish --company micron` 接收。
 - **修过的坑**：通用 URL 语言猜测把零件号里的 `-it-`（工业级温度）、`-es-` 读成意大利语/西班牙语，丢掉了这些零件的规格组件；适配器对 Micron 自己的产品与 `us/en` 组件路径不再做语言猜测。
+- **系列产品简介（2026-10-01）**：6600 ION 整个系列的零件页不提供规格组件。这些零件挂厂商官网（www.micron.com，robots 允许）上的系列产品简介 PDF 的规格总表（表 4，按容量分列，`vendor_product_brief_pdf_layout_rows`），状态 `family_brief_table_extracted`，覆盖率单列「只有系列简介表」的数量；每个零件按简介自己的零件号规则解码容量与外形（`brief_decoded`；外形代码 BN 不在简介规则里，如实标出）。这是系列级的表，不是逐型号规格。
+- **HBM 功耗仍缺**：HBM3E 产品简介与技术简介只放在 assets.micron.com（robots.txt 403）和 Adobe 分发域（robots.txt `Disallow: /`），按规则不抓；官网可抓的 HBM 白皮书没有功耗数字；零件 JSON 也没有。`P.hbm.operation` 保持缺口，可由人工下载简介后从收件箱交付。

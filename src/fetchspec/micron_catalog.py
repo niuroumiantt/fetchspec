@@ -26,14 +26,16 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import shutil
 import sqlite3
+import subprocess
 import sys
 from urllib.error import HTTPError
 from urllib.parse import urlsplit
 from xml.etree import ElementTree
 
 from .adapters.micron import PART_PAGE, MicronProductAdapter
-from .extraction import html_page
+from .extraction import cell, html_page
 from .inventory import atomic_json, load_profile, utc_now
 from .network import ProductFetcher
 
@@ -43,11 +45,61 @@ DIRECTORY = 'https://www.micron.com/products'
 OBSOLETE_PART = re.compile(r'^/products/obsolete/(?:[a-z0-9][a-z0-9-]*/)+part-catalog/part-detail/([a-z0-9][a-z0-9.-]*)/?$')
 DIRECTORY_PAGE = re.compile(r'^/products(?:/[a-z0-9][a-z0-9-]*)*/?$')
 TITLE_SUFFIX = re.compile(r'\s*[|–-]\s*Micron(?: Technology(?:,? Inc\.?)?)?\s*$', re.I)
+# Families whose part pages name no specification component, and the vendor's own product brief that carries
+# their specification table (a family-level table by capacity, with a part-number decoder). robots-allowed host only.
+FAMILY_BRIEFS = {
+    '6600-ion': {
+        'url': 'https://www.micron.com/content/dam/micron/global/public/products/storage/ssds/data-center/6600/'
+               '6600-ion-nvme-ssd-product-brief.pdf',
+        'start': 'key specifications', 'end': 'Table 4',
+        'section': 'Micron 6600 ION SSD key specifications (product brief, Table 4)',
+        'part': re.compile(r'^MTFDL([A-Z]{2})(\d+T\d)Q'),
+        'form_factor': {'AL': 'U.2 (15mm)', 'BQ': 'E3.S 1T (7.5mm)', 'BX': 'E3.L 1T (7.5mm)'},
+        'capacity': {'30T7': '30.72TB', '61T4': '61.44TB', '122T8': '122.88TB', '245T7': '245.76TB'},
+    },
+}
+SEGMENT = re.compile(r'\S(?:.*?\S)??(?=\s{2,}|$)')
+
+
+def brief_rows(text, start, end):
+    """Rows of a product-brief table from ``pdftotext -layout`` text: the label text left of the first value
+    column, then the printed values in order (" | "); a value printed once across merged columns stays once.
+    Returns (rows, raw block) so the original layout travels with the rows."""
+    lines = text.splitlines()
+    first = next(n for n, line in enumerate(lines) if start in line)
+    last = next(n for n, line in enumerate(lines[first:], first) if line.strip().startswith(end))
+    block = lines[first + 1:last]
+    header = next(line for line in block if re.search(r'\d+\.\d+TB', line))
+    threshold = min(m.start() for m in re.finditer(r'\d+\.\d+TB', header)) - 4
+    # The brief prints availability as a check-mark glyph from a symbol font (U+F0FC, private use); show it as ✓.
+    block = [line.replace('\uf0fc', '✓') for line in block]
+    rows, pending = [], []
+    for n, line in enumerate(block):
+        segments = [(m.start(), m.group(0)) for m in SEGMENT.finditer(line)]
+        labels = [s for at, s in segments if at < threshold]
+        values = [s for at, s in segments if at >= threshold]
+        if not values:
+            pending = labels
+            continue
+        if not labels:
+            # a label printed on the lines around its value ("100% 128KB sequential" / "writes")
+            after = next(([s for at, s in (([(m.start(), m.group(0)) for m in SEGMENT.finditer(nxt)])) if at < threshold]
+                          for nxt in block[n + 1:n + 2]), [])
+            labels = [' '.join(pending[-1:] + after[-1:])] if pending or after else []
+        rows.append([cell(' · '.join(labels)), cell(' | '.join(values))])
+        pending = []
+    return rows, '\n'.join(line.rstrip() for line in block if line.strip())
+
+
 LIMITATIONS = [
     '产品清单以 Micron 官网 sitemap 为准；sitemap 没列出的不推断存在，列出但取不到的单列，不推断下架。',
     '停产（/products/obsolete/）零件只登记身份，不抓规格，计为未采集而非失败。',
     'official_status 是厂商零件状态码原文（如 Production），不等于已核实在售。',
     '规格是官方零件组件 JSON 的名称与取值原文，未映射跨产品通用字段；功耗等组件里没有的参数需另读数据手册。',
+    '零件页不提供规格组件的系列（6600 ION）挂厂商系列产品简介 PDF 的规格总表：是系列级、按容量分列的表，不是逐型号规格；'
+    '每个零件按简介的零件号规则解码容量与外形，单独计数。',
+    'HBM3E 的产品简介与技术简介只放在 assets.micron.com（robots.txt 返回 403）与 Adobe 分发域（robots.txt Disallow: /），'
+    '按规则不抓；官网可抓的 HBM 白皮书没有功耗数字，HBM 运行参数仍缺。',
 ]
 
 
@@ -89,6 +141,10 @@ def classify(url):
     if DIRECTORY_PAGE.match(path):
         return 'directory', path
     return 'other', None
+
+
+def statuses_count(products, status):
+    return sum(p['extraction_status'] == status for p in products)
 
 
 def taxonomy_path(path):
@@ -213,6 +269,10 @@ class Catalog:
                     self.fetch(component, 'component', row['key'], suffix='json', refresh=refresh)
             if n % 50 == 0:
                 print(f'  {n}/{len(parts)} parts, {self.requests} requests', file=sys.stderr, flush=True)
+        families = {seg for row in parts for seg in taxonomy_path(urlsplit(row['url']).path)}
+        for family, brief in FAMILY_BRIEFS.items():
+            if family in families:
+                self.fetch(brief['url'], 'brief', family, suffix='pdf', refresh=refresh, cap=64 << 20)
         return self.requests
 
     # -- export --------------------------------------------------------------------------------------
@@ -334,6 +394,34 @@ class Catalog:
                 'official_resources': [], 'official_pages': [], 'product_url': entry['url'],
                 'sitemap_lastmod': entry['lastmod'], 'extraction_status': 'not_collected_obsolete'})
             count('obsolete')
+        # Family product briefs: the vendor's own family table for parts whose page names no component.
+        for family, brief in FAMILY_BRIEFS.items():
+            row = pages.get(brief['url'])
+            members = [p for p in products if p.get('gap_reason') == 'part_page_names_no_specification_component'
+                       and family in [s['slug'] for s in p['taxonomy']]]
+            if not members or row is None or not row['sha'] or not shutil.which('pdftotext'):
+                continue
+            text = subprocess.run(['pdftotext', '-layout', str(self.out / row['snapshot_path']), '-'],
+                                  capture_output=True, timeout=120).stdout.decode('utf-8', 'replace')
+            try:
+                rows, _ = brief_rows(text, brief['start'], brief['end'])
+            except StopIteration:
+                continue  # the brief no longer carries the table: the gap stays a gap
+            sources[brief['url']] = self._source(row, 'official_product_brief', 'pdf')
+            for p in members:
+                match = brief['part'].match(p['part_number'].upper())
+                ff = brief['form_factor'].get(match.group(1), match.group(1) + '（简介零件号规则未列）') if match else '未能解码'
+                capacity = brief['capacity'].get(match.group(2), match.group(2)) if match else '未能解码'
+                p['tables'] = [{'index': 1, 'section': brief['section'], 'rows': rows, 'is_specification': True,
+                                'method': 'vendor_product_brief_pdf_layout_rows',
+                                'source_refs': [{'url': brief['url'], 'sha256': row['sha']}],
+                                'notes': ('厂商系列产品简介 PDF 的规格总表（按容量分列；同一行的取值按印刷顺序以 " | " 分隔，'
+                                          '跨列合并的取值只出现一次），是系列级而非逐型号规格。本零件按简介的零件号规则解码：'
+                                          f'容量 {capacity}，外形 {ff}。原件见来源 PDF（SHA 回查）。')}]
+                p['extraction_status'] = 'family_brief_table_extracted'
+                p['brief_decoded'] = {'capacity': capacity, 'form_factor': ff, 'basis': 'vendor part-number scheme in the product brief'}
+                p.setdefault('official_resources', []).append({'url': brief['url'], 'role': 'family_product_brief'})
+
         # One product per part number. Micron lists some parts under two families (and some both as current and
         # obsolete): keep one entity, every official listing (category + page) and the current listing's tables.
         unique = {}
@@ -376,6 +464,8 @@ class Catalog:
                         'urls': len(sitemap), 'by_role': roles},
             'named_products_current': len(active),
             'named_products_current_with_specifications': sum(bool(p['tables']) for p in active),
+            'named_products_current_with_part_specifications': statuses_count(active, 'native_tables_extracted'),
+            'named_products_current_with_family_brief_only': statuses_count(active, 'family_brief_table_extracted'),
             'entities': len(products), 'entities_with_tables': sum(bool(p['tables']) for p in products),
             'named_products_obsolete_listed': sum(p['listing'] == 'obsolete' for p in products),
             'directory_entities': sum(p['listing'] == 'directory' for p in products),
@@ -417,6 +507,8 @@ def main(argv=None):
         catalog.collect(limit=args.limit, refresh=args.refresh)
     coverage = catalog.export()['coverage']
     print(json.dumps({k: coverage[k] for k in ('named_products_current', 'named_products_current_with_specifications',
+                                               'named_products_current_with_part_specifications',
+                                               'named_products_current_with_family_brief_only',
                                                'entities', 'entities_with_tables', 'named_products_obsolete_listed',
                                                'directory_entities', 'current_extraction_status', 'current_official_status',
                                                'requests_this_run')}, ensure_ascii=False, indent=1))

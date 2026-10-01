@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from urllib.error import HTTPError
 
-from fetchspec.micron_catalog import SITEMAP, Catalog, classify, directory_id, part_id, taxonomy_path
+from fetchspec.micron_catalog import FAMILY_BRIEFS, SITEMAP, Catalog, brief_rows, classify, directory_id, part_id, taxonomy_path
 
 BASE = 'https://www.micron.com'
 RDIMM = '/products/memory/dram-modules/rdimm'
@@ -139,6 +139,39 @@ class MicronCatalogTests(unittest.TestCase):
         self.assertTrue(all(h.get('If-None-Match') == '"same"' for h in self.fetcher.headers[first + 1:] if h))
         self.assertEqual(self.catalog.export()['coverage']['named_products_current_with_specifications'], 2,
                          '304 keeps the stored snapshot')
+
+
+# Shape of the 6600 ION product brief, Table 4, as pdftotext -layout prints it (2026-10-01).
+BRIEF = """Micron 6600 ION SSD key specifications
+  SSD capacity13                                                        30.72TB        61.44TB        122.88TB       245.76TB
+  Form factors                     U.2 (15mm)                           \uf0fc         \uf0fc         \uf0fc         \uf0fc
+  Performance14                    Sequential read (MB/s)               14,000         14,000         14,000         13,700
+                                   Read latency (µs)                                   100                           108
+  Power Consumption & Use          Maximum                                             25W                           30W
+  Endurance by Workload (DWPD)15   100% 128KB sequential
+                                                                                       1.0
+                                   writes
+  Table 4: Micron 6600 ION SSD specifications overview
+"""
+
+
+class ProductBriefTests(unittest.TestCase):
+    def test_brief_rows_keep_printed_values_in_order(self):
+        rows, raw = brief_rows(BRIEF, 'key specifications', 'Table 4')
+        pairs = [(r[0]['text'], r[1]['text']) for r in rows]
+        self.assertEqual(pairs, [('SSD capacity13', '30.72TB | 61.44TB | 122.88TB | 245.76TB'),
+                                 ('Form factors · U.2 (15mm)', '✓ | ✓ | ✓ | ✓'),
+                                 ('Performance14 · Sequential read (MB/s)', '14,000 | 14,000 | 14,000 | 13,700'),
+                                 ('Read latency (µs)', '100 | 108'),
+                                 ('Power Consumption & Use · Maximum', '25W | 30W'),
+                                 ('100% 128KB sequential writes', '1.0')])
+        self.assertIn('Endurance by Workload', raw, 'the printed block travels with the rows')
+
+    def test_part_numbers_decode_by_the_briefs_own_scheme(self):
+        brief = FAMILY_BRIEFS['6600-ion']
+        match = brief['part'].match('MTFDLAL122T8QHF-1BQ1DFCYY')
+        self.assertEqual((brief['form_factor'][match.group(1)], brief['capacity'][match.group(2)]), ('U.2 (15mm)', '122.88TB'))
+        self.assertNotIn(brief['part'].match('MTFDLBN122T8QHF-1BQ1DFCYY').group(1), brief['form_factor'], 'BN is not in the brief')
 
 
 def urlsplit_path(url):
