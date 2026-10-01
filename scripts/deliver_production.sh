@@ -29,7 +29,10 @@ json() { python3 -c "import json,sys; d=json.load(sys.stdin); print($1)"; }
 
 cd "$HERE"
 say "1/7 targets from $INRESEARCH (must be a clean main checkout)"
-git -C "$INRESEARCH" checkout -q main && git -C "$INRESEARCH" pull -q --ff-only
+export GIT_TERMINAL_PROMPT=0   # never stop at a username/password prompt
+git -C "$INRESEARCH" checkout -q main && git -C "$INRESEARCH" pull -q --ff-only || {
+  echo "cannot pull $INRESEARCH without a password. Use the ssh remote once:"
+  echo "  git -C $INRESEARCH remote set-url origin git@github.com:niuroumiantt/inresearch.ai.git"; exit 1; }
 SNAPSHOT=$("${P[@]}" sync-targets --upstream "$INRESEARCH" | json "d['snapshot_id']")
 echo "snapshot $SNAPSHOT"
 
@@ -63,7 +66,10 @@ json "'complete', d['complete'], {t: len(e['observations']) for t, e in d['targe
 [[ "$MODE" == "--check" ]] && { echo "--check: stopped before transfer. Package: $PKG"; exit 0; }
 
 say "6/7 Spark receive ($SPARK)"
-ssh -o BatchMode=yes "$SPARK" true || { echo "cannot ssh to $SPARK; set SPARK=<host>"; exit 1; }
+ssh -o BatchMode=yes "$SPARK" true || {
+  echo "ssh to $SPARK needs a password. Install this machine's key on Spark once (asks the password one last time):"
+  echo "  ssh-copy-id $SPARK"
+  echo "or point SPARK at the right host, e.g. SPARK=spark@192.168.50.2"; exit 1; }
 if ! ssh "$SPARK" "grep -q '\"json\"' $SPARK_REPO/src/inresearch/materials/fetchspec_receive.py"; then
   if grep -q '"format": "json"' "$PKG/manifest.json"; then
     echo "Spark's receiver does not accept json yet: merge inresearch fetchspec-backflow and git pull on Spark first."; exit 1
