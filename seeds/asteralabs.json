@@ -1,0 +1,21 @@
+{
+  "company_id": "asteralabs",
+  "reviewed_at": "2026-10-01",
+  "note": "Part pages carry a short attribute list; Scorpio switches have no part pages, so the family page's Ordering Information table (one row per part) is the source. Power and latency are not on these pages (operation rows open).",
+  "seeds": [
+    {
+      "targets": ["P.retimer.spec"],
+      "url": "https://www.asteralabs.com/product-details/pt6162lx/",
+      "product": "Aries 6 PT6162LX",
+      "reason": "目标行点名 Astera Labs Aries；零件页属性给出封装、最高 PCIe 6.x / CXL 3.x、x16 通道与产品阶段",
+      "max_pages": 2
+    },
+    {
+      "targets": ["P.pcie-switch.spec"],
+      "url": "https://www.asteralabs.com/products/scorpio-smart-fabric-switch/",
+      "product": "Scorpio Smart Fabric Switch (P-Series)",
+      "reason": "目标行点名 Astera Labs Scorpio；官方订购信息表逐型号给出协议（PCIe 5/6）、通道数（32–320）与封装尺寸",
+      "max_pages": 1
+    }
+  ]
+}

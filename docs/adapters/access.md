@@ -11,6 +11,8 @@
 | ABB | 5 | `new.abb.com/robots.txt` 返回 403 | 浏览器通道 |
 | Delta | 11 | 可达；规格在页面负载与 Delta 发布的规格文档 | [适配器](delta.md)，6 行绑定 |
 | Schneider Electric | 17 | `www.se.com/robots.txt` 可读，但产品页（如 Galaxy VX、NetShelter SX）与 `sitemap.xml` 一律 403 "Access Denied"（反爬拦截） | 浏览器通道 |
+| Broadcom | 约 6 | robots 允许产品页，但页面是 React 应用（Cloudflare），HTML 不点名数据来源；产品简介与数据手册在 robots 禁止的 `/docs-and-downloads/` 下 | 浏览器或人工通道（不逆向私有接口） |
+| Astera Labs | 4 | 可达；零件页属性列表与系列订购表 | [适配器](asteralabs.md)，2 行绑定 |
 | Eaton | 10 | 从云端容器连 `www.eaton.com`：代理隧道建立后 TLS 握手无响应（curl HTTP/2 被重置，HTTP/1.1 与 Python 均超时），连 robots.txt 都取不到 | 在 macmini 上重测；仍不通则转浏览器通道 |
 
 浏览器通道（目标表机制 `js_page`）尚未实现：需要人工辅助、单独授权，执行机是 macmini。上表 403 的厂商在那之前不进入自动采集。

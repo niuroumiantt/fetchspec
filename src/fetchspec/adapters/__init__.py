@@ -1,4 +1,5 @@
 """Small product adapters: official scope, identity and vendor-specific parsing."""
+from .asteralabs import AsteraLabsProductAdapter
 from .delta import DeltaProductAdapter
 from .micron import MicronProductAdapter
 from .nvidia import NvidiaProductAdapter
@@ -8,7 +9,7 @@ from .supermicro import SupermicroProductAdapter
 from .vertiv import VertivProductAdapter
 
 
-ADAPTERS = {'delta': DeltaProductAdapter, 'micron': MicronProductAdapter, 'nvidia': NvidiaProductAdapter, 'siemens': SiemensProductAdapter, 'siemens-energy': SiemensEnergyProductAdapter, 'supermicro': SupermicroProductAdapter, 'vertiv': VertivProductAdapter}
+ADAPTERS = {'asteralabs': AsteraLabsProductAdapter, 'delta': DeltaProductAdapter, 'micron': MicronProductAdapter, 'nvidia': NvidiaProductAdapter, 'siemens': SiemensProductAdapter, 'siemens-energy': SiemensEnergyProductAdapter, 'supermicro': SupermicroProductAdapter, 'vertiv': VertivProductAdapter}
 
 
 def adapter_for(company_id, known_catalog=None):
