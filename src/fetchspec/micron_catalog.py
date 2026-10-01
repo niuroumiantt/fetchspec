@@ -116,8 +116,21 @@ def directory_id(path):
     return _id(path.casefold().rstrip('/'))
 
 
+# Spelling of product-line words when a path segment has no page title of its own (most obsolete
+# catalogues): the vendor's own capitalisation, so "obsolete-lpddr4" reads "Obsolete LPDDR4".
+SLUG_WORDS = {w.casefold(): w for w in (
+    'DDR', 'LPDDR', 'SDRAM', 'RLDRAM', 'GDDR6', 'GDDR6X', 'HBM', 'DIMM', 'RDIMM', 'UDIMM', 'LRDIMM', 'SODIMM',
+    'SOEDIMM', 'SORDIMM', 'MRDIMM', 'NVDIMM', 'VLP', 'SSD', 'SATA', 'NVMe', 'ION', 'NAND', 'NOR', 'SLC', 'MLC',
+    'TLC', 'QLC', 'MCP', 'uMCP', 'UMCP', 'e.MMC', 'eMMC', 'UFS', 'SD', 'USB', 'SPD', '3D')}
+SLUG_WORDS.update({'emmc': 'e.MMC', 'umcp': 'uMCP'})
+
+
 def title_case(slug):
-    return ' '.join(w.upper() if len(w) <= 4 and re.search(r'\d', w) else w.capitalize() for w in slug.split('-'))
+    def word(w):
+        if w.casefold() in SLUG_WORDS:
+            return SLUG_WORDS[w.casefold()]
+        return w.upper() if re.search(r'\d', w) else w.capitalize()
+    return ' '.join(word(w) for w in slug.split('-'))
 
 
 def classify(url):
