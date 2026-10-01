@@ -299,7 +299,8 @@ def collect(root, company_id, urls, *, fetcher=None, refresh=False, max_pages=20
                                 for parent in parents:
                                     _enqueue(db, link['url'], product_id=parent)
                 else:
-                    extracted = adapter.component_tables(body, final) if kind == 'json' else extract_document(body, kind)
+                    extracted = (adapter.component_tables(body, final) if kind == 'json'
+                                 else adapter.document_tables(body, kind, final) or extract_document(body, kind))
                     owners = [r[0] for r in db.execute('SELECT product_id FROM source_products WHERE url=?', (row['url'],))]
                     _attach_tables(db, owners, extracted['tables'], source, extracted)
                 db.execute("UPDATE frontier SET state='done',etag=?,modified=?,latest_sha=?,error=NULL WHERE url=?",

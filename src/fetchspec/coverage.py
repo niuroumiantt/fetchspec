@@ -26,13 +26,17 @@ PARAMETER_HINTS = {
 def instance_adapters(target):
     """Adapters whose company names appear in the row's own publisher instances."""
     text = ' '.join(target.get('instances', []) + [target.get('publisher_category') or '']).casefold()
-    matched = []
+    names = []
     for company in sorted(ADAPTERS):
         profile = load_profile(company)
-        names = {company, profile.get('company_en', '')} | set(profile.get('instance_aliases', []))
-        if any(name and name.casefold() in text for name in names):
-            matched.append(company)
-    return matched
+        names += [(name.casefold(), company) for name in {company, profile.get('company_en', '')} | set(profile.get('instance_aliases', [])) if name]
+    matched = set()
+    # Longest names first, and a matched name is consumed: "Siemens Energy" is not also "Siemens".
+    for name, company in sorted(names, key=lambda pair: (-len(pair[0]), pair)):
+        if name in text:
+            matched.add(company)
+            text = text.replace(name, '\0')
+    return sorted(matched)
 
 
 def adapter_parts():

@@ -150,7 +150,9 @@ class InventoryFetcher:
             # wall-clock budget before control returns here. Read only the
             # bytes already available from http.client's buffered response so
             # the deadline is checked throughout a long transfer.
-            reader = getattr(response, "fp", response)
+            # HTTPResponse.read1 decodes chunked transfer encoding; its raw .fp does not, so a
+            # chunked PDF read from .fp would carry the chunk-size lines inside the body.
+            reader = response if hasattr(response, "read1") else getattr(response, "fp", response)
             read_chunk = getattr(reader, "read1", response.read)
             while True:
                 # Per-read timeout catches stalls; this caps total transfer time.

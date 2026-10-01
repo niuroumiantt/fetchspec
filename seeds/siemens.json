@@ -1,0 +1,28 @@
+{
+  "company_id": "siemens",
+  "reviewed_at": "2026-10-01",
+  "note": "siemens.com product pages have no tables; the adapter follows the catalog PDFs they link and reads technical-data pages as layout rows. Cerberus fire detection pages link no catalog (P.fire.spec open); Siemens leak detection has no product page (P.leak-detection.spec open).",
+  "seeds": [
+    {
+      "targets": ["P.mv-switchgear.spec"],
+      "url": "https://www.siemens.com/en-us/products/energy-systems/nxair/",
+      "product": "NXAIR (catalog HA 25.73)",
+      "reason": "目标行点名 Siemens NXAIR；产品页链接的官方样本 HA 25.73 技术数据页给出额定电压、开断电流、额定电流、尺寸与运输重量",
+      "max_pages": 3
+    },
+    {
+      "targets": ["P.lv-switchgear.spec"],
+      "url": "https://www.siemens.com/en-us/products/sivacon/s8/",
+      "product": "SIVACON S8 (S8plus brochure)",
+      "reason": "目标行点名 Siemens SIVACON；产品页链接的 S8plus 官方手册技术数据页给出额定工作电压、主母线额定电流与短时耐受电流、外形尺寸",
+      "max_pages": 3
+    },
+    {
+      "targets": ["P.busway.spec"],
+      "url": "https://www.siemens.com/en-us/products/sivacon/8ps-li-system/",
+      "product": "SIVACON 8PS (BD01, BD2, LI, LD, LDM, LData, LR)",
+      "reason": "目标行点名 Siemens 母线槽；8PS 产品页链接的官方手册按系统给出额定绝缘与工作电压、额定电流、短时耐受电流与防护等级",
+      "max_pages": 3
+    }
+  ]
+}

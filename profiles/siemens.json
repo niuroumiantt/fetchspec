@@ -1,0 +1,51 @@
+{
+  "profile_version": 1,
+  "company_id": "siemens",
+  "company_en": "Siemens",
+  "adapter_evidence": {
+    "verified_date": "2026-10-01",
+    "product_pages": "https://www.siemens.com/en-us/products/<family>/<product>/ (NXAIR, SIVACON S8, SIVACON 8PS, Cerberus …) carry marketing text and no specification table; ratings appear only in prose.",
+    "catalogs": "The pages link official catalog and brochure PDFs on https://assets.new.siemens.com/siemens/assets/api/uuid:<id>/<name>.pdf (HA 25.73 NXAIR, SIVACON S8plus, SIVACON 8PS 'Energy and data successfully put on track'). Their technical-data pages start with a running header 'Technical data' plus the section.",
+    "robots": "www.siemens.com disallows /*? and declares per-locale sitemaps (en-us 30 MB); assets.new.siemens.com disallows nothing."
+  },
+  "status": "target_driven_product_adapter",
+  "allowed_hosts": [
+    "www.siemens.com",
+    "assets.new.siemens.com"
+  ],
+  "sitemaps": [],
+  "discovery_entrypoints": [],
+  "document_formats": [
+    "pdf"
+  ],
+  "locales": "en_us_only",
+  "supported_locales": [
+    "en-us"
+  ],
+  "delay_seconds": 2.0,
+  "timeout_seconds": 60,
+  "max_xml_bytes": 20971520,
+  "max_document_bytes": 134217728,
+  "min_free_bytes": 8589934592,
+  "max_requests": 2000,
+  "max_discovery_depth": 2,
+  "page_prefixes": [
+    "/en-us/products/"
+  ],
+  "category_roots": [],
+  "known_gaps": [
+    "Catalog tables are kept as layout rows: wrapped labels and values that span several rating columns are not re-columned; the reviewer names the column in map-field.",
+    "Fire detection (Cerberus) and the 8PS busway pages link no catalog with technical data except the 8PS brochure; Cerberus rows stay open.",
+    "Siemens leak detection is not a published product line on siemens.com/en-us.",
+    "Product profiles, environmental declarations and SIMARIS tool flyers are not followed."
+  ],
+  "instance_aliases": [
+    "Siemens",
+    "西门子"
+  ],
+  "target_parts": [
+    "mv-switchgear",
+    "lv-switchgear",
+    "busway"
+  ]
+}

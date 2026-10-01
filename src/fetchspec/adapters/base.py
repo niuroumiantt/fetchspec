@@ -39,6 +39,10 @@ class ProductAdapter:
         """Whether a URL the product page names is an official JSON data component (none by default)."""
         return False
 
+    def document_tables(self, body, kind, url):
+        """Vendor-specific extraction for an official document, or None to use the generic extractor."""
+        return None
+
     def component_tables(self, body, url):
         raise ValueError('no official data component parser for ' + self.company_id)
 
