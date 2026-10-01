@@ -1,4 +1,4 @@
-"""Vertiv: official en-us product catalog pages with a native HTML Models table."""
+"""Vertiv: official English product catalog pages with a native HTML Models table."""
 import hashlib
 import html
 import re
@@ -7,7 +7,10 @@ from urllib.parse import urlsplit
 from ..extraction import html_page
 from .base import ProductAdapter
 
-CATALOG = re.compile(r'^/en-us/products-catalog/(?:[a-z0-9-]+/)+$')
+# en-us first; other English regional catalogs (en-emea, en-asia, en-in, …) only carry products
+# that have no en-us page. Identity drops the locale, so the same product dedups across regions.
+CATALOG = re.compile(r'^/en-[a-z]{2,6}/products-catalog/(?:[A-Za-z0-9][A-Za-z0-9._-]*/)+$')
+LOCALE = re.compile(r'^/en-[a-z]{2,6}(?=/)')
 MODEL_HEADER = re.compile(r'^\s*(?:models?|型号)\s*$', re.I)
 SPEC_SECTION = re.compile(r'specification|technical data|models|规格|型号', re.I)
 MARKS = re.compile(r'[™®©]|&#(?:174|8482|169);')
@@ -42,6 +45,6 @@ class VertivProductAdapter(ProductAdapter):
             return None
         path = urlsplit(url).path.rstrip('/')
         product = any(t['is_specification'] for t in page.get('tables', []))
-        key = re.sub(r'^/en-us', '', path)
+        key = LOCALE.sub('', path).casefold()  # Vertiv mixes case in a few slugs (powerdirect-3000-33kW)
         return {'id': 'vertiv-' + hashlib.sha256(key.encode()).hexdigest()[:20], 'name': name,
                 'kind': 'named_product' if product else 'family_or_directory', 'parent_id': None}

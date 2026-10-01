@@ -1,5 +1,20 @@
+import re
+from urllib.parse import urlsplit
+
 from .. import product_catalog as legacy
 from .base import ProductAdapter
+
+# Official networking documentation: one space per product, with a "specifications" page that
+# carries the native spec tables (switches, NICs, optics). Marketing pages for these products
+# publish no tables. Only that page of each space is a product seed.
+DOC_HOST = 'networking-docs.nvidia.com'
+DOC_SPEC = re.compile(r'^/[a-z0-9][a-z0-9_-]{1,80}/specifications/?$')
+MANUAL_SUFFIX = re.compile(r'\s+(?:Hardware\s+)?User\s+Manual\s*$|\s+Product\s+Specifications?\s*$', re.I)
+
+
+def doc_spec_page(url):
+    parts = urlsplit(url)
+    return parts.hostname == DOC_HOST and bool(DOC_SPEC.match(parts.path))
 
 
 class NvidiaProductAdapter(ProductAdapter):
@@ -11,12 +26,19 @@ class NvidiaProductAdapter(ProductAdapter):
         self.profile['robots_hosts'] = self.profile['allowed_hosts']
 
     def page_allowed(self, url):
-        return legacy.page_allowed(url)
+        return legacy.page_allowed(url) or doc_spec_page(url)
 
     def parse(self, body, url):
         return legacy.parse_page(body, url)
 
     def identity(self, page, url):
+        if doc_spec_page(url):
+            # Title is "Specifications | <manual name>"; the manual names the product line.
+            title = page.get('title') or ''
+            name = MANUAL_SUFFIX.sub('', title.split('|', 1)[1].strip() if '|' in title else '').strip()
+            if not name:
+                return None
+            return {'id': legacy.product_identifier(name), 'name': name, 'kind': 'named_product', 'parent_id': None}
         heading = page.get('heading') or page.get('title')
         if not heading:
             return None

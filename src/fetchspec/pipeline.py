@@ -28,6 +28,14 @@ def main(argv=None):
     collection_mode = collect.add_mutually_exclusive_group()
     collection_mode.add_argument('--refresh', action='store_true')
     collection_mode.add_argument('--reparse', action='store_true')
+    seeds = sub.add_parser('collect-seeds', help='batch collect the reviewed seed pages in seeds/*.json, within one request budget')
+    seeds.add_argument('--company', action='append', choices=sorted(ADAPTERS))
+    seeds.add_argument('--target', action='append', help='only seeds that answer these target rows')
+    seeds.add_argument('--budget', type=int, default=200, help='total HTTP requests for the whole run')
+    seeds.add_argument('--bind', action='store_true', help='bind products found at each seed URL, using the seed reason')
+    seeds.add_argument('--refresh', action='store_true', help='conditionally re-request already collected seeds')
+    seeds.add_argument('--dry-run', action='store_true')
+    seeds.add_argument('--include-closed', action='store_true', help='also run seeds whose targets are no longer needed upstream')
     mapping_sync = sub.add_parser('map-sync', help='reconcile official product sitemap candidates without collecting pages')
     mapping_sync.add_argument('--company', required=True, choices=sorted(ADAPTERS))
     mapping_sync.add_argument('--target', action='append', required=True)
@@ -176,20 +184,18 @@ def execute(args, root):
         if args.command == 'bind':
             return store.bind(snapshot, args.company, args.product, args.target, args.reason)
         if args.command == 'collect':
-            from .acquisition import collect
-            validate_target_ids(snapshot, args.target)
-            if not 1 <= args.max_pages <= 1000:
-                raise ValueError('max-pages must be between 1 and 1000')
-            scope = {'snapshot_id': snapshot['snapshot_id'], 'company_id': args.company,
-                     'target_ids': sorted(set(args.target)), 'urls': sorted(set(args.url))}
-            scope_id = fingerprint(scope)
-            atomic_json(root / 'scopes' / (scope_id + '.json'), scope)
-            payload = collect(root, args.company, args.url, max_pages=args.max_pages, refresh=args.refresh, reparse=args.reparse,
-                              known_catalog=store.export_catalog(args.company))
-            result = store.ingest_catalog(payload, root)
-            result.update(scope_id=scope_id, acquisition_report=payload.get('acquisition_report'),
-                          binding='review explicit product IDs with bind before delivery')
+            from .seeds import collect_targets
+            result, _ = collect_targets(root, store, snapshot, args.company, args.url, args.target, max_pages=args.max_pages,
+                                        refresh=args.refresh, reparse=args.reparse)
             return result
+        if args.command == 'collect-seeds':
+            from .seeds import load as load_seeds, run as run_seeds
+            selected = [seed for seed in load_seeds() if (not args.company or seed['company_id'] in args.company)
+                        and (not args.target or set(seed['targets']) & set(args.target))]
+            if not 1 <= args.budget <= 5000:
+                raise ValueError('budget must be between 1 and 5000')
+            return run_seeds(root, store, snapshot, selected, budget=args.budget, bind=args.bind, refresh=args.refresh,
+                             dry_run=args.dry_run, include_closed=args.include_closed)
         if args.command == 'package':
             items = store.delivery_items(snapshot, args.company, args.product)
             return build_package(root, snapshot, args.company, items, delivery_id=args.delivery_id)
