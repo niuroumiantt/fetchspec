@@ -1,8 +1,8 @@
-# product	table	row	cell	field	unit	condition	target	(unit "-" means none)
-asteralabs-b2c9074f9fce513f8c4d	1	8	3	pcie_switch.pcie_generation	-	Scorpio P-Series PF63201L (largest listed P-Series part)	P.pcie-switch.spec
-asteralabs-b2c9074f9fce513f8c4d	1	8	4	pcie_switch.lanes	-	Scorpio P-Series PF63201L	P.pcie-switch.spec
-asteralabs-b2c9074f9fce513f8c4d	1	8	5	pcie_switch.package_size	mm	Scorpio P-Series PF63201L package size	P.pcie-switch.spec
-asteralabs-ba6866c9579fa9f9cdeb	1	2	2	retimer.pcie_generation	-	Aries PT6162LX, max supported PCIe / CXL generation	P.retimer.spec
-asteralabs-ba6866c9579fa9f9cdeb	1	3	2	retimer.lanes	-	Aries PT6162LX lane width	P.retimer.spec
-asteralabs-ba6866c9579fa9f9cdeb	1	1	2	retimer.form_factor	-	Aries PT6162LX package	P.retimer.spec
-asteralabs-ba6866c9579fa9f9cdeb	1	5	2	retimer.generation	-	Aries PT6162LX, Astera retimer generation; product revision Pre-Production	P.retimer.spec
+# product	table	row	cell	field	unit	condition	target	expect	(unit "-" means none)
+asteralabs-b2c9074f9fce513f8c4d	1	8	3	pcie_switch.pcie_generation	-	Scorpio P-Series PF63201L (largest listed P-Series part)	P.pcie-switch.spec	PCIe 6
+asteralabs-b2c9074f9fce513f8c4d	1	8	4	pcie_switch.lanes	-	Scorpio P-Series PF63201L	P.pcie-switch.spec	320
+asteralabs-b2c9074f9fce513f8c4d	1	8	5	pcie_switch.package_size	mm	Scorpio P-Series PF63201L package size	P.pcie-switch.spec	62.5×62.5
+asteralabs-ba6866c9579fa9f9cdeb	1	2	2	retimer.pcie_generation	-	Aries PT6162LX, max supported PCIe / CXL generation	P.retimer.spec	PCIe 6.x / CXL 3.x
+asteralabs-ba6866c9579fa9f9cdeb	1	3	2	retimer.lanes	-	Aries PT6162LX lane width	P.retimer.spec	x 16
+asteralabs-ba6866c9579fa9f9cdeb	1	1	2	retimer.form_factor	-	Aries PT6162LX package	P.retimer.spec	354-pin FC-CSP
+asteralabs-ba6866c9579fa9f9cdeb	1	5	2	retimer.generation	-	Aries PT6162LX, Astera retimer generation; product revision Pre-Production	P.retimer.spec	3 rd

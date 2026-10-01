@@ -1,26 +1,26 @@
-# product	table	row	cell	field	unit	condition	target	(unit "-" means none)
-delta-251a4ee59f42dfd79ee2	1	4	3	power_shelf.power_rating	kW	ORV3 18 / 33 kW shelf column, max. output power; the 33 kW configuration is the product title, the cell lists both variants	P.power-shelf.spec
-delta-251a4ee59f42dfd79ee2	1	5	2	power_shelf.output_voltage	V	ORV3 18 / 33 kW shelf; one merged cell (colspan 3) covering both the PSU and the shelf columns; DC	P.power-shelf.spec
-delta-251a4ee59f42dfd79ee2	1	7	3	power_shelf.input_voltage	V	ORV3 18 / 33 kW shelf column, AC input 200-277 V L-N / 346-480 V L-L, 3W+N+PE, 50/60 Hz	P.power-shelf.spec
-delta-251a4ee59f42dfd79ee2	1	6	3	power_shelf.output_current	A	ORV3 18 / 33 kW shelf column, max. output current for the 18 kW / 33 kW variants	P.power-shelf.spec
-delta-251a4ee59f42dfd79ee2	1	2	3	power_shelf.dimensions	in	ORV3 18 / 33 kW shelf column, H x W x D; mm in parentheses	P.power-shelf.spec
-delta-251a4ee59f42dfd79ee2	1	3	3	power_shelf.weight	lb	ORV3 18 / 33 kW shelf column, 12 kg without PSUs / 30 kg fully populated; vendor misprints the second lbs as Ibs	P.power-shelf.spec
-delta-251a4ee59f42dfd79ee2	1	8	2	power_shelf.cooling_method	-	ORV3 18 / 33 kW shelf; merged cell (colspan 3) covering PSU and shelf columns; the shelf source publishes no efficiency or loss figure (see P.psu.operation for PSU efficiency)	P.power-shelf.operation
-delta-5902ab234fbdce7b3c92	1	4	2	psu.power_rating	W	ORV3 5.5 kW PSU, max. output power	P.psu.spec
-delta-5902ab234fbdce7b3c92	1	5	2	psu.output_voltage	V	ORV3 5.5 kW PSU, DC output	P.psu.spec
-delta-5902ab234fbdce7b3c92	1	7	2	psu.input_voltage	V	ORV3 5.5 kW PSU, AC input range, 50/60 Hz	P.psu.spec
-delta-5902ab234fbdce7b3c92	1	2	2	psu.dimensions	in	ORV3 5.5 kW PSU, H x W x D; mm in parentheses (the 33 kW system page lists the PSU depth as 520 mm, this page 640 mm)	P.psu.spec
-delta-5902ab234fbdce7b3c92	1	3	2	psu.weight	lb	ORV3 5.5 kW PSU; kg in parentheses	P.psu.spec
-delta-5902ab234fbdce7b3c92	1	8	2	psu.efficiency	%	ORV3 5.5 kW PSU at 100% load; vendor omits the % sign on the value	P.psu.operation
-delta-93cd6183054061e397dd	1	9	1	bbu.power_rating	kW	33 kW BBU Shelf, discharge power held for 90 s after 6 years (value row under the Discharge Power label; 24 kW for 240 s on the next row)	P.bbu.spec
-delta-93cd6183054061e397dd	1	2	2	bbu.input_voltage	V	33 kW BBU Shelf, DC input	P.bbu.spec
-delta-93cd6183054061e397dd	1	3	2	bbu.output_voltage	V	33 kW BBU Shelf, DC output	P.bbu.spec
-delta-93cd6183054061e397dd	1	7	2	bbu.charge_power	W	33 kW BBU Shelf, charge power (6 x 5.5 kW modules)	P.bbu.spec
-delta-93cd6183054061e397dd	1	12	2	bbu.dimensions	mm	33 kW BBU Shelf, W x H x D	P.bbu.spec
-delta-93cd6183054061e397dd	1	11	2	bbu.operating_temperature	°C	33 kW BBU Shelf; vendor label misspelt Operation Temputrue	P.bbu.spec
-delta-1449b48afe7010443216	1	4	1	cdu.cooling_capacity	kW	GoCool-1500 liquid-to-liquid CDU, nominal rating at 6°C approach (first of four rating rows; 1016 kW at 4°C approach is the lowest)	P.cdu.spec
-delta-1449b48afe7010443216	1	10	2	cdu.primary_flow_rate	LPM	GoCool-1500 primary side (water) nominal coolant flow rate, 17°C primary inlet	P.cdu.spec
-delta-1449b48afe7010443216	1	15	2	cdu.secondary_flow_rate	LPM	GoCool-1500 secondary side (25% PG) nominal flow; matches the 1016 kW at 4°C approach rating row and the 4°C approach temperature row, not the 1500 kW headline (1500 LPM)	P.cdu.spec
-delta-1449b48afe7010443216	1	20	2	cdu.input_voltage	V	GoCool-1500 nominal power supply voltage, 3P3W+PE, AC	P.cdu.spec
-delta-1449b48afe7010443216	1	32	2	cdu.dimensions	mm	GoCool-1500, W x D x H; inches in parentheses	P.cdu.spec
-delta-1449b48afe7010443216	1	36	2	cdu.weight	kg	GoCool-1500 net weight with coolant (row label With coolant); the same cell gives 1600 kg without coolant	P.cdu.spec
+# product	table	row	cell	field	unit	condition	target	expect	(unit "-" means none)
+delta-251a4ee59f42dfd79ee2	1	4	3	power_shelf.power_rating	kW	ORV3 18 / 33 kW shelf column, max. output power; the 33 kW configuration is the product title, the cell lists both variants	P.power-shelf.spec	18 / 33 kW (max.)
+delta-251a4ee59f42dfd79ee2	1	5	2	power_shelf.output_voltage	V	ORV3 18 / 33 kW shelf; one merged cell (colspan 3) covering both the PSU and the shelf columns; DC	P.power-shelf.spec	48 / 50 VDC
+delta-251a4ee59f42dfd79ee2	1	7	3	power_shelf.input_voltage	V	ORV3 18 / 33 kW shelf column, AC input 200-277 V L-N / 346-480 V L-L, 3W+N+PE, 50/60 Hz	P.power-shelf.spec	AC input: 200 - 277 V L-N 346 - 480 V L-L (3W+N+PE) 50 / 60 Hz
+delta-251a4ee59f42dfd79ee2	1	6	3	power_shelf.output_current	A	ORV3 18 / 33 kW shelf column, max. output current for the 18 kW / 33 kW variants	P.power-shelf.spec	360 / 660 A (max.)
+delta-251a4ee59f42dfd79ee2	1	2	3	power_shelf.dimensions	in	ORV3 18 / 33 kW shelf column, H x W x D; mm in parentheses	P.power-shelf.spec	1.89 x 21 x 28.3 inch (48 x 533 x 720 mm)
+delta-251a4ee59f42dfd79ee2	1	3	3	power_shelf.weight	lb	ORV3 18 / 33 kW shelf column, 12 kg without PSUs / 30 kg fully populated; vendor misprints the second lbs as Ibs	P.power-shelf.spec	26.5 lbs (12 kg) without PSUs / 66.16 Ibs (30kg) fully populated
+delta-251a4ee59f42dfd79ee2	1	8	2	power_shelf.cooling_method	-	ORV3 18 / 33 kW shelf; merged cell (colspan 3) covering PSU and shelf columns; the shelf source publishes no efficiency or loss figure (see P.psu.operation for PSU efficiency)	P.power-shelf.operation	Cooling by PSU fans
+delta-5902ab234fbdce7b3c92	1	4	2	psu.power_rating	W	ORV3 5.5 kW PSU, max. output power	P.psu.spec	5,500 W
+delta-5902ab234fbdce7b3c92	1	5	2	psu.output_voltage	V	ORV3 5.5 kW PSU, DC output	P.psu.spec	48 / 50 VDC
+delta-5902ab234fbdce7b3c92	1	7	2	psu.input_voltage	V	ORV3 5.5 kW PSU, AC input range, 50/60 Hz	P.psu.spec	180 VAC - 305 VAC 50 / 60 Hz
+delta-5902ab234fbdce7b3c92	1	2	2	psu.dimensions	in	ORV3 5.5 kW PSU, H x W x D; mm in parentheses (the 33 kW system page lists the PSU depth as 520 mm, this page 640 mm)	P.psu.spec	1.57 x 2.9 x 25.2 inch (40.0 x 73.5 x 640 mm)
+delta-5902ab234fbdce7b3c92	1	3	2	psu.weight	lb	ORV3 5.5 kW PSU; kg in parentheses	P.psu.spec	9.92 lbs (4.5 kg)
+delta-5902ab234fbdce7b3c92	1	8	2	psu.efficiency	%	ORV3 5.5 kW PSU at 100% load; vendor omits the % sign on the value	P.psu.operation	>97.5 @100% Load
+delta-93cd6183054061e397dd	1	9	1	bbu.power_rating	kW	33 kW BBU Shelf, discharge power held for 90 s after 6 years (value row under the Discharge Power label; 24 kW for 240 s on the next row)	P.bbu.spec	33 kW, 90s after 6 years
+delta-93cd6183054061e397dd	1	2	2	bbu.input_voltage	V	33 kW BBU Shelf, DC input	P.bbu.spec	47.5–53.0 VDC
+delta-93cd6183054061e397dd	1	3	2	bbu.output_voltage	V	33 kW BBU Shelf, DC output	P.bbu.spec	50 VDC
+delta-93cd6183054061e397dd	1	7	2	bbu.charge_power	W	33 kW BBU Shelf, charge power (6 x 5.5 kW modules)	P.bbu.spec	1650 W
+delta-93cd6183054061e397dd	1	12	2	bbu.dimensions	mm	33 kW BBU Shelf, W x H x D	P.bbu.spec	537 x 93.6 x 787.5 mm
+delta-93cd6183054061e397dd	1	11	2	bbu.operating_temperature	°C	33 kW BBU Shelf; vendor label misspelt Operation Temputrue	P.bbu.spec	0 to 40°C
+delta-1449b48afe7010443216	1	4	1	cdu.cooling_capacity	kW	GoCool-1500 liquid-to-liquid CDU, nominal rating at 6°C approach (first of four rating rows; 1016 kW at 4°C approach is the lowest)	P.cdu.spec	1500 kW @6°C approach, 1500 LPM secondary flow rate, 1300 LPM primary flow rate, 1.0 LPM/kW
+delta-1449b48afe7010443216	1	10	2	cdu.primary_flow_rate	LPM	GoCool-1500 primary side (water) nominal coolant flow rate, 17°C primary inlet	P.cdu.spec	1300 LPM, 17°C primary inlet temperature
+delta-1449b48afe7010443216	1	15	2	cdu.secondary_flow_rate	LPM	GoCool-1500 secondary side (25% PG) nominal flow; matches the 1016 kW at 4°C approach rating row and the 4°C approach temperature row, not the 1500 kW headline (1500 LPM)	P.cdu.spec	1524 LPM
+delta-1449b48afe7010443216	1	20	2	cdu.input_voltage	V	GoCool-1500 nominal power supply voltage, 3P3W+PE, AC	P.cdu.spec	380/400/415/480 Vac, 3P3W+PE
+delta-1449b48afe7010443216	1	32	2	cdu.dimensions	mm	GoCool-1500, W x D x H; inches in parentheses	P.cdu.spec	1200 x 1200 x 2300 mm (47.2'' x 47.2'' x 90.6'')
+delta-1449b48afe7010443216	1	36	2	cdu.weight	kg	GoCool-1500 net weight with coolant (row label With coolant); the same cell gives 1600 kg without coolant	P.cdu.spec	1900 kg (4188.8 lb); Without coolant: 1600 kg (3527.4 lb)

@@ -1,13 +1,13 @@
-# product	table	row	cell	field	unit	condition	target	(unit "-" means none)
-siemens-energy-7190e8ed0bc9d2391419	1	2	2	gas_turbine.power_rating	MW	SGT-800 62 MW rating, simple cycle, gross power output (printed as MW(e))	P.gas-turbine.spec
-siemens-energy-7190e8ed0bc9d2391419	5	2	3	gas_turbine.weight	kg	SGT-800 standard package 62 MW rating, approx. weight; lb in parentheses	P.gas-turbine.spec
-siemens-energy-7190e8ed0bc9d2391419	5	3	3	gas_turbine.length	m	SGT-800 standard package 62 MW rating, package length; ft in parentheses	P.gas-turbine.spec
-siemens-energy-7190e8ed0bc9d2391419	5	4	3	gas_turbine.width	m	SGT-800 standard package 62 MW rating, package width; ft in parentheses	P.gas-turbine.spec
-siemens-energy-7190e8ed0bc9d2391419	5	5	3	gas_turbine.height	m	SGT-800 standard package 62 MW rating, package height; ft in parentheses	P.gas-turbine.spec
-siemens-energy-7190e8ed0bc9d2391419	1	5	2	gas_turbine.efficiency	%	SGT-800 62 MW rating, simple cycle, gross efficiency	P.gas-turbine.operation
-siemens-energy-7190e8ed0bc9d2391419	1	6	2	gas_turbine.heat_rate	kJ/kWh	SGT-800 62 MW rating, simple cycle, gross heat rate; Btu/kWh in parentheses	P.gas-turbine.operation
-siemens-energy-7190e8ed0bc9d2391419	1	9	2	gas_turbine.exhaust_mass_flow	kg/s	SGT-800 62 MW rating, simple cycle, exhaust mass flow; lb/s in parentheses	P.gas-turbine.operation
-siemens-energy-7190e8ed0bc9d2391419	1	10	2	gas_turbine.exhaust_temperature	°C	SGT-800 62 MW rating, simple cycle, exhaust temperature; °F in parentheses	P.gas-turbine.operation
-siemens-energy-21ec946ffd83187c3ddb	1	3	3	transformer.power_rating	MVA	Siemens Energy Large Power Transformer column (largest of the three types on the page), upper bound of the power rating	P.transformer.spec
-siemens-energy-21ec946ffd83187c3ddb	1	2	3	transformer.rated_voltage	kV	Siemens Energy Large Power Transformer, upper bound of the vendor Voltage range row	P.transformer.spec
-siemens-energy-21ec946ffd83187c3ddb	1	4	3	transformer.cooling_type	-	Siemens Energy Large Power Transformer, cooling methods offered; vendor punctuation ONAF. kept as printed	P.transformer.spec
+# product	table	row	cell	field	unit	condition	target	expect	(unit "-" means none)
+siemens-energy-7190e8ed0bc9d2391419	1	2	2	gas_turbine.power_rating	MW	SGT-800 62 MW rating, simple cycle, gross power output (printed as MW(e))	P.gas-turbine.spec	62.5 MW(e)
+siemens-energy-7190e8ed0bc9d2391419	5	2	3	gas_turbine.weight	kg	SGT-800 standard package 62 MW rating, approx. weight; lb in parentheses	P.gas-turbine.spec	300,000 kg (661,400 lb)
+siemens-energy-7190e8ed0bc9d2391419	5	3	3	gas_turbine.length	m	SGT-800 standard package 62 MW rating, package length; ft in parentheses	P.gas-turbine.spec	25.4 m (83 ft)
+siemens-energy-7190e8ed0bc9d2391419	5	4	3	gas_turbine.width	m	SGT-800 standard package 62 MW rating, package width; ft in parentheses	P.gas-turbine.spec	7.2 m (24 ft)
+siemens-energy-7190e8ed0bc9d2391419	5	5	3	gas_turbine.height	m	SGT-800 standard package 62 MW rating, package height; ft in parentheses	P.gas-turbine.spec	6.6 m (22 ft)
+siemens-energy-7190e8ed0bc9d2391419	1	5	2	gas_turbine.efficiency	%	SGT-800 62 MW rating, simple cycle, gross efficiency	P.gas-turbine.operation	41.1%
+siemens-energy-7190e8ed0bc9d2391419	1	6	2	gas_turbine.heat_rate	kJ/kWh	SGT-800 62 MW rating, simple cycle, gross heat rate; Btu/kWh in parentheses	P.gas-turbine.operation	8,759 kJ/kWh (8,302 Btu/kWh)
+siemens-energy-7190e8ed0bc9d2391419	1	9	2	gas_turbine.exhaust_mass_flow	kg/s	SGT-800 62 MW rating, simple cycle, exhaust mass flow; lb/s in parentheses	P.gas-turbine.operation	135.5 kg/s (298.7 lb/s)
+siemens-energy-7190e8ed0bc9d2391419	1	10	2	gas_turbine.exhaust_temperature	°C	SGT-800 62 MW rating, simple cycle, exhaust temperature; °F in parentheses	P.gas-turbine.operation	596 °C (1,104 °F)
+siemens-energy-21ec946ffd83187c3ddb	1	3	3	transformer.power_rating	MVA	Siemens Energy Large Power Transformer column (largest of the three types on the page), upper bound of the power rating	P.transformer.spec	Up to 1,300 MVA
+siemens-energy-21ec946ffd83187c3ddb	1	2	3	transformer.rated_voltage	kV	Siemens Energy Large Power Transformer, upper bound of the vendor Voltage range row	P.transformer.spec	Up to 1,100 kV
+siemens-energy-21ec946ffd83187c3ddb	1	4	3	transformer.cooling_type	-	Siemens Energy Large Power Transformer, cooling methods offered; vendor punctuation ONAF. kept as printed	P.transformer.spec	ONAN, ONAF. ODAF, ODWF
