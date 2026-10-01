@@ -9,6 +9,7 @@
 #   SPARK        ssh host of the production receiver         (default spark)
 #   SPARK_REPO   inresearch.ai checkout on Spark             (default ~/code/inresearch.ai)
 #   REVIEWER     name recorded on every parameter mapping    (default $USER)
+#   INCLUDE_CLOSED=1  also deliver rows another company already delivered (a second vendor for the row)
 #
 # Parameter mappings are reviewed decisions; they live in scripts/mappings/<company>.tsv
 # (product, table, row, cell, field, unit, condition, target, expect) so every run maps the same cells;
@@ -38,14 +39,20 @@ SNAPSHOT=$("${P[@]}" sync-targets --upstream "$INRESEARCH" | json "d['snapshot_i
 echo "snapshot $SNAPSHOT"
 
 say "2/7 collect reviewed seeds for $COMPANY"
-"${P[@]}" collect-seeds --company "$COMPANY" --bind --budget 50 \
-  | json "'counts', d['counts'], 'requests', d['requests_used'], 'bound', d['bound_targets']"
+CLOSED=(); [[ "${INCLUDE_CLOSED:-}" == 1 ]] && CLOSED=(--include-closed)
+COLLECTED=$("${P[@]}" collect-seeds --company "$COMPANY" --bind --budget 50 ${CLOSED[@]+"${CLOSED[@]}"})
+json "'counts', d['counts'], 'requests', d['requests_used'], 'bound', d['bound_targets']" <<<"$COLLECTED"
+BOUND=" $(json "' '.join(d['bound_targets'])" <<<"$COLLECTED") "
 
 say "3/7 map reviewed parameters ($MAPPINGS, reviewer $REVIEWER)"
 PRODUCTS=()
 while IFS=$'\t' read -r product table row cell field unit condition target expect; do
   [[ -z "$product" || "$product" == \#* ]] && continue
   [[ "$unit" == "-" ]] && unit=""   # read collapses empty tab fields, so the file writes "-" for no unit
+  if [[ "$BOUND" != *" $target "* ]]; then   # row already delivered by another company, so its seed was skipped
+    echo "  skip $field: $target not collected this run (already delivered; INCLUDE_CLOSED=1 adds this company too)"
+    continue
+  fi
   out=$("${P[@]}" map-field --company "$COMPANY" --product "$product" --table "$table" --row "$row" --cell "$cell" \
     --field "$field" --unit "$unit" --condition "$condition" --reviewer "$REVIEWER" --target "$target") \
     || { echo "  $field: cell $product t$table r$row c$cell not found: $out"; echo "the page's table changed since review; stopping"; exit 1; }
@@ -61,6 +68,7 @@ while IFS=$'\t' read -r product table row cell field unit condition target expec
 done < "$MAPPINGS"
 
 say "4/7 package"
+[[ ${#PRODUCTS[@]} -gt 0 ]] || { echo "nothing to deliver: every mapped row is already delivered (INCLUDE_CLOSED=1 to add this company)"; exit 1; }
 ARGS=(); for p in "${PRODUCTS[@]}"; do ARGS+=(--product "$p"); done
 PKG=$("${P[@]}" package --company "$COMPANY" "${ARGS[@]}" | json "d['package']")
 ID=$(basename "$PKG")
