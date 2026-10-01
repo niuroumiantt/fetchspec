@@ -81,6 +81,7 @@ def main(argv=None):
     coverage.add_argument('--stage', choices=['no_adapter', 'adapter_ready', 'bound', 'packaged', 'received_validation_only', 'received'])
     planning = sub.add_parser('plan', help='demand queue: next action per open target, ranked by due date and sensitivity')
     planning.add_argument('--limit', type=int, default=40)
+    planning.add_argument('--backflow', help='inresearch per-target backflow JSON: a file or an https URL (docs/upstream/backflow-request.md)')
     sub.add_parser('status')
     args = parser.parse_args(argv)
     root = (args.root or (default_data_root() / 'pipeline')).expanduser().resolve()
@@ -105,8 +106,10 @@ def execute(args, root):
     if args.command == 'author-proposal':
         return export_author_proposal(root, args.delivery_id, snapshot=load_snapshot(root), output_path=args.output, environment=args.environment)
     if args.command == 'plan':
-        from .coverage import build as build_coverage, plan
-        return plan(build_coverage(root, load_snapshot(root)), limit=max(1, args.limit))
+        from .coverage import build as build_coverage, load_backflow, plan
+        snapshot = load_snapshot(root)
+        backflow = load_backflow(args.backflow, snapshot) if args.backflow else None
+        return plan(build_coverage(root, snapshot), limit=max(1, args.limit), backflow=backflow)
     if args.command == 'coverage':
         from .coverage import build as build_coverage, write_csv
         report = build_coverage(root, load_snapshot(root))

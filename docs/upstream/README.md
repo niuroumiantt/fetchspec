@@ -1,4 +1,9 @@
-# 需要 inresearch.ai 合入的配套补丁
+# 需要 inresearch.ai 处理的事项
+
+- [回流接口申请](backflow-request.md)（2026-10-01）：按目标行告诉 Fetchspec 状态、已收原件数与厂商。
+- 下文：规格事件卡连带翻新闻行的补丁（2026-09-29）。
+
+## 配套补丁
 
 `inresearch-delivered-scope.patch` 针对 inresearch.ai `6f592ff`，`git apply --check` 干净。Fetchspec 对上游只读，这个补丁由 inresearch 作者审阅后在那边合入；本仓库只保存补丁和验证记录。
 
