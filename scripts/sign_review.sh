@@ -20,7 +20,9 @@ FILES=$(python3 manage.py governance --check 2>&1 | sed -n 's/.*review required:
 echo "Reviewed files changed on $BRANCH:"; echo "$FILES" | sed 's/^/  /'
 # shellcheck disable=SC2086
 git --no-pager diff origin/main...HEAD -- $FILES
-read -r -p "Signed off by ${USER:-$(id -un)} after reading the diff above? [y/N] " ok
+# Drop lines pasted after this command, so only a key typed now can answer.
+while read -r -t 1 _ </dev/tty 2>/dev/null; do :; done
+read -r -p "Signed off by ${USER:-$(id -un)} after reading the diff above? [y/N] " ok </dev/tty
 [[ "$ok" == y || "$ok" == Y ]] || { echo "not signed"; exit 1; }
 python3 - $FILES <<'PY'
 import hashlib, re, sys
