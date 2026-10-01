@@ -8,7 +8,7 @@ they are (exact duplicate rows collapsed), and never execute page script.
 import hashlib
 import json
 import re
-from urllib.parse import urlsplit
+from urllib.parse import urljoin, urlsplit, urlunsplit
 
 from ..extraction import cell, html_page
 from .base import ProductAdapter
@@ -22,6 +22,19 @@ TITLE = re.compile(r'^\s*([A-Z0-9][A-Z0-9:.-]+)\b')
 
 class MicronProductAdapter(ProductAdapter):
     company_id = 'micron'
+
+    def normalize(self, url, base=''):
+        # Micron's product and component paths name their locale explicitly (/content/micron/us/en/); part
+        # numbers such as MT46V16M16CY-5B IT:M carry "-it-" (industrial temperature), "-es-" and the like, which
+        # the generic URL language guess reads as Italian/Spanish and would drop the part's own specification.
+        p = urlsplit(urljoin(base, url))
+        if p.path.startswith(('/products/', '/content/micron/us/en/')):
+            if p.username or p.password or p.scheme != 'https' or p.port not in (None, 443):
+                return None
+            if p.hostname not in self.profile['allowed_hosts']:
+                return None
+            return urlunsplit((p.scheme, p.netloc.lower(), p.path, p.query, ''))
+        return super().normalize(url, base)
 
     def page_allowed(self, url):
         p = urlsplit(url)

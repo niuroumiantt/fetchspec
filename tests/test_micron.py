@@ -63,6 +63,21 @@ class MicronAdapterTests(unittest.TestCase):
         self.assertIsNone(self.adapter.parse(PART_HTML, other)['component_url'])
         self.assertIsNone(self.adapter.identity(page, other), 'title must name the part in the URL')
 
+    def test_part_numbers_that_look_like_locales_keep_their_component(self):
+        # Industrial-temperature parts end in "-it-…" and engineering samples carry "-es-"; the generic URL language
+        # guess read those as Italian/Spanish and dropped the part's own specification component (2026-10-01).
+        for part in ('mt46v16m16cy-5b-it-m', 'mt40a1g8sa-062e-es-r'):
+            url = 'https://www.micron.com/products/memory/dram-components/ddr-sdram/part-catalog/part-detail/' + part
+            api = ('/content/micron/us/en/products/memory/dram-components/ddr-sdram/part-catalog/part-detail/'
+                   '_jcr_content.products.json/getproductinfo/-/-/-/en_US/-/' + part)
+            html = ('<html><head><title>' + part.upper() + ' DDR SDRAM part detail | Micron Technology Inc.</title></head>'
+                    '<body><div data-apiresource="' + api + '"></div></body></html>').encode()
+            with self.subTest(part=part):
+                page = self.adapter.parse(html, url)
+                self.assertEqual(page['component_url'], 'https://www.micron.com' + api)
+                self.assertEqual(self.adapter.identity(page, url)['name'], part.upper())
+        self.assertIsNone(self.adapter.normalize('https://example.com/products/x'), 'host allowlist still applies')
+
     def test_component_rows_are_vendor_text_with_exact_duplicates_collapsed(self):
         [table] = self.adapter.component_tables(COMPONENT_JSON, COMPONENT)['tables']
         self.assertEqual([[c['text'] for c in r] for r in table['rows']],
