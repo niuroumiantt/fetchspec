@@ -3,6 +3,7 @@ import copy
 import hashlib
 import json
 from pathlib import Path
+import shutil
 import tempfile
 import unittest
 
@@ -84,6 +85,29 @@ class ParameterObservationTests(unittest.TestCase):
         self.assertEqual(result['targets']['P.gpu.spec']['observations'], ['gpu.memory.capacity=141GB [GB]'])
         self.assertFalse(verifier.verify(package, targets, ['html', 'json'])['complete'], 'a required format is missing')
         self.assertEqual(verifier._visible_text(b'<td>&gt;97.5 <b>@100%</b>\n Load</td>'), '>97.5 @100% Load')
+        # Next.js pages carry their spec HTML in the push payload, which the visible text drops with the script
+        page = ('<html><body><script>self.__next_f.push(%s)</script></body></html>'
+                % json.dumps([1, '<li>Cooling: 1500 kW @6&deg;C</li><li>48 / 50 V<span>DC</span></li>'])).encode()
+        self.assertEqual(verifier._next_payload(page), 'Cooling: 1500 kW @6°C 48 / 50 V DC')
+        squeezed = verifier._squeeze(verifier._next_payload(page))
+        self.assertIn(verifier._squeeze('48 / 50 VDC'), squeezed)
+        self.assertNotIn(verifier._squeeze('48 / 51 VDC'), squeezed)
+        if shutil.which('pdftotext'):
+            stream = b'BT /F1 12 Tf 72 720 Td (Rated current 4000 A) Tj ET'
+            objects = [b'<< /Type /Catalog /Pages 2 0 R >>', b'<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+                       b'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>',
+                       b'<< /Length %d >>\nstream\n%s\nendstream' % (len(stream), stream),
+                       b'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>']
+            pdf, offsets = b'%PDF-1.4\n', []
+            for number, body in enumerate(objects, 1):
+                offsets.append(len(pdf))
+                pdf += b'%d 0 obj\n%s\nendobj\n' % (number, body)
+            xref = len(pdf)
+            pdf += b'xref\n0 6\n0000000000 65535 f \n' + b''.join(b'%010d 00000 n \n' % o for o in offsets)
+            pdf += b'trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n' % xref
+            path = self.base / 'catalog.pdf'
+            path.write_bytes(pdf)
+            self.assertIn('Ratedcurrent4000A', verifier._squeeze(verifier._pdf_text(path)))
         manifest = json.loads((package / 'manifest.json').read_text())
         manifest['items'][0]['product_evidence'][0]['parameter_observations'][0]['value'] = '142GB'
         (package / 'manifest.json').write_text(json.dumps(manifest))
@@ -91,6 +115,24 @@ class ParameterObservationTests(unittest.TestCase):
         blob = package / manifest['items'][0]['path']
         blob.write_bytes(blob.read_bytes() + b' ')
         self.assertTrue(any(p.startswith('hash mismatch') for p in verifier.verify(package, targets)['problems']))
+
+    def test_assignments_carry_each_targets_reviewed_values(self):
+        from fetchspec.delivery_v2 import export_assignments, import_receipt
+        from test_delivery_v2 import receipt
+        self.store.map_field('nvidia', 'nvidia-h200', 1, 2, 2, 'gpu.memory.capacity', 'GB', 'HBM3e', 'reviewer',
+                             target_ids=['P.gpu.spec'], snapshot=self.snapshot)
+        self.store.map_field('nvidia', 'nvidia-h200', 1, 1, 2, 'gpu.tdp.max', 'W', 'up to', 'reviewer',
+                             target_ids=['P.gpu.operation'], snapshot=self.snapshot)
+        items = self.store.delivery_items(self.snapshot, 'nvidia', ['nvidia-h200'])
+        summary = build_package(self.state, self.snapshot, 'nvidia', items, collector_revision='test')
+        import_receipt(self.state, receipt(summary))
+        records = {r['target_id']: r['fetchspec'] for r in export_assignments(self.state, summary['delivery_id'])['records']}
+        self.assertEqual(records['P.gpu.spec']['observations'], [
+            {'product_id': 'nvidia-h200', 'parameter_name': 'gpu.memory.capacity', 'value': '141GB', 'unit': 'GB',
+             'condition': 'HBM3e', 'source_url': URL, 'source_sha256': self.sha,
+             'observed_at': records['P.gpu.spec']['observations'][0]['observed_at']}])
+        self.assertEqual([o['value'] for o in records['P.gpu.operation']['observations']], ['Up to 700W'])
+        self.assertEqual([r['parameter_observations'] for r in records.values()], [1, 1])
 
     def test_without_mappings_the_manifest_has_no_observation_section(self):
         manifest = self.package()

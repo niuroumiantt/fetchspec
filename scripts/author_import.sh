@@ -16,7 +16,7 @@ cd "$INRESEARCH"
 [[ -z "$(git status --porcelain)" ]] || { echo "$INRESEARCH has local changes; commit or stash them first"; exit 1; }
 export GIT_TERMINAL_PROMPT=0
 git checkout -q main && git pull -q --ff-only || { echo "pull needs a password; run: git remote set-url origin git@github.com:niuroumiantt/inresearch.ai.git"; exit 1; }
-git checkout -q -b "$BRANCH"
+git checkout -q -B "$BRANCH"   # re-importing the same delivery (e.g. to add values) starts again from main
 python3 manage.py deliveries import --assignments "$ASSIGNMENTS" --by "${USER}"
 python3 manage.py deliveries check
 python3 manage.py dashboard --refresh >/dev/null   # generated from the target table; CI fails if stale

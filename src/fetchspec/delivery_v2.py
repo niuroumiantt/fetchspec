@@ -558,7 +558,8 @@ def export_assignments(state_root, delivery_id, *, snapshot=None, output_path=No
     """Write the runtime ``assignments.json`` shape consumed by inresearch ``deliveries import``.
 
     One record per bound target: target_id + a public official evidence URL, plus the
-    delivery/receipt identities in the note. Receipts from local receiver validation are
+    delivery/receipt identities in the note and the target's reviewed parameter observations
+    (``fetchspec.observations``: original text, unit, condition, source URL and SHA). Receipts from local receiver validation are
     refused unless explicitly allowed for rehearsal, and are then marked as such.
     """
     snapshot = _snapshot(state_root, snapshot)
@@ -579,14 +580,20 @@ def export_assignments(state_root, delivery_id, *, snapshot=None, output_path=No
             raise ValueError("evidence pointer must be a public https URL")
         products = sorted({entry["product_id"] for item in related for entry in item["product_evidence"]
                            if target["id"] in entry["target_ids"]} or {pid for item in related for pid in item["product_ids"]})
+        observations = sorted({(entry["product_id"], o["parameter_name"], o["value"], o["unit"], o["condition"],
+                                o["source_url"], o["source_sha256"], o["observed_at"])
+                               for item in related for entry in item["product_evidence"]
+                               for o in entry.get("parameter_observations", []) if o["target_id"] == target["id"]})
         note = (("REHEARSAL local_receiver_validation; " if local_only else "")
                 + f"fetchspec {manifest['delivery_id']} manifest {manifest_sha[:16]} receipt {row['receipt_sha256'][:16]} "
                 + f"env {environment}; products {','.join(products)}; sha256 {','.join(sorted(i['sha256'][:16] for i in related))}")
         records.append({"target_id": target["id"], "assignee": by, "status": "已交付",
                         "delivery": {"evidence_path": url, "at": received_at, "by": by, "note": note[:500]},
                         "fetchspec": {"delivery_id": manifest["delivery_id"], "manifest_sha256": manifest_sha,
-                                      "parameter_observations": sum(1 for item in related for entry in item["product_evidence"]
-                                                                    for o in entry.get("parameter_observations", []) if o["target_id"] == target["id"]),
+                                      "parameter_observations": len(observations),
+                                      # the reviewed values themselves, so the author import can show them next to the pointer
+                                      "observations": [dict(zip(("product_id", "parameter_name", "value", "unit", "condition",
+                                                                 "source_url", "source_sha256", "observed_at"), o)) for o in observations],
                                       "receipt_sha256": row["receipt_sha256"], "environment": environment,
                                       "part_id": target["part_id"], "product_ids": products,
                                       "source_sha256": sorted(i["sha256"] for i in related), "acceptance": "candidate"}})
