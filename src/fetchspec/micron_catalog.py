@@ -40,7 +40,7 @@ from .network import ProductFetcher
 COMPANY = 'micron'
 SITEMAP = 'https://www.micron.com/sitemap.xml'
 DIRECTORY = 'https://www.micron.com/products'
-OBSOLETE_PART = re.compile(r'^/products/obsolete/(?:[a-z0-9][a-z0-9-]*/)+part-catalog/part-detail/([a-z0-9][a-z0-9-]*)/?$')
+OBSOLETE_PART = re.compile(r'^/products/obsolete/(?:[a-z0-9][a-z0-9-]*/)+part-catalog/part-detail/([a-z0-9][a-z0-9.-]*)/?$')
 DIRECTORY_PAGE = re.compile(r'^/products(?:/[a-z0-9][a-z0-9-]*)*/?$')
 TITLE_SUFFIX = re.compile(r'\s*[|–-]\s*Micron(?: Technology(?:,? Inc\.?)?)?\s*$', re.I)
 LIMITATIONS = [
@@ -277,6 +277,7 @@ class Catalog:
             segments = taxonomy_path(urlsplit(entry['url']).path)
             page, component = pages.get(entry['url']), None
             name, tables, status, official_status, extra_sources = entry['key'].upper(), [], 'specification_search_pending', '', []
+            gap_reason = ''
             if page is not None and page['sha']:
                 parsed = self.adapter.parse(self.body(page), entry['url'])
                 identity = self.adapter.identity(parsed, entry['url'])
@@ -294,11 +295,14 @@ class Catalog:
                     official_status = next((d.get('value', '') for d in document.get('details', [])
                                             if isinstance(d, dict) and d.get('id') == 'production_status'), '') or ''
                     status = 'native_tables_extracted' if tables else 'vendor_specification_gap'
+                    gap_reason = '' if tables else 'specification_component_returned_no_rows'
                     extra_sources = [{'url': component_url, 'sha256': component['sha']}]
                 elif component_url and component is not None:
                     status = 'specification_' + component['status']
                 elif not component_url:
-                    status = 'vendor_specification_gap'  # the page names no specification component
+                    # The page names no specification component (2026-10-01: the whole 6600 ION family uses a
+                    # template that only offers a datasheet accordion). Recorded, never guessed.
+                    status, gap_reason = 'vendor_specification_gap', 'part_page_names_no_specification_component'
                 count('part_page_fetched')
             elif page is not None:
                 status = 'part_page_' + page['status']
@@ -313,7 +317,8 @@ class Catalog:
                 'tables': tables, 'attachments': [], 'official_resources': [{'url': r['url'], 'role': 'specification_component'}
                                                                            for r in extra_sources],
                 'official_pages': [{'url': source['source_url'], 'sha256': source['sha256']}] if source is not sources[SITEMAP] else [],
-                'product_url': entry['url'], 'sitemap_lastmod': entry['lastmod'], 'extraction_status': status})
+                'product_url': entry['url'], 'sitemap_lastmod': entry['lastmod'], 'extraction_status': status,
+                **({'gap_reason': gap_reason} if gap_reason else {})})
             count('part')
         for entry in (e for e in sitemap if e['role'] == 'obsolete'):
             segments = taxonomy_path(urlsplit(entry['url']).path)
@@ -376,6 +381,12 @@ class Catalog:
             'directory_entities': sum(p['listing'] == 'directory' for p in products),
             'current_extraction_status': statuses, 'current_official_status': official,
             'vendor_specification_gaps': statuses.get('vendor_specification_gap', 0),
+            'vendor_specification_gaps_by_family': dict(sorted(
+                {f: sum(1 for p in active if p['extraction_status'] == 'vendor_specification_gap' and p['category'] == f)
+                 for f in {p['category'] for p in active if p['extraction_status'] == 'vendor_specification_gap'}}.items())),
+            'unavailable_by_family': dict(sorted(
+                {f: sum(1 for p in active if p['extraction_status'].endswith('unavailable') and p['category'] == f)
+                 for f in {p['category'] for p in active if p['extraction_status'].endswith('unavailable')}}.items())),
             'failed_or_unavailable': sum(v for k, v in statuses.items() if k.startswith(('part_page_', 'specification_'))
                                          and not k.endswith('pending')),
             'pending': statuses.get('specification_search_pending', 0),
