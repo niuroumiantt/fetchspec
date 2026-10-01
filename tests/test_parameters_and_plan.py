@@ -27,7 +27,9 @@ def upstream_with_operation(root):
     vertiv.update(id='P.ups.spec', part_id='ups', instances=['Vertiv Liebert EXL', 'Eaton 9395'], next_due='2026-10-05')
     orphan = copy.deepcopy(document['targets'][0])
     orphan.update(id='P.transformer.spec', part_id='transformer', instances=['Hitachi Energy'], next_due='2026-10-02')
-    document['targets'][2:2] = [operation, vertiv, orphan]
+    switchyard = copy.deepcopy(document['targets'][0])
+    switchyard.update(id='P.hv-switchyard.spec', part_id='hv-switchyard', instances=['Hitachi Energy GIS'], next_due='2026-10-03')
+    document['targets'][2:2] = [operation, vertiv, orphan, switchyard]
     (root / 'framework').mkdir()
     for relative, value in zip(SOURCE_FILES, (contract, document)):
         (root / relative).write_text(json.dumps(value))
@@ -102,22 +104,26 @@ class ParameterObservationTests(unittest.TestCase):
     def test_plan_ranks_in_flight_then_collectable_then_missing_adapters(self):
         self.assertEqual(instance_adapters({'instances': ['Vertiv Liebert EXL', 'Eaton 9395']}), ['vertiv'])
         self.assertEqual(instance_adapters({'instances': ['Hitachi Energy']}), [])
-        result = plan(coverage(self.state, self.snapshot))
-        order = [(row['target_id'], row['group']) for row in result['queue']]
+        # Structure without reviewed seeds: what the adapters alone can reach.
+        unseeded = plan(coverage(self.state, self.snapshot, seed_dir=self.base / 'no-seeds'))
+        order = [(row['target_id'], row['group']) for row in unseeded['queue']]
         self.assertEqual(order[0][1], 0)  # bound rows are already moving
         self.assertEqual({t for t, g in order if g == 0}, {'P.gpu.spec', 'P.gpu.operation'})
         self.assertIn(('P.ups.spec', 1), order)
-        self.assertIn(('P.transformer.spec', 3), order)
-        self.assertEqual(result['groups']['new_adapter'], 1)
-        ups = next(row for row in result['queue'] if row['target_id'] == 'P.ups.spec')
-        self.assertTrue(ups['action'].startswith('collect-seeds --target P.ups.spec --bind'))  # reviewed seed in seeds/vertiv.json
-        self.assertTrue(ups['seeds'])
-        self.assertIn('rated_power', ups['parameter_hints'])
-        unseeded = plan(coverage(self.state, self.snapshot, seed_dir=self.base / 'no-seeds'))
+        self.assertIn(('P.transformer.spec', 2), order)  # Siemens Energy declares the part; the row names Hitachi
+        self.assertIn(('P.hv-switchyard.spec', 3), order)
+        self.assertEqual(unseeded['groups']['new_adapter'], 1)
         ups = next(row for row in unseeded['queue'] if row['target_id'] == 'P.ups.spec')
         self.assertIn('collect --company vertiv', ups['action'])
-        self.assertEqual((ups['seeds'], unseeded['groups']), ([], result['groups']))
-
+        self.assertEqual(ups['seeds'], [])
+        self.assertIn('rated_power', ups['parameter_hints'])
+        # With the repository's reviewed seeds, seeded rows become collect-seeds actions.
+        result = plan(coverage(self.state, self.snapshot))
+        ups = next(row for row in result['queue'] if row['target_id'] == 'P.ups.spec')
+        self.assertTrue(ups['action'].startswith('collect-seeds --target P.ups.spec --bind'))  # seeds/vertiv.json
+        self.assertTrue(ups['seeds'])
+        transformer = next(row for row in result['queue'] if row['target_id'] == 'P.transformer.spec')
+        self.assertEqual(transformer['group'], 1)  # seeds/siemens-energy.json reviews a page for it
 
     def backflow(self, rows, **extra):
         path = self.base / 'backflow.json'

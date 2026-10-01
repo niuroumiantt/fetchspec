@@ -1,11 +1,12 @@
 """Small product adapters: official scope, identity and vendor-specific parsing."""
 from .micron import MicronProductAdapter
 from .nvidia import NvidiaProductAdapter
+from .siemens_energy import SiemensEnergyProductAdapter
 from .supermicro import SupermicroProductAdapter
 from .vertiv import VertivProductAdapter
 
 
-ADAPTERS = {'micron': MicronProductAdapter, 'nvidia': NvidiaProductAdapter, 'supermicro': SupermicroProductAdapter, 'vertiv': VertivProductAdapter}
+ADAPTERS = {'micron': MicronProductAdapter, 'nvidia': NvidiaProductAdapter, 'siemens-energy': SiemensEnergyProductAdapter, 'supermicro': SupermicroProductAdapter, 'vertiv': VertivProductAdapter}
 
 
 def adapter_for(company_id, known_catalog=None):
