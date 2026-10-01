@@ -13,7 +13,9 @@ BRANCH="fetchspec-delivery-${ID#fetchspec-}"
 
 cd "$INRESEARCH"
 [[ -z "$(git status --porcelain)" ]] || { echo "$INRESEARCH has local changes; commit or stash them first"; exit 1; }
-git checkout -q main && git pull -q --ff-only && git checkout -q -b "$BRANCH"
+export GIT_TERMINAL_PROMPT=0
+git checkout -q main && git pull -q --ff-only || { echo "pull needs a password; run: git remote set-url origin git@github.com:niuroumiantt/inresearch.ai.git"; exit 1; }
+git checkout -q -b "$BRANCH"
 python3 manage.py deliveries import --assignments "$ASSIGNMENTS" --by "${USER}"
 python3 manage.py deliveries check
 git add data/event_cards.json framework/tco_targets.json
