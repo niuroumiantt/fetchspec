@@ -1,0 +1,48 @@
+{
+  "profile_version": 1,
+  "company_id": "asteralabs",
+  "company_en": "Astera Labs",
+  "adapter_evidence": {
+    "verified_date": "2026-10-01",
+    "product_pages": "https://www.asteralabs.com/product-details/<part>/ pages end with an attribute list (<li><span class=\"fw-medium\">Label:</span> value</li>: package, max PCIe gen, lanes, revision, generation) and link the family product brief PDF under /wp-content/uploads/.",
+    "robots": "robots.txt disallows only WordPress admin paths and declares /sitemap_index.xml (product-sitemap.xml lists each part page)."
+  },
+  "status": "target_driven_product_adapter",
+  "allowed_hosts": [
+    "www.asteralabs.com"
+  ],
+  "sitemaps": [],
+  "discovery_entrypoints": [],
+  "document_formats": [
+    "pdf"
+  ],
+  "locales": "en_only",
+  "supported_locales": [
+    "en"
+  ],
+  "delay_seconds": 2.0,
+  "timeout_seconds": 30,
+  "max_xml_bytes": 20971520,
+  "max_document_bytes": 67108864,
+  "min_free_bytes": 8589934592,
+  "max_requests": 2000,
+  "max_discovery_depth": 2,
+  "page_prefixes": [
+    "/product-details/",
+    "/products/"
+  ],
+  "category_roots": [],
+  "known_gaps": [
+    "Part pages list a few attributes only; power and latency figures are in product briefs or gated datasheets.",
+    "Attribute values are kept as printed even where they disagree with the page subtitle (e.g. 'PCIe 5.0 x8' title vs 'PCIe 6.x' attribute); the reviewer decides."
+  ],
+  "instance_aliases": [
+    "Astera Labs",
+    "Astera",
+    "阿斯特拉"
+  ],
+  "target_parts": [
+    "retimer",
+    "pcie-switch"
+  ]
+}
