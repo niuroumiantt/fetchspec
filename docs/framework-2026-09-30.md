@@ -135,5 +135,5 @@
 1. **本次**：本框架与架构图；`plan`（需求队列）；参数观测进包（整理 → 输出）；文档目录重整。
 2. **inresearch 侧**：合入 [upstream/](upstream/README.md) 补丁；接收端把 `parameter_observations` 入库；上线回流接口（[申请](upstream/backflow-request.md)，2026-10-01）；登记参数名与模型输入的对应。
 3. **生产闭环**：在 macmini 数据根重跑已验证的四条目标，交生产接收端，取回生产回执，作者导入并审阅合并；执行机装 `pdftotext`。
-4. **按 `plan` 铺开**：先做"现在可抓"的 27 行（2026-10-01：23 个种子已覆盖并绑定 24 行，剩 `P.switch-asic.spec`、`P.manifold.spec`、`P.dcim.spec`）；再按"缺适配器"88 行里被点名最多的厂商加适配器，依次是 Siemens / Siemens Energy（10 行）、Micron 与 Samsung（各 6 行，内存与存储）、ABB（5 行）、Delta（4 行）、Schneider 与 Eaton。2026-10-01：Micron 已加（3 行绑定）；Samsung 半导体与 ABB 官网对 robots 返回 403，不绕过，转浏览器通道；Siemens Energy 已加（燃气轮机、变压器 3 行绑定）；siemens.com 的中低压开关柜与母线槽经样本 PDF 版面行解析接上（3 行绑定）；Cerberus 消防不链样本，仍缺。Delta 已加（电源架、PSU、BBU、CDU 6 行绑定）；Schneider、Eaton 下一个。
+4. **按 `plan` 铺开**：先做"现在可抓"的 27 行（2026-10-01：23 个种子已覆盖并绑定 24 行，剩 `P.switch-asic.spec`、`P.manifold.spec`、`P.dcim.spec`）；再按"缺适配器"88 行里被点名最多的厂商加适配器，依次是 Siemens / Siemens Energy（10 行）、Micron 与 Samsung（各 6 行，内存与存储）、ABB（5 行）、Delta（4 行）、Schneider 与 Eaton。2026-10-01：Micron 已加（3 行绑定）；Samsung 半导体与 ABB 官网对 robots 返回 403，不绕过，转浏览器通道；Siemens Energy 已加（燃气轮机、变压器 3 行绑定）；siemens.com 的中低压开关柜与母线槽经样本 PDF 版面行解析接上（3 行绑定）；Cerberus 消防不链样本，仍缺。Delta 已加（电源架、PSU、BBU、CDU 6 行绑定）；Schneider 官网产品页一律 403、Eaton 从云端 TLS 握手无响应，见 [可达性](adapters/access.md)。
 5. **定时**：按目标行 `calendar` 定期 `map-sync` 与 `collect --refresh`。调度还没实现。
