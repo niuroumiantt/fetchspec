@@ -69,6 +69,28 @@ class ParameterObservationTests(unittest.TestCase):
         summary = build_package(self.state, self.snapshot, 'nvidia', items, collector_revision='test')
         return json.loads((Path(summary['package']) / 'manifest.json').read_text())
 
+    def test_independent_package_verifier(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('verify_package', Path(__file__).resolve().parents[1] / 'scripts/verify_package.py')
+        verifier = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(verifier)
+        self.store.map_field('nvidia', 'nvidia-h200', 1, 2, 2, 'gpu.memory.capacity', 'GB', '', 'reviewer',
+                             target_ids=['P.gpu.spec'], snapshot=self.snapshot)
+        items = self.store.delivery_items(self.snapshot, 'nvidia', ['nvidia-h200'])
+        package = Path(build_package(self.state, self.snapshot, 'nvidia', items, collector_revision='test')['package'])
+        targets = next((self.state / 'targets/snapshots').glob('*/tco_targets.json'))
+        result = verifier.verify(package, targets, ['html'])
+        self.assertTrue(result['complete'], result['problems'])
+        self.assertEqual(result['targets']['P.gpu.spec']['observations'], ['gpu.memory.capacity=141GB [GB]'])
+        self.assertFalse(verifier.verify(package, targets, ['html', 'json'])['complete'], 'a required format is missing')
+        manifest = json.loads((package / 'manifest.json').read_text())
+        manifest['items'][0]['product_evidence'][0]['parameter_observations'][0]['value'] = '142GB'
+        (package / 'manifest.json').write_text(json.dumps(manifest))
+        self.assertIn("gpu.memory.capacity: value '142GB' not found in its source", verifier.verify(package, targets)['problems'])
+        blob = package / manifest['items'][0]['path']
+        blob.write_bytes(blob.read_bytes() + b' ')
+        self.assertTrue(any(p.startswith('hash mismatch') for p in verifier.verify(package, targets)['problems']))
+
     def test_without_mappings_the_manifest_has_no_observation_section(self):
         manifest = self.package()
         self.assertNotIn('parameter_observations', manifest)

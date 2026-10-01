@@ -62,7 +62,7 @@ NVIDIA 保留英文/中文现有身份映射与成熟原表；Supermicro 仅有�
 
 现行 inresearch v2 receiver 要求 `task_id_or_discovery` 是已有人工 supply task 或 `discovery`。本生产器采用兼容信封 `discovery`，另以 `collection_trigger=generated_targets` 和真实非空 `target_ids` 表示生成目标触发，绝不编造人工 task ID。接收端按自己的当前目标表解析 part_ids。
 
-回执按 `--environment` 隔离；默认 receiver 表示环境未指定，不自动证明生产接收。`scripts/verify_pipeline_receiver.py` 只在系统临时目录调用真实上游接收器，回执存入 local_receiver_validation，报告明确 production_received=false；默认作者提案不会读取本地验收回执。
+回执按 `--environment` 隔离；默认 receiver 表示环境未指定，不自动证明生产接收。打包后先跑 `scripts/verify_package.py <包> --targets <快照 tco_targets.json> [--require-format html …]`：不依赖本仓库代码，逐字节核对 SHA256SUMS、条目哈希、目标归属，并确认每条参数观测的值在它引用的原件里逐字存在。`scripts/verify_pipeline_receiver.py` 只在系统临时目录调用真实上游接收器，回执存入 local_receiver_validation，报告明确 production_received=false；默认作者提案不会读取本地验收回执。
 
 回执导入校验 manifest hash、全文件集合、逐项目标、批次目标及当前部件解析，拒绝错包、缺项、目标漂移和冲突；原回执永久保留。包内结构化产品规格保存在 manifest 中，通用 receiver 目前只归档与索引原件；现有 NVIDIA 网页规格目录仍使用其既有 catalog 导入接口，不声称通用包已经更新线上规格页面。
 
