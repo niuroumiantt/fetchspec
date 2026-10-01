@@ -6,7 +6,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from fetchspec.coverage import build as coverage, instance_adapters, plan
+from fetchspec.coverage import build as coverage, instance_adapters, load_backflow, plan
 from fetchspec.delivery_v2 import OBSERVATION_FIELDS, build_package
 from fetchspec.products import ProductStore
 from fetchspec.targets import SOURCE_FILES, sync_targets
@@ -113,6 +113,35 @@ class ParameterObservationTests(unittest.TestCase):
         self.assertIn('vertiv', ups['action'])
         self.assertIn('rated_power', ups['parameter_hints'])
 
+
+    def backflow(self, rows, **extra):
+        path = self.base / 'backflow.json'
+        path.write_text(json.dumps({'schema_version': 1, 'team': 'fetchspec', 'generated_at': '2026-10-01T00:00:00Z',
+                                    'by_target': rows, **extra}))
+        return load_backflow(path, self.snapshot)
+
+    def test_backflow_rejects_other_teams_and_drops_bad_rows(self):
+        with self.assertRaisesRegex(ValueError, 'team fetchspec'):
+            self.backflow({}, team='inews')
+        flow = self.backflow({'P.ups.spec': {'status': 'needed', 'received_items': 2, 'companies': ['vertiv']},
+                              'P.gpu.price': {'status': 'needed'},            # not a Fetchspec row
+                              'P.transformer.spec': {'status': 'bogus'},       # bad status
+                              'P.gpu.spec': {'status': 'needed', 'received_items': -1}})
+        self.assertEqual(set(flow['by_target']), {'P.ups.spec'})
+        self.assertEqual(flow['dropped'], 3)
+        with self.assertRaisesRegex(ValueError, 'https'):
+            load_backflow('http://inresearch.ai/api/targets/backflow', self.snapshot)
+
+    def test_backflow_moves_received_rows_up_and_drops_closed_rows(self):
+        flow = self.backflow({'P.ups.spec': {'status': 'needed', 'received_items': 2, 'companies': ['vertiv']},
+                              'P.transformer.spec': {'status': 'delivered', 'received_items': 1}})
+        result = plan(coverage(self.state, self.snapshot), backflow=flow)
+        ids = [row['target_id'] for row in result['queue']]
+        self.assertNotIn('P.transformer.spec', ids)  # registered upstream: nothing left for us
+        ups = next(row for row in result['queue'] if row['target_id'] == 'P.ups.spec')
+        self.assertEqual(ups['group'], 0)
+        self.assertIn('deliveries import', ups['action'])
+        self.assertEqual(result['backflow']['delivered_upstream'], 1)
 
 if __name__ == '__main__':
     unittest.main()

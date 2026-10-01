@@ -55,7 +55,8 @@ NARRATIVE = {
         ("不写", "Fetchspec 不写 inresearch 的 Git，不改目标表状态"),
     ],
     "open": [
-        ("回流", "inresearch 采用后的结果（哪些行 sourced、缺哪类出版方）还不回到 plan，现在只能看自己的 coverage。"),
+        ("回流", "已向 inresearch 申请按目标行的回流接口（docs/upstream/backflow-request.md）；"
+                 "fetchspec 侧 `plan --backflow` 已能读，接口上线前只能看自己的 coverage。"),
         ("实时计数", "在途、已绑定、已打包、已回执在采集机的数据根里，本页不含；在 macmini 上跑 `coverage` 与 `status`。"),
     ],
 }
@@ -89,18 +90,24 @@ def load_rules(root: Path) -> list[str]:
     return sorted(path.stem for path in (root / "rules").glob("*.json"))
 
 
-def _git_head(path: Path) -> str | None:
+TARGETS_PATH = "framework/tco_targets.json"
+
+
+def _git_last_change(path: Path, relative: str) -> str | None:
+    """最后一次改动该文件的提交，而不是 HEAD：inresearch 每次无关提交都不应让本页「过期」。"""
     try:
-        return subprocess.run(["git", "-C", str(path), "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
+        commit = subprocess.run(["git", "-C", str(path), "log", "-1", "--format=%H", "--", relative],
+                                capture_output=True, text=True, check=True).stdout.strip()
     except (OSError, subprocess.CalledProcessError):
         return None
+    return commit or None
 
 
 def load_targets(upstream: Path | None) -> dict | None:
     """team == fetchspec 的目标行：按类别（spec / operation / 因子）与部件计数，带来源 SHA。"""
     if upstream is None:
         return None
-    path = upstream / "framework" / "tco_targets.json"
+    path = upstream / TARGETS_PATH
     raw = path.read_bytes()
     doc = json.loads(raw)
     rows = doc.get("rows") or doc.get("targets") or doc
@@ -122,7 +129,7 @@ def load_targets(upstream: Path | None) -> dict | None:
             parts[m.group(1)] += 1
     teams = Counter(r.get("team") for r in rows if isinstance(r, dict))
     return {"rows": len(mine), "kinds": dict(kinds), "parts": len(parts), "teams": dict(sorted(teams.items(), key=lambda kv: -kv[1])),
-            "commit": _git_head(upstream), "sha256": hashlib.sha256(raw).hexdigest()[:16]}
+            "commit": _git_last_change(upstream, TARGETS_PATH), "sha256": hashlib.sha256(raw).hexdigest()[:16]}
 
 
 def build(root: Path = ROOT, upstream: Path | None = None) -> str:
@@ -157,7 +164,7 @@ def render(commands, profiles, rules, targets, svg) -> str:
     if targets:
         kinds = _table(["类别", "行数"], [[escape(k), str(v)] for k, v in sorted(targets["kinds"].items())])
         teams = " · ".join(f"{escape(t)} {n}" for t, n in targets["teams"].items())
-        src = f"inresearch <code>framework/tco_targets.json</code> · commit <code>{escape((targets['commit'] or '未知')[:12])}</code> · sha256 <code>{targets['sha256']}</code>"
+        src = f"inresearch <code>framework/tco_targets.json</code> · 最后改动 commit <code>{escape((targets['commit'] or '未知')[:12])}</code> · sha256 <code>{targets['sha256']}</code>"
         demand = (f"<p>领 <b>{targets['rows']}</b> 行（涉及 {targets['parts']} 个部件），只领构成与运行两类变量。</p>{kinds}"
                   f"<p class=\"note\">六个队的目标行：{teams}</p><p class=\"note\">来源：{src}</p>")
     else:

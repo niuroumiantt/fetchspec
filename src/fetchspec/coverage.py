@@ -7,6 +7,7 @@ and never inferred from them.
 from contextlib import closing
 import csv
 import json
+import re
 from pathlib import Path
 import sqlite3
 
@@ -120,14 +121,62 @@ NEXT = {
 }
 
 
-def plan(report, limit=40):
+TARGET_ID = re.compile(r'^[A-Za-z][A-Za-z0-9_.-]{0,199}$')
+UPSTREAM_STATUSES = {'sourced', 'assumed', 'delivered', 'needed'}
+
+
+def load_backflow(source, snapshot, *, timeout=20):
+    """Read inresearch's per-target backflow (docs/upstream/backflow-request.md) from a file or https URL.
+
+    Untrusted input: wrong team or schema rejects the whole document; malformed rows and rows
+    not owned by Fetchspec in the current snapshot are dropped, as inresearch does for /api/news.
+    """
+    text = str(source)
+    if text.startswith('https://'):
+        from urllib.request import Request, urlopen
+        with urlopen(Request(text, headers={'Accept': 'application/json'}), timeout=timeout) as response:
+            raw = response.read(8 * 1024 * 1024 + 1)
+        if len(raw) > 8 * 1024 * 1024:
+            raise ValueError('backflow document exceeds 8 MiB')
+    elif '://' in text:
+        raise ValueError('backflow source must be a local file or an https URL')
+    else:
+        raw = Path(text).expanduser().read_bytes()
+    document = json.loads(raw)
+    if (not isinstance(document, dict) or document.get('schema_version') != 1 or document.get('team') != 'fetchspec'
+            or not isinstance(document.get('by_target'), dict)):
+        raise ValueError('backflow is not a schema_version 1 document for team fetchspec')
+    owned = {row['id'] for row in snapshot['targets']}
+    rows, dropped = {}, 0
+    for target_id, row in document['by_target'].items():
+        if (not isinstance(target_id, str) or not TARGET_ID.fullmatch(target_id) or target_id not in owned
+                or not isinstance(row, dict) or row.get('status') not in UPSTREAM_STATUSES
+                or type(row.get('received_items', 0)) is not int or row.get('received_items', 0) < 0
+                or not isinstance(row.get('companies', []), list)
+                or any(not isinstance(c, str) or len(c) > 80 for c in row.get('companies', []))):
+            dropped += 1
+            continue
+        rows[target_id] = {'status': row['status'], 'received_items': row.get('received_items', 0),
+                           'last_received_at': row.get('last_received_at') if isinstance(row.get('last_received_at'), str) else None,
+                           'companies': sorted(set(row.get('companies', [])))}
+    return {'generated_at': document.get('generated_at') if isinstance(document.get('generated_at'), str) else None,
+            'targets_sha256': document.get('targets_sha256') if isinstance(document.get('targets_sha256'), str) else None,
+            'by_target': rows, 'dropped': dropped}
+
+
+def plan(report, limit=40, backflow=None):
     """Rank what to do next for each target: the demand side of the pipeline.
 
     Order: rows already moving, then rows an adapter can collect now (its vendor is named
     in the row's own instances), then rows needing review or a new adapter. Within a group,
     earlier next_due and higher sensitivity (lower rank) come first.
     """
+    upstream = (backflow or {}).get('by_target', {})
+
     def action(row):
+        flow = upstream.get(row['target_id'])
+        if flow and flow['received_items'] and flow['status'] == 'needed':
+            return 0, 'inresearch received ' + str(flow['received_items']) + ' item(s); waiting for the author\'s deliveries import'
         if row['stage'] in NEXT:
             return 0, NEXT[row['stage']]
         if row['instance_adapters']:
@@ -135,14 +184,24 @@ def plan(report, limit=40):
         if row['adapters']:
             return 2, 'adapter covers the part but the named vendors differ: review instances or pick an official page from ' + ', '.join(row['adapters'])
         return 3, 'no adapter: add one for a vendor named in instances'
-    ranked = []
+    ranked, closed_upstream = [], 0
     for row in report['records']:
-        if row['stage'] == 'received' or row['upstream_status'] in {'sourced', 'assumed'}:
+        flow = upstream.get(row['target_id'])
+        status = flow['status'] if flow else row['upstream_status']  # backflow is newer than the snapshot
+        if row['stage'] == 'received' or status in {'sourced', 'assumed'}:
+            continue
+        if status == 'delivered':
+            closed_upstream += 1
             continue
         group, text = action(row)
         ranked.append({'group': group, 'action': text, **{k: row[k] for k in (
-            'target_id', 'stage', 'next_due', 'sensitivity_rank', 'instances', 'model_inputs', 'parameter_hints')}})
+            'target_id', 'stage', 'next_due', 'sensitivity_rank', 'instances', 'model_inputs', 'parameter_hints')},
+            **({'upstream': flow} if flow else {})})
     ranked.sort(key=lambda r: (r['group'], r['next_due'] or '9999', r['sensitivity_rank'] or 99, r['target_id']))
     groups = {name: sum(r['group'] == i for r in ranked) for i, name in enumerate(('in_flight', 'collect_now', 'review_instances', 'new_adapter'))}
-    return {'snapshot_id': report['snapshot_id'], 'actionable': len(ranked), 'groups': groups, 'queue': ranked[:limit],
-            'skipped': 'targets already sourced/assumed upstream or received in production'}
+    result = {'snapshot_id': report['snapshot_id'], 'actionable': len(ranked), 'groups': groups, 'queue': ranked[:limit],
+              'skipped': 'targets already sourced/assumed/delivered upstream or received in production'}
+    if backflow is not None:
+        result['backflow'] = {'generated_at': backflow.get('generated_at'), 'rows': len(upstream),
+                              'dropped': backflow.get('dropped', 0), 'delivered_upstream': closed_upstream}
+    return result

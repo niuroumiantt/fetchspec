@@ -111,7 +111,7 @@
 | 交付原件 | Fetchspec → inresearch | v2.0 包 → `fetchspec-receive` | 已接；真实接收器在临时环境验过，生产未跑 |
 | 交付参数 | Fetchspec → inresearch | 包内 `parameter_observations` | 我方已出；接收端只归档，还不入库 |
 | 回执与登记 | 双向 | 回执 → `assignments` → `deliveries import` | 已接；上游"规格卡连带翻新闻行"的补丁在 [upstream/](upstream/README.md) 待合 |
-| 回流 | inresearch → Fetchspec | 哪些行仍缺、缺哪类出版方 | 未接；本地先用 `plan` / `coverage` |
+| 回流 | inresearch → Fetchspec | 按目标行的状态、已收原件数、已收厂商 | 已申请（[backflow-request.md](upstream/backflow-request.md)）；我方 `plan --backflow` 已能读，等 inresearch 上线接口 |
 
 需要 inresearch 决定的一件事：参数名目前由我们提议（如 `gpu.tdp.max`），它和模型输入键（如 `load_factor`）的对应关系该由研究侧登记。
 
@@ -133,7 +133,7 @@
 ## 九、落地顺序
 
 1. **本次**：本框架与架构图；`plan`（需求队列）；参数观测进包（整理 → 输出）；文档目录重整。
-2. **inresearch 侧**：合入 [upstream/](upstream/README.md) 补丁；接收端把 `parameter_observations` 入库；接上回流；登记参数名与模型输入的对应。
+2. **inresearch 侧**：合入 [upstream/](upstream/README.md) 补丁；接收端把 `parameter_observations` 入库；上线回流接口（[申请](upstream/backflow-request.md)，2026-10-01）；登记参数名与模型输入的对应。
 3. **生产闭环**：在 macmini 数据根重跑已验证的四条目标，交生产接收端，取回生产回执，作者导入并审阅合并；执行机装 `pdftotext`。
 4. **按 `plan` 铺开**：先做"现在可抓"的 27 行；再按"缺适配器"88 行里被点名最多的厂商加适配器，依次是 Siemens / Siemens Energy（10 行）、Micron 与 Samsung（各 6 行，内存与存储）、ABB（5 行）、Delta（4 行）、Schneider 与 Eaton。
 5. **定时**：按目标行 `calendar` 定期 `map-sync` 与 `collect --refresh`。调度还没实现。

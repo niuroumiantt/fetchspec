@@ -44,6 +44,24 @@ class ReporgTest(unittest.TestCase):
             html = reporg.build(ROOT, up)
             self.assertIn("领 <b>4</b> 行", html)
 
+    def test_unrelated_upstream_commits_do_not_make_the_page_stale(self):
+        import subprocess
+        def git(*args):
+            return subprocess.run(["git", "-C", str(up), "-c", "user.name=t", "-c", "user.email=t@example.invalid", *args],
+                                  check=True, capture_output=True, text=True).stdout.strip()
+        with tempfile.TemporaryDirectory() as tmp:
+            up = Path(tmp)
+            git("init")
+            (up / "framework").mkdir()
+            (up / "framework" / "tco_targets.json").write_text(json.dumps({"targets": [{"id": "P.ups.spec", "team": "fetchspec"}]}))
+            git("add", "framework"); git("commit", "--no-gpg-sign", "-m", "targets")
+            changed = git("rev-parse", "HEAD")
+            first = reporg.build(ROOT, up)
+            (up / "notes.md").write_text("unrelated")
+            git("add", "notes.md"); git("commit", "--no-gpg-sign", "-m", "unrelated")
+            self.assertEqual(reporg.build(ROOT, up), first)
+            self.assertIn(changed[:12], first)
+
     def test_check_reports_a_stale_page(self):
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "reporg.html"
