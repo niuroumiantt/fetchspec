@@ -1,11 +1,18 @@
 # 计算芯片目录交接（2026-10-02，m5）
 
+> **生产发布已完成（2026-10-02，m5）。** 本页下表保留开发期本地覆盖；当前生产数量、保留批次、回执位置与页面修正以 [InResearch 发布交接](https://github.com/niuroumiantt/InResearch.ai/blob/main/docs/handoff/compute-catalog-20261002.md) 为准。Fetchspec #73 已合并为 `a7f0f57`；InResearch #305 为 `4a1218d`，网页验收修正见 [#306](https://github.com/niuroumiantt/InResearch.ai/pull/306)。
+
+- 已通过既有受限 HTTPS 接收端交付 12 家/产品线 58 项，12 份成功回执与规范化包 SHA 一致；线上原表/分类/证据逐字段对账通过。新增 53 个具体命名型号、55 项有原文规格。
+- NVIDIA 线上已有更晚的 595 项批次，保持不变；本地旧 597 项多出两个网络产品，未拿旧包覆盖新版。Micron 4,940 项原批次亦保留。两者批次 ID、接收时间与数量已核验。
+- 原件仍在下文数据目录；完整生产回执、API 快照与核验结果在 `~/.local/share/inresearch.ai/compute-catalog-release-20261002/`。目录发布没有翻转 target 状态或研究采用，Spark 未操作。
+- 合并后针对 InResearch 当前主线重跑 223 项测试（含 3 项接收集成）及 reporg check 成功；本仓库未配置 GitHub CI，不能称 GitHub CI 已通过。其余采集与架构证据缺口维持下文记录。
+
 ## 已定规则与状态
 - 本次是补充；CPU / GPU / 其他计算加速器独立于原厂 navigation。形态分芯片、板卡/模组、整机/平台、系列、IP、待核验。
 - 复用 `data/companies.json.records` 全部既有 ID。鲲鹏/昇腾→华为，海光 DCU→海光；不建同名新公司。中国筛选指总部国家，不表示制造地。
 - Gaudi、昇腾、寒武纪、燧原为其他计算加速器；ARM IP/网络不混入成品 CPU/GPU；DCU 逐型号核验，不推定 GCN/CDNA/RDNA。
 - InResearch 基线 d24b60a；Fetchspec 基线 8c71669。bce9102 在本机对象、reflog、已有 worktree 列表未找到，远端短 SHA fetch 也未解析。现有 docs/upstream 补丁已检查并保留，没有假设该提交已推送或已合入。
-- 两个主工作区未修改；代码在各自 `~/.worktrees/<仓库>/compute-catalog-20261002`。Spark 未操作；本轮没有网站部署或生产交付回执。
+- 开发源码位于各自 `~/.worktrees/<仓库>/compute-catalog-20261002`，原件未迁移。开发阶段无生产回执的状态已由上方发布记录替代。
 
 ## 真实覆盖（本机原件 SHA 与本地接收已核验）
 
@@ -38,7 +45,7 @@ AmpereOne 按官方SKU表得到7个子型号及1个系列，保留 Usage Power �
 - 海光DCU：当前官网没有取得Z100/K100的型号架构证据；model_reviews记录逐项缺口，参数和架构不补值。
 - 壁仞：当前166系列AI板卡已收；BR100/BR104旧产品官方原件与166系列具体芯片架构尚缺。
 - 更多Intel/AMD/中国厂商型号、动态切换规格与PDF附件尚未穷尽。昇腾URL的tag切换在静态HTML里仍返回默认型号，没有把这些URL误当不同产品。
-- 未上线：新的代码和运行数据仅本地验收。网站发布需要合并代码、通过既有受限目录接收端逐公司交付，并核对线上回执；不触碰Spark。
+- 开发期未上线状态已替代：真实发布与回执已完成，当前状态见页首；采集覆盖和官方架构证据缺口未因发布而消失。
 
 ## 数据与重跑入口
 - 实际原件/来源观察/目录导出：`~/.local/share/fetchspec/compute-catalog-20261002/`；不可当临时缓存删除。
