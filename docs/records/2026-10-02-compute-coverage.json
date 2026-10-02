@@ -1,0 +1,773 @@
+{
+  "scope": "local real-source acceptance; not production receipt",
+  "companies": [
+    {
+      "company_id": "ampere-computing",
+      "generated_at": "2026-10-02T06:41:53.517348+00:00",
+      "products": [
+        {
+          "id": "ampere-computing-70f47fe84910e2e0967d",
+          "name": "AmpereOne",
+          "kind": "family_or_directory",
+          "form": "series",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://amperecomputing.com/en/briefs/ampereone-family-product-brief",
+          "source_sha256": "223551a37f6b14dfa94830ccc0a8bda534300946f2ff5a565ce3bab79cfdfbcf",
+          "observed_at": "2026-10-02T06:41:53.507420+00:00",
+          "tables": 3
+        },
+        {
+          "id": "ampere-computing-9b6651f10dbd1aa5981f",
+          "name": "AmpereOne® A192-32X",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://amperecomputing.com/en/briefs/ampereone-family-product-brief",
+          "source_sha256": "223551a37f6b14dfa94830ccc0a8bda534300946f2ff5a565ce3bab79cfdfbcf",
+          "observed_at": "2026-10-02T06:41:53.507420+00:00",
+          "tables": 1
+        },
+        {
+          "id": "ampere-computing-6af953c81a8e3ed9e138",
+          "name": "AmpereOne® A192-26X",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://amperecomputing.com/en/briefs/ampereone-family-product-brief",
+          "source_sha256": "223551a37f6b14dfa94830ccc0a8bda534300946f2ff5a565ce3bab79cfdfbcf",
+          "observed_at": "2026-10-02T06:41:53.507420+00:00",
+          "tables": 1
+        },
+        {
+          "id": "ampere-computing-48b870a2a5d903683f90",
+          "name": "AmpereOne® A160-28X",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://amperecomputing.com/en/briefs/ampereone-family-product-brief",
+          "source_sha256": "223551a37f6b14dfa94830ccc0a8bda534300946f2ff5a565ce3bab79cfdfbcf",
+          "observed_at": "2026-10-02T06:41:53.507420+00:00",
+          "tables": 1
+        },
+        {
+          "id": "ampere-computing-64e41ce21842da34d9c6",
+          "name": "AmpereOne® A144-27X",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://amperecomputing.com/en/briefs/ampereone-family-product-brief",
+          "source_sha256": "223551a37f6b14dfa94830ccc0a8bda534300946f2ff5a565ce3bab79cfdfbcf",
+          "observed_at": "2026-10-02T06:41:53.507420+00:00",
+          "tables": 1
+        },
+        {
+          "id": "ampere-computing-d6d18576844e98a6d8ef",
+          "name": "AmpereOne® A144-24X",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://amperecomputing.com/en/briefs/ampereone-family-product-brief",
+          "source_sha256": "223551a37f6b14dfa94830ccc0a8bda534300946f2ff5a565ce3bab79cfdfbcf",
+          "observed_at": "2026-10-02T06:41:53.507420+00:00",
+          "tables": 1
+        },
+        {
+          "id": "ampere-computing-f13420dc334233ca4d65",
+          "name": "AmpereOne® A128-34X",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://amperecomputing.com/en/briefs/ampereone-family-product-brief",
+          "source_sha256": "223551a37f6b14dfa94830ccc0a8bda534300946f2ff5a565ce3bab79cfdfbcf",
+          "observed_at": "2026-10-02T06:41:53.507420+00:00",
+          "tables": 1
+        },
+        {
+          "id": "ampere-computing-2cfbcf266c987af96617",
+          "name": "AmpereOne® A96-36X",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://amperecomputing.com/en/briefs/ampereone-family-product-brief",
+          "source_sha256": "223551a37f6b14dfa94830ccc0a8bda534300946f2ff5a565ce3bab79cfdfbcf",
+          "observed_at": "2026-10-02T06:41:53.507420+00:00",
+          "tables": 1
+        }
+      ]
+    },
+    {
+      "company_id": "biren",
+      "generated_at": "2026-10-02T06:46:49.178028+00:00",
+      "products": [
+        {
+          "id": "biren-15b336b46533d57aeea8",
+          "name": "壁砺™ 166L",
+          "kind": "named_product",
+          "form": "board",
+          "compute_category": "unknown",
+          "architecture": "",
+          "source_url": "https://www.birentech.com/product/hardware/166l/",
+          "source_sha256": "c34405d7257075c588ffbad8aceaf682ea4fa17fe39d6c4cbe59c277c7b58b88",
+          "observed_at": "2026-10-02T06:41:56.768752+00:00",
+          "tables": 1
+        },
+        {
+          "id": "biren-b7dbde707fe2abfc576a",
+          "name": "壁砺™ 166M",
+          "kind": "named_product",
+          "form": "board",
+          "compute_category": "unknown",
+          "architecture": "",
+          "source_url": "https://www.birentech.com/product/hardware/166m/",
+          "source_sha256": "bc8293bc4b94fc76990e65266787e3382e78c3473665522920252354f7429b96",
+          "observed_at": "2026-10-02T06:46:49.177515+00:00",
+          "tables": 1
+        },
+        {
+          "id": "biren-d99432a7d8e06f58e8ef",
+          "name": "壁砺™ 166C",
+          "kind": "named_product",
+          "form": "board",
+          "compute_category": "unknown",
+          "architecture": "",
+          "source_url": "https://www.birentech.com/product/hardware/166c/",
+          "source_sha256": "3240156d30f4b87831f3be1a9e5b7349e3240d25e48ca3652490486ed328ac99",
+          "observed_at": "2026-10-02T06:41:54.272265+00:00",
+          "tables": 1
+        }
+      ]
+    },
+    {
+      "company_id": "cambricon",
+      "generated_at": "2026-10-02T06:41:54.217297+00:00",
+      "products": [
+        {
+          "id": "cambricon-87c34668ae164118ad54",
+          "name": "思元370",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "accelerator",
+          "architecture": "MLUarch03",
+          "source_url": "https://cambricon.com/index.php?a=lists&c=index&catid=360&m=content",
+          "source_sha256": "c8d167d94c5e79d59d6ccc664e5b49749ee48173563871580fb941714046d955",
+          "observed_at": "2026-10-02T06:41:54.210699+00:00",
+          "tables": 1
+        }
+      ]
+    },
+    {
+      "company_id": "huawei-ascend",
+      "generated_at": "2026-10-02T06:46:49.146470+00:00",
+      "products": [
+        {
+          "id": "huawei-ascend-ef168f1e844b2b6dd8fe",
+          "name": "Atlas 350 加速卡",
+          "kind": "named_product",
+          "form": "board",
+          "compute_category": "accelerator",
+          "architecture": "",
+          "source_url": "https://www.hiascend.com/hardware/accelerator-card",
+          "source_sha256": "414f57d209f2770503c0cc6b28821964473d71fe7dc49756b44762b2c9c29e57",
+          "observed_at": "2026-10-02T06:46:45.809745+00:00",
+          "tables": 1
+        },
+        {
+          "id": "huawei-ascend-f76d3858c1e851507da9",
+          "name": "Ascend 950PR",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "accelerator",
+          "architecture": "",
+          "source_url": "https://www.hiascend.com/hardware/processor",
+          "source_sha256": "a53e7b69526514f944cd9947d70c5e26cb1f2c9efacf8e41795d1a659883506b",
+          "observed_at": "2026-10-02T06:46:49.134780+00:00",
+          "tables": 1
+        }
+      ]
+    },
+    {
+      "company_id": "huawei-kunpeng",
+      "generated_at": "2026-10-02T06:41:54.532778+00:00",
+      "products": [
+        {
+          "id": "huawei-kunpeng-6ab7e72cee27967a4788",
+          "name": "鲲鹏920处理器",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "Armv8.2",
+          "source_url": "https://www.hikunpeng.com/zh/compute/kunpeng920",
+          "source_sha256": "711c1db256d9c94b9167b89a78655d6c0837fe488e495660c1f069d8509314c8",
+          "observed_at": "2026-10-02T06:41:54.523327+00:00",
+          "tables": 1
+        }
+      ]
+    },
+    {
+      "company_id": "hygon",
+      "generated_at": "2026-10-02T06:53:09.895671+00:00",
+      "products": [
+        {
+          "id": "hygon-6285879e480ede097a13",
+          "name": "海光 7185",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        },
+        {
+          "id": "hygon-8626baf63b01c3074f03",
+          "name": "海光 7169",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        },
+        {
+          "id": "hygon-5395f849e4c942d721c9",
+          "name": "海光 7165",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        },
+        {
+          "id": "hygon-d247b626a573e31c7c86",
+          "name": "海光 7159",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        },
+        {
+          "id": "hygon-611a15f4540c0433d76f",
+          "name": "海光 7155",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        },
+        {
+          "id": "hygon-11f8bff7a5f323841ce5",
+          "name": "海光 7151",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        },
+        {
+          "id": "hygon-b8f75b592001c31f0b03",
+          "name": "海光 5185",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        },
+        {
+          "id": "hygon-8961bd2407681062d2f8",
+          "name": "海光 5131",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        },
+        {
+          "id": "hygon-63e8b1e946ebf1411a5a",
+          "name": "海光 3188",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        },
+        {
+          "id": "hygon-b2dddc6c4a3344fb5aa6",
+          "name": "海光 3185",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        },
+        {
+          "id": "hygon-18e0045b44a54bd1b9a1",
+          "name": "海光 3135",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        },
+        {
+          "id": "hygon-2554fd78f392a654c0be",
+          "name": "海光 3131E",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        },
+        {
+          "id": "hygon-bbbd46ece74a60a77702",
+          "name": "海光7390",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        },
+        {
+          "id": "hygon-3216afd616c04ee13ec9",
+          "name": "海光7380",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        },
+        {
+          "id": "hygon-240d9ba9b5c850ddfe03",
+          "name": "海光7375",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        },
+        {
+          "id": "hygon-4fc94409f30c354662f1",
+          "name": "海光7360",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        },
+        {
+          "id": "hygon-4a76cf9ee35e78cd3e58",
+          "name": "海光5390",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        },
+        {
+          "id": "hygon-9e9aaa15408b0e7487de",
+          "name": "海光5380",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        },
+        {
+          "id": "hygon-a25ca7b1de6ee5467317",
+          "name": "海光3350",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        },
+        {
+          "id": "hygon-915ee5e58a75db96a821",
+          "name": "海光3350E",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        },
+        {
+          "id": "hygon-2fa264c2b503dc343bd0",
+          "name": "海光3330",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        },
+        {
+          "id": "hygon-3b91285c1e68c66c0715",
+          "name": "海光3330E",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        },
+        {
+          "id": "hygon-9c50b6e3e0e881cbb458",
+          "name": "海光3250",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.hygon.cn/js/430.9ce5e0c1.js",
+          "source_sha256": "4ee498fe77cfe100479d2da92e90cf5553f0b8f5c0c7665af499f225405bc466",
+          "observed_at": "2026-10-02T06:53:09.889847+00:00",
+          "tables": 1
+        }
+      ]
+    },
+    {
+      "company_id": "iluvatar-corex",
+      "generated_at": "2026-10-02T06:46:47.414607+00:00",
+      "products": [
+        {
+          "id": "iluvatar-corex-131659295a9d9fc0f2d8",
+          "name": "天垓150",
+          "kind": "named_product",
+          "form": "board",
+          "compute_category": "gpu",
+          "architecture": "通用GPU",
+          "source_url": "https://www.iluvatar.com/productDetails?fullCode=cpjs-yj-xlxl-tg150",
+          "source_sha256": "da0fcd82412d1a7d884382c4f28a07c3e969dee815e64ae8c1abefe0a14e6db7",
+          "observed_at": "2026-10-02T06:42:01.959569+00:00",
+          "tables": 1
+        },
+        {
+          "id": "iluvatar-corex-8f19a6ada70c78b2ed49",
+          "name": "天垓100加速卡（BI-V100）",
+          "kind": "named_product",
+          "form": "board",
+          "compute_category": "gpu",
+          "architecture": "",
+          "source_url": "https://www.iluvatar.com/productDetails?fullCode=cpjs-yj-xlxl-tg100",
+          "source_sha256": "b56f330e049e9c06026ddc0cc15b1605d3e7fac5d032c29a92ea7ea4a20bc89e",
+          "observed_at": "2026-10-02T06:46:47.400644+00:00",
+          "tables": 1
+        },
+        {
+          "id": "iluvatar-corex-f67f64a2442814953952",
+          "name": "智铠100加速卡（MR-V100）",
+          "kind": "named_product",
+          "form": "board",
+          "compute_category": "gpu",
+          "architecture": "",
+          "source_url": "https://www.iluvatar.com/productDetails?fullCode=cpjs-yj-tlxltt-zk100",
+          "source_sha256": "fd39732a1e4db4b520ac4fee60beb00822b08696e167db1fab9f6d89ee75f75e",
+          "observed_at": "2026-10-02T06:46:40.436048+00:00",
+          "tables": 1
+        }
+      ]
+    },
+    {
+      "company_id": "intel",
+      "generated_at": "2026-10-02T06:46:39.246902+00:00",
+      "products": [
+        {
+          "id": "intel-923ed39addeeb70ea773",
+          "name": "Intel Gaudi 3 PCIe HL-338",
+          "kind": "named_product",
+          "form": "board",
+          "compute_category": "accelerator",
+          "architecture": "",
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/ai-accelerators/gaudi.html",
+          "source_sha256": "79d7e6202147beada6095a55ee9f8596883d95abbd82855602b814b32bf23d6c",
+          "observed_at": "2026-10-02T06:46:37.276807+00:00",
+          "tables": 0
+        },
+        {
+          "id": "intel-ed38793febc55873f6e7",
+          "name": "Intel Xeon 6980P",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.intel.com/content/www/us/en/products/sku/240777/intel-xeon-6980p-processor-504m-cache-2-00-ghz/specifications.html",
+          "source_sha256": "0febf43790c13b5b62cabf123d6b5ca1c61903ee9eb972be10e8b3e5e315ac54",
+          "observed_at": "2026-10-02T06:46:39.223717+00:00",
+          "tables": 6
+        }
+      ]
+    },
+    {
+      "company_id": "loongson",
+      "generated_at": "2026-10-02T06:46:46.559228+00:00",
+      "products": [
+        {
+          "id": "loongson-5316cb566d2638c0011c",
+          "name": "龙芯3D5000",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.loongson.cn/product/show?id=21",
+          "source_sha256": "ac92796ef0ebf2bca2eab2d1522da1bca2705c2ade4152c9aa0e96b935a995ed",
+          "observed_at": "2026-10-02T06:46:43.677023+00:00",
+          "tables": 1
+        },
+        {
+          "id": "loongson-794aeb88e72d3528d7ae",
+          "name": "龙芯3A6000",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.loongson.cn/product/show?id=26",
+          "source_sha256": "55301827a3753349f1891551a823938530870eb3942a48d55b6cb2ab83dafee7",
+          "observed_at": "2026-10-02T06:46:46.545835+00:00",
+          "tables": 1
+        },
+        {
+          "id": "loongson-b2e8cd3c79ee195bede7",
+          "name": "龙芯3C6000",
+          "kind": "family_or_directory",
+          "form": "series",
+          "compute_category": "cpu",
+          "architecture": "LA664 / LoongArch",
+          "source_url": "https://www.loongson.cn/product/show?id=41",
+          "source_sha256": "6d7bf2a9e3801db56f5a9711f899f922ea01a3ec7f880c90b52182e2e7bee682",
+          "observed_at": "2026-10-02T06:41:58.517147+00:00",
+          "tables": 1
+        }
+      ]
+    },
+    {
+      "company_id": "metax",
+      "generated_at": "2026-10-02T06:46:41.673261+00:00",
+      "products": [
+        {
+          "id": "metax-946f3a766c1731b20e08",
+          "name": "曦云C500",
+          "kind": "named_product",
+          "form": "board",
+          "compute_category": "gpu",
+          "architecture": "",
+          "source_url": "https://www.metax-tech.com/prod.html?cid=107&id=21",
+          "source_sha256": "39f5f9cbef83434320a631f8404f167ff8152af60d88c3c0f524e4ba3254e67f",
+          "observed_at": "2026-10-02T06:41:58.320099+00:00",
+          "tables": 1
+        },
+        {
+          "id": "metax-baedac44b616320898ad",
+          "name": "曦云C500X",
+          "kind": "named_product",
+          "form": "board",
+          "compute_category": "gpu",
+          "architecture": "",
+          "source_url": "https://www.metax-tech.com/prod.html?cid=107&id=36",
+          "source_sha256": "4ff8d53357dfe12e62f18813c8936cd40d748504971715255dfbb0db4ad90100",
+          "observed_at": "2026-10-02T06:46:41.664678+00:00",
+          "tables": 1
+        },
+        {
+          "id": "metax-c3a23c2744029aa86385",
+          "name": "曦云C550",
+          "kind": "named_product",
+          "form": "board",
+          "compute_category": "gpu",
+          "architecture": "",
+          "source_url": "https://www.metax-tech.com/prod.html?cid=107&id=35",
+          "source_sha256": "f85785b5486511fe4c86f2a4e2b40bfe8a2ae05d5b1a933d3a3f461615f1331c",
+          "observed_at": "2026-10-02T06:46:39.191064+00:00",
+          "tables": 1
+        }
+      ]
+    },
+    {
+      "company_id": "moore-threads",
+      "generated_at": "2026-10-02T06:46:42.190611+00:00",
+      "products": [
+        {
+          "id": "moore-threads-52186b9832147cdb1428",
+          "name": "MTT S5000",
+          "kind": "named_product",
+          "form": "board",
+          "compute_category": "gpu",
+          "architecture": "",
+          "source_url": "https://www.mthreads.com/product/S5000",
+          "source_sha256": "0818b834ed74c433bf8ec938eae7559e20941788b2dd46e2868c768383171e6e",
+          "observed_at": "2026-10-02T06:46:39.732422+00:00",
+          "tables": 0
+        },
+        {
+          "id": "moore-threads-5949ca701a17644ff29e",
+          "name": "MTT S4000",
+          "kind": "named_product",
+          "form": "board",
+          "compute_category": "gpu",
+          "architecture": "曲院 GPU",
+          "source_url": "https://docs.mthreads.com/s4000/s4000-doc-online/",
+          "source_sha256": "88bf76084ea65f6fd47f6ab0c181ca27f8de2208548fd6f90af6caba609f5146",
+          "observed_at": "2026-10-02T06:42:02.410832+00:00",
+          "tables": 0
+        },
+        {
+          "id": "moore-threads-de3386f391e9dc49af0e",
+          "name": "MTT S80",
+          "kind": "named_product",
+          "form": "board",
+          "compute_category": "gpu",
+          "architecture": "",
+          "source_url": "https://www.mthreads.com/product/S80",
+          "source_sha256": "96e490e0000bcb0cade6c91b0e91a1cdc12fda37b7ad4e2d2bec2cc34c9955ee",
+          "observed_at": "2026-10-02T06:46:42.182615+00:00",
+          "tables": 1
+        }
+      ]
+    },
+    {
+      "company_id": "phytium",
+      "generated_at": "2026-10-02T06:49:07.086682+00:00",
+      "products": [
+        {
+          "id": "phytium-5879c4129c714a42e0f7",
+          "name": "飞腾腾云S5000C",
+          "kind": "family_or_directory",
+          "form": "series",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.phytium.com.cn/homepage/production/13/",
+          "source_sha256": "815a211f03b782311a729befb22bfb4be12e0e5155c82f5763d104297dd8f1e0",
+          "observed_at": "2026-10-02T06:49:01.211805+00:00",
+          "tables": 1
+        },
+        {
+          "id": "phytium-90d03988dafe5022b4ad",
+          "name": "飞腾腾云S2500系列",
+          "kind": "family_or_directory",
+          "form": "series",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.phytium.com.cn/homepage/production/4/",
+          "source_sha256": "bc4886a3fbcac7fa5bc2957d73586a35501c4ea6b420192ab128d19a7a53f6b3",
+          "observed_at": "2026-10-02T06:49:07.067057+00:00",
+          "tables": 1
+        },
+        {
+          "id": "phytium-de08c0b6fc50c8616c66",
+          "name": "飞腾腾云S5000C-E",
+          "kind": "family_or_directory",
+          "form": "series",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.phytium.com.cn/homepage/production/18/",
+          "source_sha256": "5844024d4c2988fa6bb4523904445363a0a7e337d772374def921667f0842159",
+          "observed_at": "2026-10-02T06:49:04.299796+00:00",
+          "tables": 1
+        },
+        {
+          "id": "phytium-31a2aeb19ffac6d4dd39",
+          "name": "飞腾腾云S5000C-64",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.phytium.com.cn/homepage/production/13/",
+          "source_sha256": "815a211f03b782311a729befb22bfb4be12e0e5155c82f5763d104297dd8f1e0",
+          "observed_at": "2026-10-02T06:49:01.211805+00:00",
+          "tables": 1
+        },
+        {
+          "id": "phytium-92d3586f3df1350388fb",
+          "name": "飞腾腾云S5000C-32",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.phytium.com.cn/homepage/production/13/",
+          "source_sha256": "815a211f03b782311a729befb22bfb4be12e0e5155c82f5763d104297dd8f1e0",
+          "observed_at": "2026-10-02T06:49:01.211805+00:00",
+          "tables": 1
+        },
+        {
+          "id": "phytium-bbace4ffa44b37684004",
+          "name": "飞腾腾云S5000C-16",
+          "kind": "named_product",
+          "form": "chip",
+          "compute_category": "cpu",
+          "architecture": "",
+          "source_url": "https://www.phytium.com.cn/homepage/production/13/",
+          "source_sha256": "815a211f03b782311a729befb22bfb4be12e0e5155c82f5763d104297dd8f1e0",
+          "observed_at": "2026-10-02T06:49:01.211805+00:00",
+          "tables": 1
+        }
+      ]
+    }
+  ]
+}

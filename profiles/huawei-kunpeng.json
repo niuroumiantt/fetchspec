@@ -1,0 +1,39 @@
+{
+  "profile_version": 1,
+  "company_id": "huawei-kunpeng",
+  "company_en": "鲲鹏",
+  "status": "bounded_reviewed_compute_products",
+  "allowed_hosts": [
+    "hikunpeng.com",
+    "huawei.com",
+    "www.hikunpeng.com",
+    "www.huawei.com"
+  ],
+  "sitemaps": [],
+  "discovery_entrypoints": [],
+  "document_formats": [
+    "pdf"
+  ],
+  "supported_locales": [
+    "en",
+    "zh"
+  ],
+  "delay_seconds": 1.5,
+  "timeout_seconds": 20,
+  "max_xml_bytes": 20000000,
+  "max_document_bytes": 64000000,
+  "min_free_bytes": 8589934592,
+  "max_requests": 100,
+  "max_discovery_depth": 1,
+  "category_roots": [],
+  "instance_aliases": [
+    "鲲鹏",
+    "huawei-kunpeng"
+  ],
+  "target_parts": [
+    "cpu"
+  ],
+  "known_gaps": [
+    "Partial reviewed product scope; candidate URLs are not products."
+  ]
+}

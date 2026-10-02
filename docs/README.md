@@ -10,6 +10,7 @@
 | 各厂商适配器的范围与例外 | [adapters/](adapters/)：[Astera Labs](adapters/asteralabs.md)、[Delta](adapters/delta.md)、[Micron](adapters/micron.md)、[NVIDIA](adapters/nvidia.md)、[Siemens](adapters/siemens.md)、[Siemens Energy](adapters/siemens-energy.md)、[Supermicro](adapters/supermicro.md)、[Vertiv](adapters/vertiv.md) |
 | 需要 inresearch 合入的补丁 | [upstream/](upstream/README.md) |
 | 实测与验收记录（带日期，不是规则） | [records/](records/)：[2026-09-29 重构验收](records/2026-09-29-redesign-verification.md)、[2026-09-29 端到端](records/2026-09-29-e2e.md)、[2026-10-01 Micron 闭环](records/2026-10-01-micron-closed-loop.md) |
+| 计算芯片目录与缺口 | [2026-10-02 交接](handoff/compute-catalog-20261002.md) |
 | 交接 | [handoff/](handoff/) |
 | 归档（旧公司级全站抓取、旧机器表、旧总览、OpenAPI 查看器） | [archive/](archive/) |
 

@@ -55,6 +55,8 @@ python3 -m fetchspec.pipeline assignments --delivery-id <delivery-id> --output a
 # inresearch 作者 checkout：python3 manage.py deliveries import --assignments assignments.json
 ```
 
+计算芯片按用户授权范围的有界采集另见 [交接与真实覆盖](docs/handoff/compute-catalog-20261002.md)：`PYTHONPATH=src python3 -m fetchspec.compute_catalog --company intel`，复用上述采集/候选库/目录接收管线，候选入口不计产品。
+
 ## 数据与验证
 
 默认数据根 `~/.local/share/fetchspec/pipeline/`，可用 `--root` 指定；`FETCHSPEC_DATA_ROOT` 与 `config/archive.local.json` 继续适用。源码与规则进 Git；原件、数据库、目标快照、包和回执不进 Git。

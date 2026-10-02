@@ -45,7 +45,7 @@ NARRATIVE = {
                 "整理成可比较的参数，打包交付并拿回回执。收到不等于采用，研究事实由 inresearch 判断。",
     "not_ours": "翻译、研究结论、目标表状态、全站 URL 清单；新闻、财报、研报、报价、统计归其他队（inews、fetchfilings、"
                 "fetchreports、fetchquotes、fetchstat）。",
-    "hosts": [("macmini", "采集执行机（目标表 host）"), ("M5", "开发与 NVIDIA 批次"), ("AWS", "inresearch 接收与展示"),
+    "hosts": [("macmini", "采集执行机（目标表 host）"), ("M5", "开发、NVIDIA 与计算芯片批次"), ("AWS", "inresearch 接收与展示"),
               ("Spark", "永久归档与深读")],
     "delivery": [
         ("包", "v2.0：manifest.json + SHA256SUMS + files/"),
