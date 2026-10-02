@@ -61,7 +61,7 @@
 
 | 通道 | 定义 | 执行机 | 现在 |
 |---|---|---|---|
-| 官方产品页 | 厂商官网产品、系列、对比页里的原生 HTML 表，以及产品页自己引用的官方数据组件（Vertiv 打印规格表、Micron 零件规格 JSON、Delta 页面负载内的规格段与其嵌入的规格文档），以及产品页链接的官方样本 PDF（Siemens，按版面行保留） | macmini（目标表 `host`） | NVIDIA、Supermicro、Vertiv、Micron、Siemens、Siemens Energy、Delta、Astera Labs 八个适配器 |
+| 官方产品页 | 厂商官网产品、系列、对比页里的原生 HTML 表，以及产品页自己引用的官方数据组件（Vertiv 打印规格表、Micron 零件规格 JSON、Delta 页面负载内的规格段与其嵌入的规格文档），以及产品页链接的官方样本 PDF（Siemens，按版面行保留） | macmini（目标表 `host`） | NVIDIA、Supermicro、Vertiv、Micron、Siemens、Siemens Energy、Delta、Astera Labs 基础适配器；2026-10-02 增加下文计算芯片审阅适配与静态组件通道 |
 | 官方文档 | 同一厂商公开的 datasheet、手册：PDF、Office、独立文档站 | macmini | NVIDIA 历史抽取可用；新管线的 PDF 需要执行机装 `pdftotext` |
 | 浏览器 | 需要登录或渲染的门户（目标表机制 `js_page`、`pdf_registered`） | macmini，人工辅助 | 未做；当前 130 行全是 `vendor_page` |
 | 人工 | 前三类拿不到时由人投递原件 | m4 / m5 上传 | 未做 |
@@ -137,3 +137,9 @@
 3. **生产闭环**：在 macmini 数据根重跑已验证的四条目标，交生产接收端，取回生产回执，作者导入并审阅合并；执行机装 `pdftotext`。
 4. **按 `plan` 铺开**：先做"现在可抓"的 27 行（2026-10-01：23 个种子已覆盖并绑定 24 行，剩 `P.switch-asic.spec`、`P.manifold.spec`、`P.dcim.spec`）；再按"缺适配器"88 行里被点名最多的厂商加适配器，依次是 Siemens / Siemens Energy（10 行）、Micron 与 Samsung（各 6 行，内存与存储）、ABB（5 行）、Delta（4 行）、Schneider 与 Eaton。2026-10-01：Micron 已加（3 行绑定）；Samsung 半导体与 ABB 官网对 robots 返回 403，不绕过，转浏览器通道；Siemens Energy 已加（燃气轮机、变压器 3 行绑定）；siemens.com 的中低压开关柜与母线槽经样本 PDF 版面行解析接上（3 行绑定）；Cerberus 消防不链样本，仍缺。Delta 已加（电源架、PSU、BBU、CDU 6 行绑定）；Schneider 官网产品页一律 403、Eaton 从云端 TLS 握手无响应；Broadcom 规格文档在 robots 禁区；Astera Labs 已加（Retimer、PCIe 交换 2 行绑定），见 [可达性](adapters/access.md)。
 5. **定时**：按目标行 `calendar` 定期 `map-sync` 与 `collect --refresh`。调度还没实现。
+
+## 计算芯片目录补充（2026-10-02）
+
+用户明确授权的计算芯片目录是本轮采集范围，仍走现有 acquisition / ProductStore / schema 1 目录接收管线，不自行翻转目标状态。具体产品分 CPU、GPU、其他计算加速器；保留原厂 taxonomy，另记证据支持的形态与架构。Gaudi、昇腾、寒武纪、燧原归其他计算加速器；ARM IP、网络/配套芯片排除。海光 DCU 每型号独立核验，未取得原文则留空，不能套用 GPU 厂商标签或猜 GCN/CDNA/RDNA。复用 InResearch 公司 ID，产品线保留母公司关系。
+
+`config/compute_catalog.json` 的 products 是经审阅的采集规则，candidates 是缺口，二者都不是上架台账。仅实际取得官方正文、身份依据匹配并有 SHA/来源/时间的 products 才进入交付；测试夹具绝不导入运行库。未知参数不生成。原网页静态 JSON 字面量可以解码，不执行脚本；海光 CPU 由网页→入口脚本→版本组件链保留证据，不能当成 DCU 证据。

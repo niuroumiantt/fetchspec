@@ -73,3 +73,11 @@ NVIDIA 保留英文/中文现有身份映射与成熟原表；Supermicro 仅有�
 ## 退出与清理
 
 旧主工作区、dirty/untracked 文件、分支、台账和原件全部保留。只清理本任务无唯一资料、已经合并并推送、无进程或应用引用的临时源码工作树；无法证明时保留。程序不实现原件垃圾回收，不把删除远程分支当作本地可删证据。
+
+## 计算芯片目录
+
+`python3 -m fetchspec.compute_catalog --company <既有公司ID>` 调用现有有界采集与 ProductStore，输出本地 `exports/<company>/catalog.json`。默认根为 `~/.local/share/fetchspec/compute-catalog-20261002/`，原件/数据库不进 Git。`--reparse` 只核对并复用原 SHA；Hygon 静态组件要求新鲜的页面引用链，不接受此参数。NVIDIA 复用既有 ProductStore 的活跃导出与原件，既有 ID 不重建。
+
+ComputeProductAdapter 只收审阅清单的具体 URL，正文 evidence_quote 缺失即报 candidate-only 错误；架构需要型号级原文。逐产品 `compute.source_refs` 绑定原字节。`official_text_fields` 是原文段落中提取的字段，不伪称厂商 HTML 表。Ampere 按官方 SKU 行派生子型号；飞腾仅对具有明确子型号列且无需 rowspan 推理的原表展开，共享 colspan 参数保留到对应子型号；复杂表继续留系列。`hygon_catalog` 只解码官网引用脚本的 JSON.parse 字面量，不执行 JS；字段原键、原值及所有来源保存。
+
+配置候选不会自动采集或创建产品；收件回执只证明本地接收，生产发布须另有真实回执。当前真实覆盖和访问缺口见 `docs/handoff/compute-catalog-20261002.md`。不操作 Spark。

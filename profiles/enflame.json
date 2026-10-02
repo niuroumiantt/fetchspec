@@ -1,0 +1,35 @@
+{
+  "profile_version": 1,
+  "company_id": "enflame",
+  "company_en": "燧原",
+  "status": "candidate_only_no_adapter",
+  "allowed_hosts": [
+    "enflame-tech.com",
+    "www.enflame-tech.com"
+  ],
+  "sitemaps": [],
+  "discovery_entrypoints": [],
+  "document_formats": [
+    "pdf"
+  ],
+  "supported_locales": [
+    "en",
+    "zh"
+  ],
+  "delay_seconds": 1.5,
+  "timeout_seconds": 20,
+  "max_xml_bytes": 20000000,
+  "max_document_bytes": 64000000,
+  "min_free_bytes": 8589934592,
+  "max_requests": 100,
+  "max_discovery_depth": 1,
+  "category_roots": [],
+  "instance_aliases": [
+    "燧原",
+    "enflame"
+  ],
+  "target_parts": [],
+  "known_gaps": [
+    "Partial reviewed product scope; candidate URLs are not products."
+  ]
+}

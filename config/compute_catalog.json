@@ -1,0 +1,670 @@
+{
+  "version": "2026-10-02.1",
+  "scope": "用户授权计算芯片目录；条目须匹配官方正文证据才进入产品库",
+  "products": [
+    {
+      "company_id": "biren",
+      "url": "https://www.birentech.com/product/hardware/166m/",
+      "name": "壁砺™ 166M",
+      "category": "unknown",
+      "form": "board",
+      "evidence_quote": "4U OAM V1.1 风冷模组",
+      "architecture": "",
+      "architecture_quote": "",
+      "taxonomy": [
+        {
+          "slug": "1-产品服务",
+          "name": "产品服务"
+        },
+        {
+          "slug": "2-硬件产品",
+          "name": "硬件产品"
+        }
+      ],
+      "spec_patterns": [
+        [
+          "峰值功耗",
+          "峰值功耗\\s*(\\d+W)"
+        ],
+        [
+          "产品形态",
+          "产品形态为\\s*([^峰]+?)\\s*峰值功耗"
+        ]
+      ],
+      "gap": "当前型号页仅称 AI 加速卡/模组；GPU 服务器适配不是本型号 GPU 架构证据。BR100/BR104 旧入口待补。"
+    },
+    {
+      "company_id": "biren",
+      "url": "https://www.birentech.com/product/hardware/166l/",
+      "name": "壁砺™ 166L",
+      "category": "unknown",
+      "form": "board",
+      "evidence_quote": "冷板式液冷 OAM 模组",
+      "architecture": "",
+      "architecture_quote": "",
+      "taxonomy": [
+        {
+          "slug": "1-产品服务",
+          "name": "产品服务"
+        },
+        {
+          "slug": "2-硬件产品",
+          "name": "硬件产品"
+        }
+      ],
+      "spec_patterns": [
+        [
+          "峰值功耗",
+          "峰值功耗\\s*(\\d+W)"
+        ],
+        [
+          "产品形态",
+          "产品形态为\\s*([^峰]+?)\\s*峰值功耗"
+        ]
+      ],
+      "gap": "当前型号页仅称 AI 加速卡/模组；GPU 服务器适配不是本型号 GPU 架构证据。BR100/BR104 旧入口待补。"
+    },
+    {
+      "company_id": "biren",
+      "url": "https://www.birentech.com/product/hardware/166c/",
+      "name": "壁砺™ 166C",
+      "category": "unknown",
+      "form": "board",
+      "evidence_quote": "全高全长（290mm）、双宽 PCIe 板卡",
+      "architecture": "",
+      "architecture_quote": "",
+      "taxonomy": [
+        {
+          "slug": "1-产品服务",
+          "name": "产品服务"
+        },
+        {
+          "slug": "2-硬件产品",
+          "name": "硬件产品"
+        }
+      ],
+      "spec_patterns": [
+        [
+          "峰值功耗",
+          "峰值功耗\\s*(\\d+W)"
+        ],
+        [
+          "产品形态",
+          "产品形态为\\s*([^峰]+?)\\s*峰值功耗"
+        ]
+      ],
+      "gap": "当前型号页仅称 AI 加速卡/模组；GPU 服务器适配不是本型号 GPU 架构证据。BR100/BR104 旧入口待补。"
+    },
+    {
+      "company_id": "iluvatar-corex",
+      "url": "https://www.iluvatar.com/productDetails?fullCode=cpjs-yj-xlxl-tg150",
+      "name": "天垓150",
+      "category": "gpu",
+      "form": "board",
+      "evidence_quote": "通用GPU架构支持人工智能及通用计算融合",
+      "architecture": "通用GPU",
+      "architecture_quote": "通用GPU架构支持人工智能及通用计算融合",
+      "taxonomy": [
+        {
+          "slug": "1-产品技术",
+          "name": "产品技术"
+        },
+        {
+          "slug": "2-天垓系列",
+          "name": "天垓系列"
+        }
+      ],
+      "spec_patterns": [
+        [
+          "显存",
+          "配备了(64GB的HBM内存)"
+        ],
+        [
+          "板级功耗",
+          "板级功耗为(350W)"
+        ]
+      ]
+    },
+    {
+      "company_id": "metax",
+      "url": "https://www.metax-tech.com/prod.html?cid=107&id=21",
+      "name": "曦云C500",
+      "category": "gpu",
+      "form": "board",
+      "evidence_quote": "旗舰级PCIe板卡形态通用GPU产品",
+      "architecture": "",
+      "architecture_quote": "",
+      "taxonomy": [
+        {
+          "slug": "1-产品",
+          "name": "产品"
+        },
+        {
+          "slug": "2-曦云c系列",
+          "name": "曦云C系列"
+        }
+      ],
+      "spec_patterns": [
+        [
+          "显存",
+          "单卡配备(64GB高带宽显存，支持全链路ECC保护)"
+        ]
+      ]
+    },
+    {
+      "company_id": "moore-threads",
+      "url": "https://docs.mthreads.com/s4000/s4000-doc-online/",
+      "name": "MTT S4000",
+      "category": "gpu",
+      "form": "board",
+      "evidence_quote": "基于摩尔线程曲院 GPU 架构打造的全功能元计算卡",
+      "architecture": "曲院 GPU",
+      "architecture_quote": "基于摩尔线程曲院 GPU 架构",
+      "taxonomy": [
+        {
+          "slug": "1-mtt-s4000",
+          "name": "MTT S4000"
+        }
+      ],
+      "spec_patterns": []
+    },
+    {
+      "company_id": "loongson",
+      "url": "https://www.loongson.cn/product/show?id=41",
+      "name": "龙芯3C6000",
+      "category": "cpu",
+      "form": "series",
+      "evidence_quote": "龙芯 3C6000 系列处理器采用龙芯第四代微处理器架构",
+      "architecture": "LA664 / LoongArch",
+      "architecture_quote": "支持LoongArch™指令系统",
+      "taxonomy": [
+        {
+          "slug": "1-芯片产品",
+          "name": "芯片产品"
+        },
+        {
+          "slug": "2-高性能通用cpu",
+          "name": "高性能通用CPU"
+        }
+      ],
+      "spec_patterns": [],
+      "parser": "loongson_parameters"
+    },
+    {
+      "company_id": "huawei-kunpeng",
+      "url": "https://www.hikunpeng.com/zh/compute/kunpeng920",
+      "name": "鲲鹏920处理器",
+      "category": "cpu",
+      "form": "chip",
+      "evidence_quote": "鲲鹏920处理器",
+      "architecture": "Armv8.2",
+      "architecture_quote": "Armv8.2指令集",
+      "taxonomy": [
+        {
+          "slug": "1-鲲鹏处理器",
+          "name": "鲲鹏处理器"
+        }
+      ],
+      "spec_patterns": [
+        [
+          "指令集",
+          "(Armv8\\.2指令集)"
+        ]
+      ],
+      "gap": "SSR 技术规格表为空；仅收已出现的原文，不补核心数/功耗。"
+    },
+    {
+      "company_id": "ampere-computing",
+      "url": "https://amperecomputing.com/en/briefs/ampereone-family-product-brief",
+      "name": "AmpereOne",
+      "category": "cpu",
+      "form": "series",
+      "evidence_quote": "AmpereOne® : SKU Information",
+      "architecture": "",
+      "architecture_quote": "",
+      "taxonomy": [
+        {
+          "slug": "1-processors",
+          "name": "Processors"
+        },
+        {
+          "slug": "2-ampereone",
+          "name": "AmpereOne"
+        }
+      ],
+      "spec_patterns": [],
+      "parser": "ampere_skus"
+    },
+    {
+      "company_id": "cambricon",
+      "url": "https://cambricon.com/index.php?a=lists&c=index&catid=360&m=content",
+      "name": "思元370",
+      "category": "accelerator",
+      "form": "chip",
+      "evidence_quote": "思元370芯片",
+      "architecture": "MLUarch03",
+      "architecture_quote": "MLUarch03芯片架构",
+      "taxonomy": [
+        {
+          "slug": "1-产品技术",
+          "name": "产品技术"
+        },
+        {
+          "slug": "2-思元370系列",
+          "name": "思元370系列"
+        }
+      ],
+      "spec_patterns": [
+        [
+          "制程",
+          "基于(7nm)制程工艺"
+        ],
+        [
+          "最大算力",
+          "最大算力高达(256TOPS\\(INT8\\))"
+        ],
+        [
+          "晶体管",
+          "集成了(390亿个晶体管)"
+        ]
+      ]
+    },
+    {
+      "company_id": "intel",
+      "url": "https://www.intel.com/content/www/us/en/products/sku/240777/intel-xeon-6980p-processor-504m-cache-2-00-ghz/specifications.html",
+      "name": "Intel Xeon 6980P",
+      "category": "cpu",
+      "form": "chip",
+      "evidence_quote": "Intel® Xeon® 6980P Processor",
+      "architecture": "",
+      "architecture_quote": "",
+      "taxonomy": [
+        {
+          "slug": "0-Products",
+          "name": "Products"
+        },
+        {
+          "slug": "1-Intel® Xeon® 6 processors",
+          "name": "Intel® Xeon® 6 processors"
+        }
+      ],
+      "spec_patterns": []
+    },
+    {
+      "company_id": "intel",
+      "url": "https://www.intel.com/content/www/us/en/products/details/processors/ai-accelerators/gaudi.html",
+      "name": "Intel Gaudi 3 PCIe HL-338",
+      "category": "accelerator",
+      "form": "board",
+      "evidence_quote": "The Intel Gaudi® 3 PCIe card (HL-338) delivers AI acceleration in a standard PCIe Gen5 form factor",
+      "architecture": "",
+      "architecture_quote": "",
+      "taxonomy": [
+        {
+          "slug": "0-Intel® Gaudi® AI Accelerator Products",
+          "name": "Intel® Gaudi® AI Accelerator Products"
+        }
+      ],
+      "spec_patterns": []
+    },
+    {
+      "company_id": "metax",
+      "url": "https://www.metax-tech.com/prod.html?cid=107&id=35",
+      "name": "曦云C550",
+      "category": "gpu",
+      "form": "board",
+      "evidence_quote": "旗舰级OAM模组形态通用GPU产品",
+      "architecture": "",
+      "architecture_quote": "",
+      "taxonomy": [
+        {
+          "slug": "0-产品",
+          "name": "产品"
+        },
+        {
+          "slug": "1-曦云C系列",
+          "name": "曦云C系列"
+        }
+      ],
+      "spec_patterns": [
+        [
+          "显存",
+          "(64GB高带宽显存，支持全链路ECC保护)"
+        ],
+        [
+          "最大功耗",
+          "最大功耗(\\d+W)"
+        ]
+      ]
+    },
+    {
+      "company_id": "metax",
+      "url": "https://www.metax-tech.com/prod.html?cid=107&id=36",
+      "name": "曦云C500X",
+      "category": "gpu",
+      "form": "board",
+      "evidence_quote": "旗舰级光互连通用GPU创新产品",
+      "architecture": "",
+      "architecture_quote": "",
+      "taxonomy": [
+        {
+          "slug": "0-产品",
+          "name": "产品"
+        },
+        {
+          "slug": "1-曦云C系列",
+          "name": "曦云C系列"
+        }
+      ],
+      "spec_patterns": [
+        [
+          "显存",
+          "(64GB高带宽显存，支持全链路ECC保护)"
+        ],
+        [
+          "最大功耗",
+          "最大功耗(\\d+W)"
+        ]
+      ]
+    },
+    {
+      "company_id": "iluvatar-corex",
+      "url": "https://www.iluvatar.com/productDetails?fullCode=cpjs-yj-xlxl-tg100",
+      "name": "天垓100加速卡（BI-V100）",
+      "category": "gpu",
+      "form": "board",
+      "evidence_quote": "天垓100基于通用GPU架构设计",
+      "architecture": "",
+      "architecture_quote": "",
+      "taxonomy": [
+        {
+          "slug": "0-产品技术",
+          "name": "产品技术"
+        },
+        {
+          "slug": "1-天垓系列",
+          "name": "天垓系列"
+        }
+      ],
+      "spec_patterns": [
+        [
+          "板级功耗",
+          "板级功耗\\s*(250W)"
+        ],
+        [
+          "显存",
+          "(32 GB DRAM HBM2)"
+        ]
+      ]
+    },
+    {
+      "company_id": "iluvatar-corex",
+      "url": "https://www.iluvatar.com/productDetails?fullCode=cpjs-yj-tlxltt-zk100",
+      "name": "智铠100加速卡（MR-V100）",
+      "category": "gpu",
+      "form": "board",
+      "evidence_quote": "智铠100加速卡（MR-V100）",
+      "architecture": "",
+      "architecture_quote": "",
+      "taxonomy": [
+        {
+          "slug": "0-产品技术",
+          "name": "产品技术"
+        },
+        {
+          "slug": "1-推理系列",
+          "name": "推理系列"
+        }
+      ],
+      "spec_patterns": [
+        [
+          "板级功耗",
+          "板级功耗\\s*(150W)"
+        ],
+        [
+          "显存",
+          "(32 GB HBM2E)"
+        ]
+      ]
+    },
+    {
+      "company_id": "moore-threads",
+      "url": "https://www.mthreads.com/product/S5000",
+      "name": "MTT S5000",
+      "category": "gpu",
+      "form": "board",
+      "evidence_quote": "作为一款全功能 GPU，MTT S5000",
+      "architecture": "",
+      "architecture_quote": "",
+      "taxonomy": [
+        {
+          "slug": "0-产品",
+          "name": "产品"
+        },
+        {
+          "slug": "1-MTT S5000",
+          "name": "MTT S5000"
+        }
+      ],
+      "spec_patterns": []
+    },
+    {
+      "company_id": "moore-threads",
+      "url": "https://www.mthreads.com/product/S80",
+      "name": "MTT S80",
+      "category": "gpu",
+      "form": "board",
+      "evidence_quote": "MTT S80 配备了 16GB GDDR6",
+      "architecture": "",
+      "architecture_quote": "",
+      "taxonomy": [
+        {
+          "slug": "0-产品",
+          "name": "产品"
+        },
+        {
+          "slug": "1-MTT S80",
+          "name": "MTT S80"
+        }
+      ],
+      "spec_patterns": [
+        [
+          "显存",
+          "MTT S80 配备了 (16GB GDDR6)"
+        ]
+      ]
+    },
+    {
+      "company_id": "loongson",
+      "url": "https://www.loongson.cn/product/show?id=26",
+      "name": "龙芯3A6000",
+      "category": "cpu",
+      "form": "chip",
+      "evidence_quote": "龙芯3A6000",
+      "architecture": "",
+      "architecture_quote": "",
+      "taxonomy": [
+        {
+          "slug": "0-芯片产品",
+          "name": "芯片产品"
+        },
+        {
+          "slug": "1-高性能通用CPU",
+          "name": "高性能通用CPU"
+        }
+      ],
+      "spec_patterns": [],
+      "parser": "loongson_parameters"
+    },
+    {
+      "company_id": "loongson",
+      "url": "https://www.loongson.cn/product/show?id=21",
+      "name": "龙芯3D5000",
+      "category": "cpu",
+      "form": "chip",
+      "evidence_quote": "龙芯3D5000",
+      "architecture": "",
+      "architecture_quote": "",
+      "taxonomy": [
+        {
+          "slug": "0-芯片产品",
+          "name": "芯片产品"
+        },
+        {
+          "slug": "1-高性能通用CPU",
+          "name": "高性能通用CPU"
+        }
+      ],
+      "spec_patterns": [],
+      "parser": "loongson_parameters"
+    },
+    {
+      "company_id": "huawei-ascend",
+      "url": "https://www.hiascend.com/hardware/processor",
+      "name": "Ascend 950PR",
+      "category": "accelerator",
+      "form": "chip",
+      "evidence_quote": "Ascend 950PR聚焦LLM大语言模型Prefill阶段",
+      "architecture": "",
+      "architecture_quote": "",
+      "taxonomy": [
+        {
+          "slug": "0-昇腾NPU处理器",
+          "name": "昇腾NPU处理器"
+        }
+      ],
+      "spec_patterns": [
+        [
+          "最大片上内存",
+          "最大配备(128GB、1.6TB/s高速片上内存)"
+        ]
+      ]
+    },
+    {
+      "company_id": "huawei-ascend",
+      "url": "https://www.hiascend.com/hardware/accelerator-card",
+      "name": "Atlas 350 加速卡",
+      "category": "accelerator",
+      "form": "board",
+      "evidence_quote": "Atlas 350 加速卡采用Ascend 950PR",
+      "architecture": "",
+      "architecture_quote": "",
+      "taxonomy": [
+        {
+          "slug": "0-加速卡",
+          "name": "加速卡"
+        }
+      ],
+      "spec_patterns": []
+    },
+    {
+      "company_id": "phytium",
+      "url": "https://www.phytium.com.cn/homepage/production/4/",
+      "name": "飞腾腾云S2500系列",
+      "category": "cpu",
+      "form": "series",
+      "evidence_quote": "飞腾腾云 S2500 集成 64 个飞腾自主研发的高能效处理器核FTC663",
+      "architecture": "",
+      "architecture_quote": "",
+      "taxonomy": [
+        {
+          "slug": "cpu",
+          "name": "CPU系列"
+        },
+        {
+          "slug": "server-cpu",
+          "name": "高性能服务器CPU"
+        }
+      ],
+      "spec_patterns": []
+    },
+    {
+      "company_id": "phytium",
+      "url": "https://www.phytium.com.cn/homepage/production/13/",
+      "name": "飞腾腾云S5000C",
+      "category": "cpu",
+      "form": "series",
+      "evidence_quote": "飞腾腾云S5000C拥有64核、32核、16核3种产品形态",
+      "architecture": "",
+      "architecture_quote": "",
+      "taxonomy": [
+        {
+          "slug": "cpu",
+          "name": "CPU系列"
+        },
+        {
+          "slug": "server-cpu",
+          "name": "高性能服务器CPU"
+        }
+      ],
+      "spec_patterns": []
+    },
+    {
+      "company_id": "phytium",
+      "url": "https://www.phytium.com.cn/homepage/production/18/",
+      "name": "飞腾腾云S5000C-E",
+      "category": "cpu",
+      "form": "series",
+      "evidence_quote": "飞腾腾云 S5000C-E 是飞腾新一代高性能服务器 CPU",
+      "architecture": "",
+      "architecture_quote": "",
+      "taxonomy": [
+        {
+          "slug": "cpu",
+          "name": "CPU系列"
+        },
+        {
+          "slug": "server-cpu",
+          "name": "高性能服务器CPU"
+        }
+      ],
+      "spec_patterns": []
+    }
+  ],
+  "candidates": [
+    {
+      "company_id": "hygon-dcu",
+      "url": "https://www.hygon.cn/product/dcu",
+      "reason": "逐型号核验 Z100/K100 等官方原文；不从 DCU 名称推定 GCN/CDNA/RDNA"
+    },
+    {
+      "company_id": "zhaoxin",
+      "url": "https://www.zhaoxin.com/",
+      "reason": "根页未识别产品；新闻路径 robots 禁止，待官方产品入口"
+    },
+    {
+      "company_id": "enflame",
+      "url": "https://www.enflame-tech.com/",
+      "reason": "robots 返回403；不绕过"
+    },
+    {
+      "company_id": "amd",
+      "url": "https://www.amd.com/en/products/processors/server/epyc/9005-series/amd-epyc-9965.html",
+      "reason": "robots 请求超时，待重试"
+    }
+  ],
+  "model_reviews": [
+    {
+      "company_id": "hygon-dcu",
+      "model": "Z100",
+      "status": "official_model_architecture_not_found",
+      "architecture": "",
+      "checked_sources": [
+        "https://www.hygon.cn/product/dcu",
+        "https://www.hygon.cn/js/430.9ce5e0c1.js"
+      ],
+      "reason": "官方当前组件无此型号的架构说明；不能凭其他网站的 GCN/CDNA/RDNA 判断补值。"
+    },
+    {
+      "company_id": "hygon-dcu",
+      "model": "K100",
+      "status": "official_model_architecture_not_found",
+      "architecture": "",
+      "checked_sources": [
+        "https://www.hygon.cn/product/dcu",
+        "https://www.hygon.cn/js/430.9ce5e0c1.js"
+      ],
+      "reason": "官方当前组件无此型号的架构说明；不能凭其他网站的 GCN/CDNA/RDNA 判断补值。"
+    }
+  ]
+}
