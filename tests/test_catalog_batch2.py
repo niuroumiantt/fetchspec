@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from fetchspec.catalog_batch2 import decode, epyc_rows, load_sources, merge_catalog
+from fetchspec.catalog_batch2 import decode, epyc_rows, load_sources, merge_catalog, flex_board_quote, plain
 from fetchspec.product_catalog import Document
 
 
@@ -38,3 +38,10 @@ class Batch2Tests(unittest.TestCase):
         self.assertEqual({p['id']:p['name'] for p in result['products']},{'old':'old','new':'new','update':'after'})
         self.assertEqual(result['sources'],baseline['amd']['sources'])
         with self.assertRaisesRegex(ValueError,'duplicate'):merge_catalog('amd',[{'id':'new'},{'id':'new'}],[],baseline,[])
+
+    def test_flex_variant_evidence_is_not_shared_by_substring(self):
+        doc=Document('<h3>Intel® Data Center GPU Flex 140</h3><p>75W, half-height PCIe package</p><p>PCIe Intel Data Center GPU Flex 170 for AI</p><p>PCIe Intel Data Center GPU Flex 170V for VDI</p>').root
+        item={'doc':doc,'text':plain(doc)}
+        self.assertEqual(flex_board_quote(item,'170V'),'PCIe Intel Data Center GPU Flex 170V for VDI')
+        self.assertEqual(flex_board_quote(item,'170'),'PCIe Intel Data Center GPU Flex 170 for AI')
+        self.assertIn('Flex 140 75W',flex_board_quote(item,'140'))

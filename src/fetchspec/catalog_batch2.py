@@ -173,6 +173,16 @@ def amd(items):
     return result
 
 
+def flex_board_quote(item, model):
+    """Match a complete variant name, never Flex 170 inside Flex 170V."""
+    paragraphs=[n.text() for n in item['doc'].walk('p') if 'PCIe' in n.text()]
+    if model=='140':
+        paragraph=next(p for p in paragraphs if '75W, half-height PCIe package' in p)
+        return require(item['text'],'Intel® Data Center GPU Flex 140 '+paragraph)
+    paragraph=next(p for p in paragraphs if re.search(r'Flex '+re.escape(model)+r'\b',p))
+    return require(item['text'],paragraph)
+
+
 def intel(items):
     result = {}
     for item in items.values():
@@ -192,10 +202,11 @@ def intel(items):
             for row in t['rows']:
                 if row[0]['text']=='Microarchitecture':p['compute'].update(architecture=row[1]['text'],architecture_quote=require(item['text'],row[1]['text']))
         # Never infer silicon model from an ARK board/model name or code name.
-        if 'flex-170' in url:
+        variant=re.search(r'/intel-data-center-gpu-flex-(140|170v?)/',url)
+        if variant:
             directory=next(v for v in items.values() if v['source']['source_url'].endswith('/flex-series.html'))
-            quote=next((n.text() for n in directory['doc'].walk('p') if 'PCIe' in n.text() and '170' in n.text()),'')
-            if quote:p['compute'].update(form='board',evidence_quote=require(directory['text'],quote),source_refs=[ref(item['source']),ref(directory['source'])])
+            quote=flex_board_quote(directory,variant[1].upper())
+            p['compute'].update(form='board',evidence_quote=quote,source_refs=[ref(item['source']),ref(directory['source'])])
         result[url]=p
     return list(result.values())
 
