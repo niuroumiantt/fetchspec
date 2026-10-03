@@ -2,7 +2,7 @@
 """仓库架构页（reporg）生成器。
 
 约定（inews.today docs/reporg.md）：每个仓库一页「仓库架构」，回答七个问题：定位、需求、通道与来源、
-环节、交付、实时计数、还没做完的。Fetchspec 的页托管在 inresearch.ai/admin/fetchspec/reporg.html。
+环节、交付、实时计数、还没做完的。Fetchspec 的页托管在 inresearch.ai/admin/fetchspecrepo.html。
 
 页面从仓库自己的事实生成，手写的只有下面 NARRATIVE 里的几段说明：
   - 需求：inresearch framework/tco_targets.json 里 team == "fetchspec" 的行（--upstream 指向作者 checkout）；
@@ -228,7 +228,7 @@ figure.svg{{margin:12px 0 18px;padding:12px;border:1px solid var(--line);border-
 <body>
 <header><b>仓库架构 · fetchspec</b><nav>{toc}</nav></header>
 <main>
-<p class="eyebrow">inresearch.ai/admin/fetchspec/reporg.html</p>
+<p class="eyebrow">inresearch.ai/admin/fetchspecrepo.html</p>
 <h1>需求 → 爬取 → 整理 → 输出</h1>
 <p>这一页从 fetchspec 仓库自己的文件生成（<code>scripts/reporg.py</code>）：子命令、厂商档案与规则、架构图，以及 inresearch 目标表里 team = fetchspec 的行。改了这些，重新生成即可。</p>
 {body}
