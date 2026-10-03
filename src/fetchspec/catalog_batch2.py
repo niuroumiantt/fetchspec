@@ -161,7 +161,9 @@ def amd(items):
             p['compute'].update(form='board' if name=='MI350P' else 'module',evidence_quote=require(micro['text'],form_quote))
             p['compute']['source_refs'].append(ref(micro['source']))
             t=micro['page']['tables'][0]; col=next(i for i,c in enumerate(t['rows'][0]) if c['text'].startswith(name+' '))
-            p['tables'].append(native(t,micro['source'],[[r[0],r[col]] for r in t['rows']]))
+            extra=native(t,micro['source'],[[r[0],r[col]] for r in t['rows']])
+            extra['source_table_index']=extra['index'];extra['index']=len(p['tables'])+1
+            p['tables'].append(extra)
         if name == 'MI300A':
             p['compute']['classification_note']='APU：此表仅给 GPU 部分；CPU 核心与封装形态未据本表推定。'
         result.append(p)
@@ -302,6 +304,9 @@ def run(root,company,baseline):
             item=items.get(old['source_url'])
             if item and ('OAM 模组' in item['text'] or 'OAM V1.1 风冷模组' in item['text']):
                 p=copy.deepcopy(old);require(item['text'],p['compute']['evidence_quote']);p['compute']['form']='module';products.append(p)
+    for p in products:
+        indexes=[t['index'] for t in p['tables']]
+        if len(indexes)!=len(set(indexes)):raise ValueError('duplicate product table index')
     payload=merge_catalog(company,products,[v['source'] for v in items.values()],baseline,config.get('limitations',{}).get(company,[]))
     with ProductStore(root) as store:
         prior={p['id']:p for p in store.export_catalog(company)['products']}
