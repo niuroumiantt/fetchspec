@@ -90,6 +90,17 @@ class ProductNetworkTests(unittest.TestCase):
             fetcher.get('https://a.test/product')
         self.assertEqual(fetcher.opener.calls, ['https://a.test/robots.txt'])
 
+    def test_reviewed_locale_robots_redirect_is_exact_and_keeps_disallow(self):
+        fetcher = self.make({'https://a.test/robots.txt': ('https://a.test/en/robots.txt', b'User-agent: *\nDisallow: /private'), 'https://a.test/product': b'body'})
+        fetcher.profile['robots_redirect_paths'] = {'a.test': ['/en/robots.txt']}
+        self.assertEqual(fetcher.get('https://a.test/product')[0], b'body')
+        self.assertEqual(fetcher.policy_receipts[0]['final_url'], 'https://a.test/en/robots.txt')
+        with self.assertRaisesRegex(ValueError, 'robots disallowed'):
+            fetcher.get('https://a.test/private')
+        fetcher._loading_robots = True
+        for url in ['https://a.test/en/robots.txt?x=1','https://b.test/en/robots.txt','https://a.test/en/login']:
+            with self.assertRaisesRegex(ValueError, 'robots redirect'): fetcher.check(url)
+
     def test_robot_size_limit_is_one_mebibyte(self):
         fetcher = self.make({'https://a.test/robots.txt': b'#'*(1024*1024+1)})
         with self.assertRaisesRegex(ValueError, 'response exceeds limit'):

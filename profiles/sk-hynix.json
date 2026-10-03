@@ -1,0 +1,41 @@
+{
+  "profile_version": 1,
+  "company_id": "sk-hynix",
+  "company_en": "SK hynix",
+  "status": "bounded_official_catalog",
+  "allowed_hosts": [
+    "product.skhynix.com",
+    "www.skhynix.com",
+    "skhynix.com",
+    "news.skhynix.com"
+  ],
+  "sitemaps": [],
+  "discovery_entrypoints": [],
+  "document_formats": [
+    "pdf"
+  ],
+  "supported_locales": [
+    "en",
+    "zh"
+  ],
+  "delay_seconds": 1.5,
+  "timeout_seconds": 20,
+  "max_xml_bytes": 20000000,
+  "max_document_bytes": 64000000,
+  "min_free_bytes": 8589934592,
+  "max_requests": 100,
+  "max_discovery_depth": 1,
+  "category_roots": [],
+  "instance_aliases": [
+    "SK hynix"
+  ],
+  "target_parts": [],
+  "known_gaps": [
+    "Product portal robots HTTP 500; fail closed. Newsroom root robots explicitly redirects to same-host /en/robots.txt; 404/410 follow existing unavailable-policy handling, not 403/5xx."
+  ],
+  "robots_redirect_paths": {
+    "news.skhynix.com": [
+      "/en/robots.txt"
+    ]
+  }
+}
