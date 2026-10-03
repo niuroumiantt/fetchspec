@@ -1,6 +1,6 @@
 # 第二批计算目录交接
 
-基线是已合并的第一批交接及真实生产验收。当前本地验收完成，尚待接收端新版本部署和逐公司生产回执；合并代码不表示数据已上架。
+基线是已合并的第一批交接及真实生产验收。**第二批已于2026-10-03实际发布并验收**：InResearch #307部署为3d4ad3d并健康后，使用既有凭据分三批交付七家公司；7份回执run_id与冻结包SHA、生产数据库一致。Fetchspec #75/#76合并后的实现为f018e19。
 
 本批净新增103个实体：AMD43、Intel35、兆芯12、摩尔线程2、壁仞1、Supermicro5、SK hynix5。保留旧批次后七家共111项。具体型号、原件SHA、原表数量及缺口见 [逐产品覆盖审计](../records/2026-10-03-catalog-batch2-coverage.json)。[InResearch第二批交接](https://github.com/niuroumiantt/InResearch.ai/blob/main/docs/handoff/compute-catalog-batch2-20261002.md)记录生产验收。
 
@@ -24,6 +24,10 @@ SK hynix产品门户robots500仍封闭。新闻站根robots跳到同主机/en/ro
 
 ## 验证
 
-本地228项测试通过（含与干净origin/main 1c41b91接收端的3项集成）；新增回归覆盖EPYC多型号对齐、共享值、歧义拒绝、gzip大小限制/SHA、保留式合并、robots精确路径及Disallow。七家真实原件SHA与新接收端本地接收验收通过；生产回执及最终集成结果待填。
+本地228项测试通过（含与干净origin/main 1c41b91接收端的3项集成）；新增回归覆盖EPYC多型号对齐、共享值、歧义拒绝、gzip大小限制/SHA、保留式合并、robots精确路径及Disallow。七家真实原件SHA、从旧生产基线升级接收、完整原表与compute字段核对通过；生产数据库726条可索引规格行与当前原表对账。InResearch四项完整CI和线上筛选/关系链接/手机浏览器验收通过。
+
+净新增103项中有87个具体命名型号、85个新增型号有原文规格；另补S4000/S5000既有型号规格字段，S5000仍没有完整硬件数值表。七家发布后的总量为AMD43、Intel37、兆芯12、摩尔线程5、壁仞4、Supermicro5、SK hynix5。NVIDIA595项、Micron4940项及另外9个未修改目录的run_id、接收时间、产品数和payload摘要未变。完整回执、具体型号、芯片关系与保留摘要见 [InResearch生产验收报告](https://github.com/niuroumiantt/InResearch.ai/blob/main/docs/handoff/compute-catalog-batch2-production-20261003.json)。
+
+SK hynix HBM3E原发布旧链接只有媒体库条目；本批36GB/12层规格由另一个已归档的Computex2025官方新闻原文补充，保留原链接的缺失记录。AMD补充表使用独立交付表号并保留source_table_index。原始生产回执在验收根目录的receipts/，线上API原表包、数据库摘要及浏览器截图均保留；Spark未操作。
 
 逐型号复核：Flex 140 的半高PCIe形态与170/170V的全高PCIe说明分别取证；型号匹配使用完整边界，不把170的AI说明用于170V。生产包在这次复核后冻结。
