@@ -1,5 +1,5 @@
 {
-  "scope": "Reviewed supplement, local acceptance; production receipt recorded separately",
+  "scope": "Published and production-verified bounded supplement on 2026-10-03; full receipts in InResearch batch2 production handoff",
   "companies": [
     {
       "company_id": "amd",
@@ -2449,5 +2449,6 @@
         "仅覆盖本轮审阅的官方型号/系列；历史值与空白保留，不证明当前在售或厂商全量。"
       ]
     }
-  ]
+  ],
+  "production_report": "https://github.com/niuroumiantt/InResearch.ai/blob/main/docs/handoff/compute-catalog-batch2-production-20261003.json"
 }

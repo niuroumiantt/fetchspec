@@ -1,5 +1,7 @@
 # 计算芯片目录交接（2026-10-02，m5）
 
+第二批已发布：净新增103项、七家生产回执验收通过，见 [第二批交接](compute-catalog-batch2-20261002.md)。本页保留第一批覆盖。
+
 > **生产发布已完成（2026-10-02，m5）。** 本页下表保留开发期本地覆盖；当前生产数量、保留批次、回执位置与页面修正以 [InResearch 发布交接](https://github.com/niuroumiantt/InResearch.ai/blob/main/docs/handoff/compute-catalog-20261002.md) 为准。Fetchspec #73 已合并为 `a7f0f57`；InResearch #305 为 `4a1218d`，网页验收修正见 [#306](https://github.com/niuroumiantt/InResearch.ai/pull/306)。
 
 - 已通过既有受限 HTTPS 接收端交付 12 家/产品线 58 项，12 份成功回执与规范化包 SHA 一致；线上原表/分类/证据逐字段对账通过。新增 53 个具体命名型号、55 项有原文规格。
