@@ -2,10 +2,13 @@
   "profile_version": 1,
   "company_id": "amd",
   "company_en": "AMD",
-  "status": "candidate_only_no_adapter",
+  "status": "bounded_reviewed_catalog",
   "allowed_hosts": [
     "amd.com",
-    "www.amd.com"
+    "www.amd.com",
+    "rocm.docs.amd.com",
+    "instinct.docs.amd.com",
+    "ir.amd.com"
   ],
   "sitemaps": [],
   "discovery_entrypoints": [],

@@ -15,7 +15,8 @@ class ProductFetcher(InventoryFetcher):
 
     Each actual requested or redirected host gets its own robots observation.
     Policy errors are cached for this instance/run and remain fail-closed. Robots
-    retrieval itself can redirect only to an allowed host's /robots.txt.
+    retrieval can redirect only to /robots.txt or an explicitly reviewed per-host
+    robots path. Missing 404/410 policies retain the existing unavailable rule.
     """
     def __init__(self, profile):
         super().__init__(dict(profile))
@@ -39,7 +40,8 @@ class ProductFetcher(InventoryFetcher):
     def check(self, url):
         parts = self._allowed(url)  # Never fetch a policy for an untrusted host.
         if self._loading_robots:
-            if parts.path != '/robots.txt' or parts.query:
+            paths = self.profile.get('robots_redirect_paths', {}).get(parts.hostname, [])
+            if parts.path not in ['/robots.txt', *paths] or parts.query:
                 raise ValueError('robots redirect must remain an allowed /robots.txt URL')
             return
         if parts.path == '/robots.txt' and not parts.query:
@@ -73,7 +75,7 @@ class ProductFetcher(InventoryFetcher):
             except HTTPError as exc:
                 if exc.code not in {404, 410}:
                     raise
-                body, meta = b'', {'final_url': url, 'status': exc.code}
+                body, meta = b'', {'final_url': exc.filename, 'status': exc.code}
             self.robots[host] = Robots(body.decode('utf-8', 'replace'), USER_AGENT)
             self.policy_receipts.append({'url': url, 'observed_at': utc_now(), 'sha256': hashlib.sha256(body).hexdigest(),
                                          'text': body.decode('utf-8', 'replace'), **meta})

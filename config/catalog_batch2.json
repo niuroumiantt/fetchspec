@@ -1,0 +1,330 @@
+{
+  "version": "2026-10-02.2",
+  "sources": [
+    {
+      "company_id": "amd",
+      "url": "https://instinct.docs.amd.com/latest/gpu-arch/mi350.html",
+      "sha256": "ebeaaa21f7821457ea212ce2d90133beee68c980f096f79a4b71cdea48761356"
+    },
+    {
+      "company_id": "amd",
+      "url": "https://instinct.docs.amd.com/projects/system-acceptance/en/latest/gpus/mi350x.html",
+      "sha256": "099991f9eb31a7f48ca69654dd78577635d9f45aa1a4b3024ff071cd13da778c"
+    },
+    {
+      "company_id": "amd",
+      "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+      "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+    },
+    {
+      "company_id": "amd",
+      "url": "https://rocm.docs.amd.com/en/latest/reference/gpu-arch/mi350.html",
+      "sha256": "6db5e954203fca7157ddc1cb9c210b61adcdffa00fb584dc8168dd8d0981277f"
+    },
+    {
+      "company_id": "amd",
+      "url": "https://rocm.docs.amd.com/en/latest/reference/gpu-arch-specs.html",
+      "sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+    },
+    {
+      "company_id": "intel",
+      "url": "https://www.intel.com/content/www/us/en/products/details/discrete-gpus/data-center-gpu/flex-series.html",
+      "sha256": "65040d3ba02ce6b212feda31eeedfb04410edf825d3e90d66eb85348ae257a01"
+    },
+    {
+      "company_id": "intel",
+      "url": "https://www.intel.com/content/www/us/en/products/sku/240233/intel-data-center-gpu-flex-170v/specifications.html",
+      "sha256": "6d10359a8406eee50c2dbacffd010c069175a75f31fa5181b2ef50db808023d0"
+    },
+    {
+      "company_id": "intel",
+      "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon.html",
+      "sha256": "a5a741a4bb8ec83ae4405ace25eb02cdb2f9a20a156b7f7928ed009a9b6182e1"
+    },
+    {
+      "company_id": "intel",
+      "url": "https://www.intel.com/content/www/us/en/products/details/discrete-gpus/data-center-gpu/max-series.html",
+      "sha256": "0bdc1c90a16e91581843d7df9db3c52020e4fdfbda58d4996ba8fd0188b15e23"
+    },
+    {
+      "company_id": "intel",
+      "url": "https://www.intel.com/content/www/us/en/products/sku/230020/intel-data-center-gpu-flex-140/specifications.html",
+      "sha256": "1fb3dc108f496d07d5f49c873d1f8157627ba9f3476dcb00157c6de9041c4781"
+    },
+    {
+      "company_id": "intel",
+      "url": "https://www.intel.com/content/www/us/en/products/sku/232873/intel-data-center-gpu-max-1550/specifications.html",
+      "sha256": "31ed1797200da86c8f4ed11e6152faf3338defe3d6187a32ea882922e653cca6"
+    },
+    {
+      "company_id": "intel",
+      "url": "https://www.intel.com/content/www/us/en/products/sku/232876/intel-data-center-gpu-max-1100/specifications.html",
+      "sha256": "d66ddc9c3bd79ac30f6128fe7fbc7376862e79c3a2a9987db08281a5611fa3d4"
+    },
+    {
+      "company_id": "intel",
+      "url": "https://www.intel.com/content/www/us/en/products/sku/230019/intel-data-center-gpu-flex-170/specifications.html",
+      "sha256": "566dab6e96ea7cf6898e7fc52148b40e0fe41b1793b51ca2d50bfd558ecee170"
+    },
+    {
+      "company_id": "intel",
+      "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+      "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+    },
+    {
+      "company_id": "intel",
+      "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/entry.html",
+      "sha256": "86c6a09312d398f2d2106ee0ab7976b0b60ddee851c47871e23badc2a452d877"
+    },
+    {
+      "company_id": "intel",
+      "url": "https://www.intel.com/content/www/us/en/products/sku/240777/intel-xeon-6980p-processor-504m-cache-2-00-ghz/specifications.html",
+      "sha256": "0febf43790c13b5b62cabf123d6b5ca1c61903ee9eb972be10e8b3e5e315ac54"
+    },
+    {
+      "company_id": "zhaoxin",
+      "url": "https://www.zhaoxin.com/prod_view.aspx?id=327&nid=3&typeid=129",
+      "sha256": "523099cf4b14979850c240e8473a3d8695eeeb59100b29a132b9a846ce368fdb"
+    },
+    {
+      "company_id": "zhaoxin",
+      "url": "https://www.zhaoxin.com/prod_view.aspx?nid=3&typeid=602&id=3311",
+      "sha256": "48fac94d3a7aa8e1cf8e4dd8b3168b3f984f143dc21e123c467fd17fe0632161"
+    },
+    {
+      "company_id": "zhaoxin",
+      "url": "https://www.zhaoxin.com/prod_view.aspx?nid=3&typeid=581&id=2410",
+      "sha256": "d9d89a02be5391ebee15fa462c0074420ed34089323738c91a7b902b5c00bd9a"
+    },
+    {
+      "company_id": "zhaoxin",
+      "url": "https://www.zhaoxin.com/prod_view.aspx?nid=3&typeid=593&id=2757",
+      "sha256": "dcbd0f7317a1618901d1a0e00e60e3e3e9c5ae2c2ebfa18be546522f6153a323"
+    },
+    {
+      "company_id": "zhaoxin",
+      "url": "https://www.zhaoxin.com/prod_view.aspx?nid=3&typeid=582&id=2411",
+      "sha256": "6894a4962dc2f7f94fed968bccf726c96358cc6cca39b37e92676637b1a857c5"
+    },
+    {
+      "company_id": "zhaoxin",
+      "url": "https://www.zhaoxin.com/prod_view.aspx?nid=3&typeid=605&id=3601",
+      "sha256": "8ea734b36ab6d6d0d23ee1687d25cde291db9d3db215f63814ee0bf54f39e0fc"
+    },
+    {
+      "company_id": "zhaoxin",
+      "url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+      "sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+    },
+    {
+      "company_id": "moore-threads",
+      "url": "https://docs.mthreads.com/driver-linux-server/driver-linux-server-doc-online/MTT_S5000/introduction/",
+      "sha256": "60edac4fe6ee5cf62ac1fe9549842f7796d908392e0099a74d4e8121db571949"
+    },
+    {
+      "company_id": "moore-threads",
+      "url": "https://docs.mthreads.com/s4000/s4000-doc-online/product_specifications/",
+      "sha256": "4dc9266c6e0013598a75b522423c00b0bfc521f4408f0f686bab4062601db23b"
+    },
+    {
+      "company_id": "moore-threads",
+      "url": "https://www.mthreads.com/product/S5000",
+      "sha256": "0818b834ed74c433bf8ec938eae7559e20941788b2dd46e2868c768383171e6e"
+    },
+    {
+      "company_id": "moore-threads",
+      "url": "https://www.mthreads.com/architecture/pinghu",
+      "sha256": "b30ba240d9b47bd4a600c60774331e0b8b3f4153e350cf718061a1e285ca8862"
+    },
+    {
+      "company_id": "supermicro",
+      "url": "https://www.supermicro.com/en/products/system/gpu/8u/sys-821ge-tnhr",
+      "sha256": "11002bd70b1772bba95ad9f20efac556bc3dbd4e3e12c053ae1636081e96808d"
+    },
+    {
+      "company_id": "supermicro",
+      "url": "https://www.supermicro.com/en/products/system/mp/4u/sys-442b-nr",
+      "sha256": "7280e72eec4bf13898f93b6ae4044353727604359c70fa661d21457b6eaddef7"
+    },
+    {
+      "company_id": "supermicro",
+      "url": "https://www.supermicro.com/en/products/system/hyper/2u/sys-222h-tn",
+      "sha256": "011405f071bd803e12c0ff47e277eae283db4b27fb0bd671c29ef011d8bda39e"
+    },
+    {
+      "company_id": "supermicro",
+      "url": "https://www.supermicro.com/en/products/system/CloudDC/2U/SYS-621C-TN12R",
+      "sha256": "af10b23d7d5a390c379fd2eb8f37e0d23f7c406a56b64d2b201a913f3346efb3"
+    },
+    {
+      "company_id": "supermicro",
+      "url": "https://www.supermicro.com/en/products/system/iot/2u/sys-212gb-fnr",
+      "sha256": "1282e542460ee840e0da7dc27eef8d0c42f2b2d7074134e52a40bc2caccd80a5"
+    },
+    {
+      "company_id": "biren",
+      "url": "https://www.birentech.com/csr-article/gblwq16edn07xrb9pjky963s/",
+      "sha256": "d7cfa6a8bbe80fe4414eaa97826f5320f1478fc4e8e4eeb4479a0375f776d2b9"
+    },
+    {
+      "company_id": "sk-hynix",
+      "url": "https://news.skhynix.com/en/sk-hynix-develops-peb110-for-data-centers/",
+      "sha256": "1f31413aa7f597a3f3a6dac3e0420ac38960b6f50ee11b72ee1fe78ded11082c"
+    },
+    {
+      "company_id": "sk-hynix",
+      "url": "https://news.skhynix.com/en/sk-hynix-develops-ps1012-ssd-for-ai-data-centers/",
+      "sha256": "d590f7f3716c657e403cffe4798966a98593da1d29c9b5cd23da9054dcc2e8f0"
+    },
+    {
+      "company_id": "sk-hynix",
+      "url": "https://news.skhynix.com/en/sk-hynix-presents-groundbreaking-ai-server-memory-solutions-at-dtw-2025/",
+      "sha256": "1a7c911bbb0e893b1b3d1ab03286bd6b5d897e4e786b59089bd53a1d54f16051"
+    },
+    {
+      "company_id": "sk-hynix",
+      "url": "https://news.skhynix.com/en/sk-hynix-begins-volume-production-of-the-worlds-first-12-layer-hbm3e/",
+      "sha256": "2d1bbfc2d23bdbf0031b2dfac230c9d739071f43f4d50fac22e62619703b4ef8"
+    },
+    {
+      "company_id": "biren",
+      "url": "https://www.birentech.com/product/hardware/166l/",
+      "sha256": "c34405d7257075c588ffbad8aceaf682ea4fa17fe39d6c4cbe59c277c7b58b88"
+    },
+    {
+      "company_id": "biren",
+      "url": "https://www.birentech.com/product/hardware/166m/",
+      "sha256": "bc8293bc4b94fc76990e65266787e3382e78c3473665522920252354f7429b96"
+    },
+    {
+      "company_id": "biren",
+      "url": "https://www.birentech.com/product/hardware/166c/",
+      "sha256": "3240156d30f4b87831f3be1a9e5b7349e3240d25e48ca3652490486ed328ac99"
+    },
+    {
+      "company_id": "sk-hynix",
+      "url": "https://news.skhynix.com/en/sk-hynix-showcases-hbm4-next-gen-ai-memory-at-computex-taipei-2025/",
+      "sha256": "5ba7183abe5a5660b8148ac64153dde228cca8698e53f7ec791fe72cf14a7b5e"
+    }
+  ],
+  "sk_hynix_products": [
+    {
+      "name": "PEB110",
+      "kind": "named_product",
+      "category": "storage / enterprise SSD",
+      "quote": "SK hynix Inc. (or “the company”, www.skhynix.com) announced today that it has developed PEB110 E1.S (PEB110), a high-performance solid-state drive (SSD) for data centers.",
+      "specs": [
+        {
+          "label": "interface generation / transfer rate",
+          "quote": "PCle Gen5, applied to the new product, provides twice the bandwidth of the fourth generation (Gen4), enabling PEB110 to achieve data transfer rates of up to 32 gigatransfers per second (GT/s)."
+        },
+        {
+          "label": "performance and power efficiency",
+          "quote": "This enables PEB110 to double the performance of the previous generation and improve power efficiency by more than 30%."
+        },
+        {
+          "label": "capacity versions / OCP compatibility",
+          "quote": "The product will be released in three capacity versions—2 terabyte (TB), 4 TB, and 8 TB—and supports the OCP* version 2.5 specifications for greater compatibility across global data centers."
+        }
+      ],
+      "source_url": "https://news.skhynix.com/en/sk-hynix-develops-peb110-for-data-centers/",
+      "url": "https://news.skhynix.com/en/sk-hynix-develops-peb110-for-data-centers/"
+    },
+    {
+      "name": "PS1012 U.2",
+      "kind": "named_product",
+      "category": "storage / enterprise SSD",
+      "quote": "SK hynix Inc. (or “the company”, www.skhynix.com) announced today that it has completed development of its high-capacity SSD product, ‘PS1012 U.2*’, designed for AI data centers.",
+      "specs": [
+        {
+          "label": "capacity / NAND technology",
+          "quote": "In line with this trend, SK hynix has developed a 61TB product using this technology and introduced it to the market."
+        },
+        {
+          "label": "interface / transfer rate / sequential read",
+          "quote": "With the latest 5th generation (Gen5) PCIe*, PS1012 doubles its bandwidth compared to 4th generation based products. As a result, the data transfer speed reaches 32GT/s (Giga-transfers per second)*, with the sequential read performance of 13GB/s (Gigabyte per second), which is twice that of previous generation products."
+        }
+      ],
+      "source_url": "https://news.skhynix.com/en/sk-hynix-develops-ps1012-ssd-for-ai-data-centers/",
+      "url": "https://news.skhynix.com/en/sk-hynix-develops-ps1012-ssd-for-ai-data-centers/"
+    },
+    {
+      "name": "HBM3E 12-layer",
+      "kind": "family_or_directory",
+      "category": "memory / DRAM",
+      "quote": "In addition, SK hynix presented its 36 GB 12-layer HBM3E, installed in NVIDIA’s AI server GPU module GB200.",
+      "specs": [
+        {
+          "label": "capacity / layers",
+          "quote": "In addition, SK hynix presented its 36 GB 12-layer HBM3E, installed in NVIDIA’s AI server GPU module GB200."
+        }
+      ],
+      "source_url": "https://news.skhynix.com/en/sk-hynix-begins-volume-production-of-the-worlds-first-12-layer-hbm3e/",
+      "url": "https://news.skhynix.com/en/sk-hynix-showcases-hbm4-next-gen-ai-memory-at-computex-taipei-2025/"
+    },
+    {
+      "name": "DDR5 RDIMM",
+      "kind": "family_or_directory",
+      "category": "memory / DRAM",
+      "quote": "In the server DRAM section, SK hynix presented a lineup of DDR5-based memory modules for servers. The spotlight was on the DDR5 RDIMM* and MRDIMM* products built using the 1c node,* the sixth generation of the 10 nm process technology. The company also showcased various DRAM solutions designed to maximize AI server performance and reduce power consumption, including its 96 GB DDR5 RDIMM, 256 GB 3DS* DDR5 RDIMM, and DDR5 MRDIMM in both 96 GB and 256 GB capacities.",
+      "specs": [
+        {
+          "label": "capacities explicitly stated for RDIMM series",
+          "quote": "The company also showcased various DRAM solutions designed to maximize AI server performance and reduce power consumption, including its 96 GB DDR5 RDIMM, 256 GB 3DS* DDR5 RDIMM"
+        },
+        {
+          "label": "process node stated for highlighted DDR5 RDIMM/MRDIMM products",
+          "quote": "The spotlight was on the DDR5 RDIMM* and MRDIMM* products built using the 1c node,* the sixth generation of the 10 nm process technology."
+        }
+      ],
+      "source_url": "https://news.skhynix.com/en/sk-hynix-presents-groundbreaking-ai-server-memory-solutions-at-dtw-2025/",
+      "url": "https://news.skhynix.com/en/sk-hynix-presents-groundbreaking-ai-server-memory-solutions-at-dtw-2025/"
+    },
+    {
+      "name": "DDR5 MRDIMM",
+      "kind": "family_or_directory",
+      "category": "memory / DRAM",
+      "quote": "In the server DRAM section, SK hynix presented a lineup of DDR5-based memory modules for servers. The spotlight was on the DDR5 RDIMM* and MRDIMM* products built using the 1c node,* the sixth generation of the 10 nm process technology. The company also showcased various DRAM solutions designed to maximize AI server performance and reduce power consumption, including its 96 GB DDR5 RDIMM, 256 GB 3DS* DDR5 RDIMM, and DDR5 MRDIMM in both 96 GB and 256 GB capacities.",
+      "specs": [
+        {
+          "label": "capacities explicitly stated for MRDIMM series",
+          "quote": "DDR5 MRDIMM in both 96 GB and 256 GB capacities."
+        },
+        {
+          "label": "process node stated for highlighted DDR5 RDIMM/MRDIMM products",
+          "quote": "The spotlight was on the DDR5 RDIMM* and MRDIMM* products built using the 1c node,* the sixth generation of the 10 nm process technology."
+        }
+      ],
+      "source_url": "https://news.skhynix.com/en/sk-hynix-presents-groundbreaking-ai-server-memory-solutions-at-dtw-2025/",
+      "url": "https://news.skhynix.com/en/sk-hynix-presents-groundbreaking-ai-server-memory-solutions-at-dtw-2025/"
+    }
+  ],
+  "limitations": {
+    "amd": [
+      "AMD 主站 robots 超时；EPYC 本批仅 9005 发布原表，未覆盖其他代际。Instinct 的 GPU 部分架构不等于完整产品形态或板卡—芯片关系。"
+    ],
+    "intel": [
+      "Xeon 本批目录与单型号页覆盖有限；Max/Flex 的 ARK 型号不推定底层芯片对应。PDF 主机 robots 403，附件未交付。"
+    ],
+    "zhaoxin": [
+      "12项均为官方系列，未拆成无独立SKU证据的命名芯片。产品页详细规格为图片/动态布局；Admin 下载入口 robots 禁止。"
+    ],
+    "moore-threads": [
+      "S5000 完整数值硬件参数表未取得；正文精度与OAM形态仅为部分规格。QY102AA-800 自身架构未知，板卡显存/功耗不赋给芯片。"
+    ],
+    "biren": [
+      "BR100 仅取得官方系列发布原文，未取得 BR100/BR104 独立型号规格或架构原件；166系列不猜底层芯片。"
+    ],
+    "supermicro": [
+      "只覆盖五个服务器型号页；配置/可选件按官网保留，不推成芯片实体。"
+    ],
+    "sk-hynix": [
+      "product.skhynix.com robots HTTP 500；本批仅官方新闻原文，不冒充产品门户或完整数据表。",
+      "RDIMM/MRDIMM 与 HBM3E 无可订购料号，计系列。",
+      "The archived HBM3E URL now serves a SK hynix Newsroom media-library page. Its archived HTML only contains the media title/date and a download button, not the announcement body or numerical HBM3E specifications; no specs are asserted here.",
+      "The DTW 2025 source identifies DDR5 RDIMM/MRDIMM series and capacities but supplies no ordering part numbers. These entries are series/configurations, not part-number-level concrete SKUs.",
+      "PS1012 article mentions development of 244TB products as a future aim based on 321-high 4D NAND; it does not identify that as a released PS1012 model, so it is excluded as a model specification.",
+      "The PS1012 article states QLC in adjacent article prose; its footnote definition is separate. The model category reflects the article's own classification, and no NAND generation beyond quoted text is inferred."
+    ]
+  }
+}

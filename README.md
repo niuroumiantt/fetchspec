@@ -68,3 +68,5 @@ FETCHSPEC_INRESEARCH_ROOT=~/code/inresearch.ai PYTHONPATH=src python3 -m unittes
 ```
 
 文档目录见 [docs/README.md](docs/README.md)。旧的公司级全站抓取（`company-crawl`、`product_catalog`、`company-deliver` 1.1）保留兼容，说明在 [docs/archive/](docs/archive/)；仓库根目录的 Vite OpenAPI 查看器是另一个工具，与规格管线无关，见 [docs/archive/OPENAPI_VIEWER.md](docs/archive/OPENAPI_VIEWER.md)。
+
+第二批型号与芯片关系补齐见 [第二批交接](docs/handoff/compute-catalog-batch2-20261002.md)，入口 `python3 -m fetchspec.catalog_batch2`；固定审阅来源SHA并保留已核对生产基线。

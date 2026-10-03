@@ -1,0 +1,2449 @@
+{
+  "scope": "Reviewed supplement, local acceptance; production receipt recorded separately",
+  "companies": [
+    {
+      "company_id": "amd",
+      "products": [
+        {
+          "id": "amd-bc28951a80ecc5509e93",
+          "name": "AMD Instinct MI355X",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "module",
+            "architecture": "CDNA4",
+            "architecture_quote": "CDNA4",
+            "evidence_quote": "The AMD Instinct™ MI350 Series GPUs are based on the AMD CDNA4 architecture, and are designed for AI, HPC, and machine learning workloads. The series includes the MI350X (1000W, air-cooled) and the MI355X (1400W, direct liquid-cooled), both in the OAM form factor, and the MI350P, a PCIe card (600W, configurable to 450W) for deployment in mainstream servers.",
+            "source_refs": [
+              {
+                "url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+                "sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+              },
+              {
+                "url": "https://rocm.docs.amd.com/en/latest/reference/gpu-arch/mi350.html",
+                "sha256": "6db5e954203fca7157ddc1cb9c210b61adcdffa00fb584dc8168dd8d0981277f"
+              }
+            ]
+          },
+          "table_count": 2,
+          "source_url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+          "source_sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+        },
+        {
+          "id": "amd-4f04a14fed24d8ada481",
+          "name": "AMD Instinct MI350X",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "module",
+            "architecture": "CDNA4",
+            "architecture_quote": "CDNA4",
+            "evidence_quote": "The AMD Instinct™ MI350 Series GPUs are based on the AMD CDNA4 architecture, and are designed for AI, HPC, and machine learning workloads. The series includes the MI350X (1000W, air-cooled) and the MI355X (1400W, direct liquid-cooled), both in the OAM form factor, and the MI350P, a PCIe card (600W, configurable to 450W) for deployment in mainstream servers.",
+            "source_refs": [
+              {
+                "url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+                "sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+              },
+              {
+                "url": "https://rocm.docs.amd.com/en/latest/reference/gpu-arch/mi350.html",
+                "sha256": "6db5e954203fca7157ddc1cb9c210b61adcdffa00fb584dc8168dd8d0981277f"
+              }
+            ]
+          },
+          "table_count": 2,
+          "source_url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+          "source_sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+        },
+        {
+          "id": "amd-d45c5968bc44d6e37307",
+          "name": "AMD Instinct MI350P",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "board",
+            "architecture": "CDNA4",
+            "architecture_quote": "CDNA4",
+            "evidence_quote": "The AMD Instinct™ MI350 Series GPUs are based on the AMD CDNA4 architecture, and are designed for AI, HPC, and machine learning workloads. The series includes the MI350X (1000W, air-cooled) and the MI355X (1400W, direct liquid-cooled), both in the OAM form factor, and the MI350P, a PCIe card (600W, configurable to 450W) for deployment in mainstream servers.",
+            "source_refs": [
+              {
+                "url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+                "sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+              },
+              {
+                "url": "https://rocm.docs.amd.com/en/latest/reference/gpu-arch/mi350.html",
+                "sha256": "6db5e954203fca7157ddc1cb9c210b61adcdffa00fb584dc8168dd8d0981277f"
+              }
+            ]
+          },
+          "table_count": 2,
+          "source_url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+          "source_sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+        },
+        {
+          "id": "amd-f99e7b22527365d0e756",
+          "name": "AMD Instinct MI325X",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "unknown",
+            "architecture": "CDNA3",
+            "architecture_quote": "CDNA3",
+            "evidence_quote": "MI325X",
+            "source_refs": [
+              {
+                "url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+                "sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+          "source_sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+        },
+        {
+          "id": "amd-7afa9e384ea381892607",
+          "name": "AMD Instinct MI300X",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "unknown",
+            "architecture": "CDNA3",
+            "architecture_quote": "CDNA3",
+            "evidence_quote": "MI300X",
+            "source_refs": [
+              {
+                "url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+                "sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+          "source_sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+        },
+        {
+          "id": "amd-03ed59b34aca343e4168",
+          "name": "AMD Instinct MI300A",
+          "kind": "named_product",
+          "compute": {
+            "category": "accelerator",
+            "form": "unknown",
+            "architecture": "CDNA3",
+            "architecture_quote": "CDNA3",
+            "evidence_quote": "MI300A",
+            "source_refs": [
+              {
+                "url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+                "sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+              }
+            ],
+            "classification_note": "APU：此表仅给 GPU 部分；CPU 核心与封装形态未据本表推定。"
+          },
+          "table_count": 1,
+          "source_url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+          "source_sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+        },
+        {
+          "id": "amd-2365298319cba005db59",
+          "name": "AMD Instinct MI250X",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "unknown",
+            "architecture": "CDNA2",
+            "architecture_quote": "CDNA2",
+            "evidence_quote": "MI250X",
+            "source_refs": [
+              {
+                "url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+                "sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+          "source_sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+        },
+        {
+          "id": "amd-92ef6e09d6a71a9c630e",
+          "name": "AMD Instinct MI250",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "unknown",
+            "architecture": "CDNA2",
+            "architecture_quote": "CDNA2",
+            "evidence_quote": "MI250",
+            "source_refs": [
+              {
+                "url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+                "sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+          "source_sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+        },
+        {
+          "id": "amd-335b4700c69b567f5e2b",
+          "name": "AMD Instinct MI210",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "unknown",
+            "architecture": "CDNA2",
+            "architecture_quote": "CDNA2",
+            "evidence_quote": "MI210",
+            "source_refs": [
+              {
+                "url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+                "sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+          "source_sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+        },
+        {
+          "id": "amd-4d80b4aec18b38f1496d",
+          "name": "AMD Instinct MI100",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "unknown",
+            "architecture": "CDNA",
+            "architecture_quote": "CDNA",
+            "evidence_quote": "MI100",
+            "source_refs": [
+              {
+                "url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+                "sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+          "source_sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+        },
+        {
+          "id": "amd-0608f5134e4e86650c92",
+          "name": "AMD Instinct MI60",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "unknown",
+            "architecture": "GCN5.1",
+            "architecture_quote": "GCN5.1",
+            "evidence_quote": "MI60",
+            "source_refs": [
+              {
+                "url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+                "sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+          "source_sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+        },
+        {
+          "id": "amd-75c22c0762ced44323d9",
+          "name": "AMD Instinct MI50 (32GB)",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "unknown",
+            "architecture": "GCN5.1",
+            "architecture_quote": "GCN5.1",
+            "evidence_quote": "MI50 (32GB)",
+            "source_refs": [
+              {
+                "url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+                "sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+          "source_sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+        },
+        {
+          "id": "amd-10e37668a15d83eb3e08",
+          "name": "AMD Instinct MI50 (16GB)",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "unknown",
+            "architecture": "GCN5.1",
+            "architecture_quote": "GCN5.1",
+            "evidence_quote": "MI50 (16GB)",
+            "source_refs": [
+              {
+                "url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+                "sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+          "source_sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+        },
+        {
+          "id": "amd-28c3b6cf8c382ee5a8ed",
+          "name": "AMD Instinct MI25",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "unknown",
+            "architecture": "GCN5.0",
+            "architecture_quote": "GCN5.0",
+            "evidence_quote": "MI25",
+            "source_refs": [
+              {
+                "url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+                "sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+          "source_sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+        },
+        {
+          "id": "amd-bb3292a0d92df851010c",
+          "name": "AMD Instinct MI8",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "unknown",
+            "architecture": "GCN3.0",
+            "architecture_quote": "GCN3.0",
+            "evidence_quote": "MI8",
+            "source_refs": [
+              {
+                "url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+                "sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+          "source_sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+        },
+        {
+          "id": "amd-f4bfdf32c37bc7bea278",
+          "name": "AMD Instinct MI6",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "unknown",
+            "architecture": "GCN4.0",
+            "architecture_quote": "GCN4.0",
+            "evidence_quote": "MI6",
+            "source_refs": [
+              {
+                "url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+                "sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://rocm.docs.amd.com/en/latest/reference/gpu-specs.html",
+          "source_sha256": "b299d6d3a691fa2ba2ef452f8c2907ccd3a3b7f544572f675a6d4586647bf024"
+        },
+        {
+          "id": "amd-9084c61629252a5115f0",
+          "name": "AMD EPYC 9965",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5c”",
+            "architecture_quote": "“Zen5c”",
+            "evidence_quote": "9965",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-a86451850bfa3b2518a4",
+          "name": "AMD EPYC 9845",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5c”",
+            "architecture_quote": "“Zen5c”",
+            "evidence_quote": "9845",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-9afc3c5a1479275296f4",
+          "name": "AMD EPYC 9825",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5c”",
+            "architecture_quote": "“Zen5c”",
+            "evidence_quote": "9825",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-7d71aff365ffa8d83308",
+          "name": "AMD EPYC 9755",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5”",
+            "architecture_quote": "“Zen5”",
+            "evidence_quote": "9755",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-4fc67457c38fea586052",
+          "name": "AMD EPYC 9745",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5c”",
+            "architecture_quote": "“Zen5c”",
+            "evidence_quote": "9745",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-8f74a7cb7fae7c80c2c9",
+          "name": "AMD EPYC 9655",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5”",
+            "architecture_quote": "“Zen5”",
+            "evidence_quote": "9655",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-c5454a3de29329195434",
+          "name": "AMD EPYC 9655P",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5”",
+            "architecture_quote": "“Zen5”",
+            "evidence_quote": "9655P",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-cfdafb6f70f23183dde4",
+          "name": "AMD EPYC 9645",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5c”",
+            "architecture_quote": "“Zen5c”",
+            "evidence_quote": "9645",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-ce8d6c70902b1c956e4d",
+          "name": "AMD EPYC 9565",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5”",
+            "architecture_quote": "“Zen5”",
+            "evidence_quote": "9565",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-076754f14eb864ef2d37",
+          "name": "AMD EPYC 9575F",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5”",
+            "architecture_quote": "“Zen5”",
+            "evidence_quote": "9575F",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-ec0c5688c32605f2cc78",
+          "name": "AMD EPYC 9555",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5”",
+            "architecture_quote": "“Zen5”",
+            "evidence_quote": "9555",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-ee1bf5ddd6790f97da96",
+          "name": "AMD EPYC 9555P",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5”",
+            "architecture_quote": "“Zen5”",
+            "evidence_quote": "9555P",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-8e85967d451e582c4b4e",
+          "name": "AMD EPYC 9535",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5”",
+            "architecture_quote": "“Zen5”",
+            "evidence_quote": "9535",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-623058a12a4d6a727c43",
+          "name": "AMD EPYC 9475F",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5”",
+            "architecture_quote": "“Zen5”",
+            "evidence_quote": "9475F",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-38de5f9655bcdffb26f0",
+          "name": "AMD EPYC 9455",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5”",
+            "architecture_quote": "“Zen5”",
+            "evidence_quote": "9455",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-77a20f50c6fd9271a586",
+          "name": "AMD EPYC 9455P",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5”",
+            "architecture_quote": "“Zen5”",
+            "evidence_quote": "9455P",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-1931963faaf917cf30d4",
+          "name": "AMD EPYC 9365",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5”",
+            "architecture_quote": "“Zen5”",
+            "evidence_quote": "9365",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-696838a2d822148c6f15",
+          "name": "AMD EPYC 9375F",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5”",
+            "architecture_quote": "“Zen5”",
+            "evidence_quote": "9375F",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-92815ef5a149b9db49a6",
+          "name": "AMD EPYC 9355",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5”",
+            "architecture_quote": "“Zen5”",
+            "evidence_quote": "9355",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-4c2bcea555d879a54a12",
+          "name": "AMD EPYC 9355P",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5”",
+            "architecture_quote": "“Zen5”",
+            "evidence_quote": "9355P",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-fd96fcd6a652142d7e69",
+          "name": "AMD EPYC 9335",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5”",
+            "architecture_quote": "“Zen5”",
+            "evidence_quote": "9335",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-49b5b4d6ce09400a2c0d",
+          "name": "AMD EPYC 9275F",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5”",
+            "architecture_quote": "“Zen5”",
+            "evidence_quote": "9275F",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-c4b035926509e08bdb37",
+          "name": "AMD EPYC 9255",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5”",
+            "architecture_quote": "“Zen5”",
+            "evidence_quote": "9255",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-c93368f100e0a8d3f80d",
+          "name": "AMD EPYC 9175F",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5”",
+            "architecture_quote": "“Zen5”",
+            "evidence_quote": "9175F",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-785e72eb51c73120b843",
+          "name": "AMD EPYC 9135",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5”",
+            "architecture_quote": "“Zen5”",
+            "evidence_quote": "9135",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-68de40f8b071c378d9e9",
+          "name": "AMD EPYC 9115",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5”",
+            "architecture_quote": "“Zen5”",
+            "evidence_quote": "9115",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        },
+        {
+          "id": "amd-ab238e7b3b2a3338a590",
+          "name": "AMD EPYC 9015",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "“Zen5”",
+            "architecture_quote": "“Zen5”",
+            "evidence_quote": "9015",
+            "source_refs": [
+              {
+                "url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+                "sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://ir.amd.com/news-events/press-releases/detail/1219/amd-launches-5th-gen-amd-epyc-cpus-maintaining-leadership-performance-and-features-for-the-modern-data-center",
+          "source_sha256": "1c7b55f5d4c63a2a3e3d6f6564f733c43c51df9178e9044fb2c2a0b18b628efa"
+        }
+      ],
+      "limitations": [
+        "AMD 主站 robots 超时；EPYC 本批仅 9005 发布原表，未覆盖其他代际。Instinct 的 GPU 部分架构不等于完整产品形态或板卡—芯片关系。",
+        "仅覆盖本轮审阅的官方型号/系列；历史值与空白保留，不证明当前在售或厂商全量。"
+      ]
+    },
+    {
+      "company_id": "intel",
+      "products": [
+        {
+          "id": "intel-923ed39addeeb70ea773",
+          "name": "Intel Gaudi 3 PCIe HL-338",
+          "kind": "named_product",
+          "compute": {
+            "architecture": "",
+            "architecture_quote": "",
+            "category": "accelerator",
+            "evidence_quote": "The Intel Gaudi® 3 PCIe card (HL-338) delivers AI acceleration in a standard PCIe Gen5 form factor",
+            "form": "board",
+            "source_refs": [
+              {
+                "sha256": "79d7e6202147beada6095a55ee9f8596883d95abbd82855602b814b32bf23d6c",
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/ai-accelerators/gaudi.html"
+              }
+            ]
+          },
+          "table_count": 0,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/ai-accelerators/gaudi.html",
+          "source_sha256": "79d7e6202147beada6095a55ee9f8596883d95abbd82855602b814b32bf23d6c"
+        },
+        {
+          "id": "intel-ed38793febc55873f6e7",
+          "name": "Intel® Xeon® 6980P Processor",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6980P Processor",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/sku/240777/intel-xeon-6980p-processor-504m-cache-2-00-ghz/specifications.html",
+                "sha256": "0febf43790c13b5b62cabf123d6b5ca1c61903ee9eb972be10e8b3e5e315ac54"
+              }
+            ]
+          },
+          "table_count": 8,
+          "source_url": "https://www.intel.com/content/www/us/en/products/sku/240777/intel-xeon-6980p-processor-504m-cache-2-00-ghz/specifications.html",
+          "source_sha256": "0febf43790c13b5b62cabf123d6b5ca1c61903ee9eb972be10e8b3e5e315ac54"
+        },
+        {
+          "id": "intel-4a7ce7e81e3deac21469",
+          "name": "Intel® Data Center GPU Flex 140",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "unknown",
+            "architecture": "Xe-HPG",
+            "architecture_quote": "Xe-HPG",
+            "evidence_quote": "Intel® Data Center GPU Flex 140",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/sku/230020/intel-data-center-gpu-flex-140/specifications.html",
+                "sha256": "1fb3dc108f496d07d5f49c873d1f8157627ba9f3476dcb00157c6de9041c4781"
+              }
+            ]
+          },
+          "table_count": 6,
+          "source_url": "https://www.intel.com/content/www/us/en/products/sku/230020/intel-data-center-gpu-flex-140/specifications.html",
+          "source_sha256": "1fb3dc108f496d07d5f49c873d1f8157627ba9f3476dcb00157c6de9041c4781"
+        },
+        {
+          "id": "intel-a0d186fb6c824f8b526c",
+          "name": "Intel® Data Center GPU Flex 170",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "board",
+            "architecture": "Xe-HPG",
+            "architecture_quote": "Xe-HPG",
+            "evidence_quote": "Step into a new era of unprecedented AI analytics speed and accuracy with up to 32 Xe cores in a 150W, full-height PCIe form factor. The Intel® Data Center GPU Flex 170 is tailored for adaptive AI workloads with up to 500 TOPS.",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/sku/230019/intel-data-center-gpu-flex-170/specifications.html",
+                "sha256": "566dab6e96ea7cf6898e7fc52148b40e0fe41b1793b51ca2d50bfd558ecee170"
+              },
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/discrete-gpus/data-center-gpu/flex-series.html",
+                "sha256": "65040d3ba02ce6b212feda31eeedfb04410edf825d3e90d66eb85348ae257a01"
+              }
+            ]
+          },
+          "table_count": 6,
+          "source_url": "https://www.intel.com/content/www/us/en/products/sku/230019/intel-data-center-gpu-flex-170/specifications.html",
+          "source_sha256": "566dab6e96ea7cf6898e7fc52148b40e0fe41b1793b51ca2d50bfd558ecee170"
+        },
+        {
+          "id": "intel-13806848a56690b65380",
+          "name": "Intel® Data Center GPU Flex 170V",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "board",
+            "architecture": "Xe-HPG",
+            "architecture_quote": "Xe-HPG",
+            "evidence_quote": "Step into a new era of unprecedented AI analytics speed and accuracy with up to 32 Xe cores in a 150W, full-height PCIe form factor. The Intel® Data Center GPU Flex 170 is tailored for adaptive AI workloads with up to 500 TOPS.",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/sku/240233/intel-data-center-gpu-flex-170v/specifications.html",
+                "sha256": "6d10359a8406eee50c2dbacffd010c069175a75f31fa5181b2ef50db808023d0"
+              },
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/discrete-gpus/data-center-gpu/flex-series.html",
+                "sha256": "65040d3ba02ce6b212feda31eeedfb04410edf825d3e90d66eb85348ae257a01"
+              }
+            ]
+          },
+          "table_count": 6,
+          "source_url": "https://www.intel.com/content/www/us/en/products/sku/240233/intel-data-center-gpu-flex-170v/specifications.html",
+          "source_sha256": "6d10359a8406eee50c2dbacffd010c069175a75f31fa5181b2ef50db808023d0"
+        },
+        {
+          "id": "intel-5b7965d282c5e28eff8f",
+          "name": "Intel® Data Center GPU Max 1550",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "unknown",
+            "architecture": "Xe-HPC",
+            "architecture_quote": "Xe-HPC",
+            "evidence_quote": "Intel® Data Center GPU Max 1550",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/sku/232873/intel-data-center-gpu-max-1550/specifications.html",
+                "sha256": "31ed1797200da86c8f4ed11e6152faf3338defe3d6187a32ea882922e653cca6"
+              }
+            ]
+          },
+          "table_count": 6,
+          "source_url": "https://www.intel.com/content/www/us/en/products/sku/232873/intel-data-center-gpu-max-1550/specifications.html",
+          "source_sha256": "31ed1797200da86c8f4ed11e6152faf3338defe3d6187a32ea882922e653cca6"
+        },
+        {
+          "id": "intel-86923acec2b0f02bef36",
+          "name": "Intel® Data Center GPU Max 1100",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "unknown",
+            "architecture": "Xe-HPC",
+            "architecture_quote": "Xe-HPC",
+            "evidence_quote": "Intel® Data Center GPU Max 1100",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/sku/232876/intel-data-center-gpu-max-1100/specifications.html",
+                "sha256": "d66ddc9c3bd79ac30f6128fe7fbc7376862e79c3a2a9987db08281a5611fa3d4"
+              }
+            ]
+          },
+          "table_count": 6,
+          "source_url": "https://www.intel.com/content/www/us/en/products/sku/232876/intel-data-center-gpu-max-1100/specifications.html",
+          "source_sha256": "d66ddc9c3bd79ac30f6128fe7fbc7376862e79c3a2a9987db08281a5611fa3d4"
+        },
+        {
+          "id": "intel-8d66613d6a921339bb07",
+          "name": "Intel® Xeon® 6788P Processor (336M Cache, 2.00 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6788P Processor (336M Cache, 2.00 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+                "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+          "source_sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+        },
+        {
+          "id": "intel-2fb2af43f167470ae4df",
+          "name": "Intel® Xeon® 6787P Processor (336M Cache, 2.00 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6787P Processor (336M Cache, 2.00 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+                "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+          "source_sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+        },
+        {
+          "id": "intel-03f7f268d43deeb08889",
+          "name": "Intel® Xeon® 6768P-B Processor (256M Cache, 2.20 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6768P-B Processor (256M Cache, 2.20 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+                "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+          "source_sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+        },
+        {
+          "id": "intel-232de86c4242310261a7",
+          "name": "Intel® Xeon® 6767P Processor (336M Cache, 2.40 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6767P Processor (336M Cache, 2.40 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+                "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+          "source_sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+        },
+        {
+          "id": "intel-afaf99d351bb2e2504d5",
+          "name": "Intel® Xeon® 6760P Processor (320M Cache, 2.20 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6760P Processor (320M Cache, 2.20 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+                "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+          "source_sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+        },
+        {
+          "id": "intel-5140857502d5938d4f76",
+          "name": "Intel® Xeon® 6747P Processor (288M Cache, 2.70 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6747P Processor (288M Cache, 2.70 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+                "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+          "source_sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+        },
+        {
+          "id": "intel-42388888e2cebe8a915b",
+          "name": "Intel® Xeon® 6745P Processor (336M Cache, 3.10 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6745P Processor (336M Cache, 3.10 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+                "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+          "source_sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+        },
+        {
+          "id": "intel-3a21bd511724edbd45a3",
+          "name": "Intel® Xeon® 6740P Processor (288M Cache, 2.10 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6740P Processor (288M Cache, 2.10 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+                "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+          "source_sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+        },
+        {
+          "id": "intel-8151a472e1df7a4ce930",
+          "name": "Intel® Xeon® 6738P Processor (144M Cache, 2.90 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6738P Processor (144M Cache, 2.90 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+                "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+          "source_sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+        },
+        {
+          "id": "intel-3999a3177ad5c40c983e",
+          "name": "Intel® Xeon® 6737P Processor (144M Cache, 2.90 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6737P Processor (144M Cache, 2.90 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+                "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+          "source_sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+        },
+        {
+          "id": "intel-0306d9a743f20887b40e",
+          "name": "Intel® Xeon® 6736P Processor (144M Cache, 2.00 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6736P Processor (144M Cache, 2.00 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+                "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+          "source_sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+        },
+        {
+          "id": "intel-2edaf0376ffde512962d",
+          "name": "Intel® Xeon® 6730P Processor (288M Cache, 2.50 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6730P Processor (288M Cache, 2.50 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+                "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+          "source_sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+        },
+        {
+          "id": "intel-a4f453f2d1049bfbd148",
+          "name": "Intel® Xeon® 6728P Processor (144M Cache, 2.70 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6728P Processor (144M Cache, 2.70 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+                "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+          "source_sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+        },
+        {
+          "id": "intel-e1a7f0b603d0dc2a50fa",
+          "name": "Intel® Xeon® 6724P Processor (72M Cache, 3.60 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6724P Processor (72M Cache, 3.60 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+                "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+          "source_sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+        },
+        {
+          "id": "intel-44ad032affc400bd8ccf",
+          "name": "Intel® Xeon® 6714P Processor (48M Cache, 4.00 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6714P Processor (48M Cache, 4.00 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+                "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+          "source_sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+        },
+        {
+          "id": "intel-eca80fa2b835fd48b97f",
+          "name": "Intel® Xeon® 6530P Processor (144M Cache, 2.30 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6530P Processor (144M Cache, 2.30 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+                "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+          "source_sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+        },
+        {
+          "id": "intel-d8ef0123fbb67c913e11",
+          "name": "Intel® Xeon® 6527P Processor (144M Cache, 3.00 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6527P Processor (144M Cache, 3.00 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+                "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+          "source_sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+        },
+        {
+          "id": "intel-dc1acfc78ba77f4f59a9",
+          "name": "Intel® Xeon® 6520P Processor (144M Cache, 2.40 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6520P Processor (144M Cache, 2.40 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+                "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+          "source_sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+        },
+        {
+          "id": "intel-369dd10f299565ac4d92",
+          "name": "Intel® Xeon® 6517P Processor (72M Cache, 3.20 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6517P Processor (72M Cache, 3.20 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+                "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+          "source_sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+        },
+        {
+          "id": "intel-8bb3b5f0e25e2be0aa7c",
+          "name": "Intel® Xeon® 6515P Processor (72M Cache, 2.30 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6515P Processor (72M Cache, 2.30 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+                "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+          "source_sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+        },
+        {
+          "id": "intel-33c45eeb77696d62cfe4",
+          "name": "Intel® Xeon® 6507P Processor (48M Cache, 3.50 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6507P Processor (48M Cache, 3.50 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+                "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+          "source_sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+        },
+        {
+          "id": "intel-9fad8359f10a45e5ca3f",
+          "name": "Intel® Xeon® 6505P Processor (48M Cache, 2.20 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6505P Processor (48M Cache, 2.20 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+                "sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/6-p-core-series.html",
+          "source_sha256": "a3b33a96f3fc8e348a9ee7dd7d3853ad9e25a6c4aa6a98ba0d21ac11f7dc5f26"
+        },
+        {
+          "id": "intel-9d196247d93d2ffbc982",
+          "name": "Intel® Xeon® 6369P Processor (24M Cache, 3.30 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6369P Processor (24M Cache, 3.30 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/entry.html",
+                "sha256": "86c6a09312d398f2d2106ee0ab7976b0b60ddee851c47871e23badc2a452d877"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/entry.html",
+          "source_sha256": "86c6a09312d398f2d2106ee0ab7976b0b60ddee851c47871e23badc2a452d877"
+        },
+        {
+          "id": "intel-5f6dca38060747c50934",
+          "name": "Intel® Xeon® 6357P Processor (24M Cache, 3.00 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6357P Processor (24M Cache, 3.00 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/entry.html",
+                "sha256": "86c6a09312d398f2d2106ee0ab7976b0b60ddee851c47871e23badc2a452d877"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/entry.html",
+          "source_sha256": "86c6a09312d398f2d2106ee0ab7976b0b60ddee851c47871e23badc2a452d877"
+        },
+        {
+          "id": "intel-61291663797da2a9dfc9",
+          "name": "Intel® Xeon® 6353P Processor (24M Cache, 2.70 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6353P Processor (24M Cache, 2.70 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/entry.html",
+                "sha256": "86c6a09312d398f2d2106ee0ab7976b0b60ddee851c47871e23badc2a452d877"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/entry.html",
+          "source_sha256": "86c6a09312d398f2d2106ee0ab7976b0b60ddee851c47871e23badc2a452d877"
+        },
+        {
+          "id": "intel-5266d3f34849fb34dcf3",
+          "name": "Intel® Xeon® 6349P Processor (18M Cache, 3.60 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6349P Processor (18M Cache, 3.60 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/entry.html",
+                "sha256": "86c6a09312d398f2d2106ee0ab7976b0b60ddee851c47871e23badc2a452d877"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/entry.html",
+          "source_sha256": "86c6a09312d398f2d2106ee0ab7976b0b60ddee851c47871e23badc2a452d877"
+        },
+        {
+          "id": "intel-ea1bd142b5a65f59b4a2",
+          "name": "Intel® Xeon® 6337P Processor (18M Cache, 3.50 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6337P Processor (18M Cache, 3.50 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/entry.html",
+                "sha256": "86c6a09312d398f2d2106ee0ab7976b0b60ddee851c47871e23badc2a452d877"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/entry.html",
+          "source_sha256": "86c6a09312d398f2d2106ee0ab7976b0b60ddee851c47871e23badc2a452d877"
+        },
+        {
+          "id": "intel-03c53e9a3cca0ffd6fb9",
+          "name": "Intel® Xeon® 6333P Processor (18M Cache, 3.10 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6333P Processor (18M Cache, 3.10 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/entry.html",
+                "sha256": "86c6a09312d398f2d2106ee0ab7976b0b60ddee851c47871e23badc2a452d877"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/entry.html",
+          "source_sha256": "86c6a09312d398f2d2106ee0ab7976b0b60ddee851c47871e23badc2a452d877"
+        },
+        {
+          "id": "intel-7d3abe300787c1613d8a",
+          "name": "Intel® Xeon® 6325P Processor (12M Cache, 3.50 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6325P Processor (12M Cache, 3.50 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/entry.html",
+                "sha256": "86c6a09312d398f2d2106ee0ab7976b0b60ddee851c47871e23badc2a452d877"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/entry.html",
+          "source_sha256": "86c6a09312d398f2d2106ee0ab7976b0b60ddee851c47871e23badc2a452d877"
+        },
+        {
+          "id": "intel-c3cb1d80adeccf2cb0dd",
+          "name": "Intel® Xeon® 6315P Processor (12M Cache, 2.80 GHz)",
+          "kind": "named_product",
+          "compute": {
+            "category": "cpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "Intel® Xeon® 6315P Processor (12M Cache, 2.80 GHz)",
+            "source_refs": [
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/entry.html",
+                "sha256": "86c6a09312d398f2d2106ee0ab7976b0b60ddee851c47871e23badc2a452d877"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.intel.com/content/www/us/en/products/details/processors/xeon/entry.html",
+          "source_sha256": "86c6a09312d398f2d2106ee0ab7976b0b60ddee851c47871e23badc2a452d877"
+        }
+      ],
+      "limitations": [
+        "Xeon 本批目录与单型号页覆盖有限；Max/Flex 的 ARK 型号不推定底层芯片对应。PDF 主机 robots 403，附件未交付。",
+        "仅覆盖本轮审阅的官方型号/系列；历史值与空白保留，不证明当前在售或厂商全量。"
+      ]
+    },
+    {
+      "company_id": "zhaoxin",
+      "products": [
+        {
+          "id": "zhaoxin-47792e81af0730fdce46",
+          "name": "开先® KX-7000系列处理器",
+          "kind": "family_or_directory",
+          "compute": {
+            "category": "cpu",
+            "form": "series",
+            "architecture": "世纪大道",
+            "architecture_quote": "世纪大道",
+            "evidence_quote": "开先® KX-7000系列处理器",
+            "source_refs": [
+              {
+                "url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+                "sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+          "source_sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+        },
+        {
+          "id": "zhaoxin-1ab40ccbdbf68964158e",
+          "name": "开先® KX-6900系列处理器",
+          "kind": "family_or_directory",
+          "compute": {
+            "category": "cpu",
+            "form": "series",
+            "architecture": "陆家嘴",
+            "architecture_quote": "陆家嘴",
+            "evidence_quote": "开先® KX-6900系列处理器",
+            "source_refs": [
+              {
+                "url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+                "sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+          "source_sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+        },
+        {
+          "id": "zhaoxin-30de30b72b7d7a01cd63",
+          "name": "开先® KX-6000G系列处理器",
+          "kind": "family_or_directory",
+          "compute": {
+            "category": "cpu",
+            "form": "series",
+            "architecture": "陆家嘴",
+            "architecture_quote": "陆家嘴",
+            "evidence_quote": "开先® KX-6000G系列处理器",
+            "source_refs": [
+              {
+                "url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+                "sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+          "source_sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+        },
+        {
+          "id": "zhaoxin-7e939250cfa55150e251",
+          "name": "开先® KX-6000系列处理器",
+          "kind": "family_or_directory",
+          "compute": {
+            "category": "cpu",
+            "form": "series",
+            "architecture": "陆家嘴",
+            "architecture_quote": "陆家嘴",
+            "evidence_quote": "开先® KX-6000系列处理器",
+            "source_refs": [
+              {
+                "url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+                "sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+          "source_sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+        },
+        {
+          "id": "zhaoxin-2a49cf499ff857773fa5",
+          "name": "开先® KX-5000系列处理器",
+          "kind": "family_or_directory",
+          "compute": {
+            "category": "cpu",
+            "form": "series",
+            "architecture": "五道口",
+            "architecture_quote": "五道口",
+            "evidence_quote": "开先® KX-5000系列处理器",
+            "source_refs": [
+              {
+                "url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+                "sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+          "source_sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+        },
+        {
+          "id": "zhaoxin-7f49ac8648783a7f51ec",
+          "name": "开先® ZX-C+系列处理器",
+          "kind": "family_or_directory",
+          "compute": {
+            "category": "cpu",
+            "form": "series",
+            "architecture": "张江",
+            "architecture_quote": "张江",
+            "evidence_quote": "开先® ZX-C+系列处理器",
+            "source_refs": [
+              {
+                "url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+                "sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+          "source_sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+        },
+        {
+          "id": "zhaoxin-6585eae5724491558bad",
+          "name": "开先® ZX-C系列处理器",
+          "kind": "family_or_directory",
+          "compute": {
+            "category": "cpu",
+            "form": "series",
+            "architecture": "张江",
+            "architecture_quote": "张江",
+            "evidence_quote": "开先® ZX-C系列处理器",
+            "source_refs": [
+              {
+                "url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+                "sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+          "source_sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+        },
+        {
+          "id": "zhaoxin-b81e83d7d7e1d3b82026",
+          "name": "开胜® KH-50000系列处理器",
+          "kind": "family_or_directory",
+          "compute": {
+            "category": "cpu",
+            "form": "series",
+            "architecture": "世纪大道",
+            "architecture_quote": "世纪大道",
+            "evidence_quote": "开胜® KH-50000系列处理器",
+            "source_refs": [
+              {
+                "url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+                "sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+          "source_sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+        },
+        {
+          "id": "zhaoxin-af6787bedf5a2636e596",
+          "name": "开胜® KH-40000系列处理器",
+          "kind": "family_or_directory",
+          "compute": {
+            "category": "cpu",
+            "form": "series",
+            "architecture": "永丰",
+            "architecture_quote": "永丰",
+            "evidence_quote": "开胜® KH-40000系列处理器",
+            "source_refs": [
+              {
+                "url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+                "sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+          "source_sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+        },
+        {
+          "id": "zhaoxin-384f92756ea432e80b87",
+          "name": "开胜® KH-30000系列处理器",
+          "kind": "family_or_directory",
+          "compute": {
+            "category": "cpu",
+            "form": "series",
+            "architecture": "陆家嘴",
+            "architecture_quote": "陆家嘴",
+            "evidence_quote": "开胜® KH-30000系列处理器",
+            "source_refs": [
+              {
+                "url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+                "sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+          "source_sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+        },
+        {
+          "id": "zhaoxin-d7d8b86d09ad5e98f0af",
+          "name": "开胜® KH-20000系列处理器",
+          "kind": "family_or_directory",
+          "compute": {
+            "category": "cpu",
+            "form": "series",
+            "architecture": "五道口",
+            "architecture_quote": "五道口",
+            "evidence_quote": "开胜® KH-20000系列处理器",
+            "source_refs": [
+              {
+                "url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+                "sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+          "source_sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+        },
+        {
+          "id": "zhaoxin-b0d18574e5c2e4cadc12",
+          "name": "开胜® ZX-C+FC-1080/1081系列处理器",
+          "kind": "family_or_directory",
+          "compute": {
+            "category": "cpu",
+            "form": "series",
+            "architecture": "张江",
+            "architecture_quote": "张江",
+            "evidence_quote": "开胜® ZX-C+FC-1080/1081系列处理器",
+            "source_refs": [
+              {
+                "url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+                "sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.zhaoxin.com/pro.aspx?nid=3",
+          "source_sha256": "ea8eedafafe39f1ff0385b0b8bf0afd28463e31d28f09504612e822b149a2695"
+        }
+      ],
+      "limitations": [
+        "12项均为官方系列，未拆成无独立SKU证据的命名芯片。产品页详细规格为图片/动态布局；Admin 下载入口 robots 禁止。",
+        "仅覆盖本轮审阅的官方型号/系列；历史值与空白保留，不证明当前在售或厂商全量。"
+      ]
+    },
+    {
+      "company_id": "supermicro",
+      "products": [
+        {
+          "id": "supermicro-c02984328cb770136e5f",
+          "name": "SYS-821GE-TNHR",
+          "kind": "named_product",
+          "compute": {
+            "category": "excluded",
+            "form": "system",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "SYS-821GE-TNHR",
+            "source_refs": [
+              {
+                "url": "https://www.supermicro.com/en/products/system/gpu/8u/sys-821ge-tnhr",
+                "sha256": "11002bd70b1772bba95ad9f20efac556bc3dbd4e3e12c053ae1636081e96808d"
+              }
+            ]
+          },
+          "table_count": 20,
+          "source_url": "https://www.supermicro.com/en/products/system/gpu/8u/sys-821ge-tnhr",
+          "source_sha256": "11002bd70b1772bba95ad9f20efac556bc3dbd4e3e12c053ae1636081e96808d"
+        },
+        {
+          "id": "supermicro-f2eecac3d0dfb1e5e2db",
+          "name": "SYS-442B-NR",
+          "kind": "named_product",
+          "compute": {
+            "category": "excluded",
+            "form": "system",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "SYS-442B-NR",
+            "source_refs": [
+              {
+                "url": "https://www.supermicro.com/en/products/system/mp/4u/sys-442b-nr",
+                "sha256": "7280e72eec4bf13898f93b6ae4044353727604359c70fa661d21457b6eaddef7"
+              }
+            ]
+          },
+          "table_count": 19,
+          "source_url": "https://www.supermicro.com/en/products/system/mp/4u/sys-442b-nr",
+          "source_sha256": "7280e72eec4bf13898f93b6ae4044353727604359c70fa661d21457b6eaddef7"
+        },
+        {
+          "id": "supermicro-ecf959e71df9b1d954b9",
+          "name": "SYS-222H-TN",
+          "kind": "named_product",
+          "compute": {
+            "category": "excluded",
+            "form": "system",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "SYS-222H-TN",
+            "source_refs": [
+              {
+                "url": "https://www.supermicro.com/en/products/system/hyper/2u/sys-222h-tn",
+                "sha256": "011405f071bd803e12c0ff47e277eae283db4b27fb0bd671c29ef011d8bda39e"
+              }
+            ]
+          },
+          "table_count": 25,
+          "source_url": "https://www.supermicro.com/en/products/system/hyper/2u/sys-222h-tn",
+          "source_sha256": "011405f071bd803e12c0ff47e277eae283db4b27fb0bd671c29ef011d8bda39e"
+        },
+        {
+          "id": "supermicro-702637b913da4d21441d",
+          "name": "SYS-621C-TN12R",
+          "kind": "named_product",
+          "compute": {
+            "category": "excluded",
+            "form": "system",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "SYS-621C-TN12R",
+            "source_refs": [
+              {
+                "url": "https://www.supermicro.com/en/products/system/CloudDC/2U/SYS-621C-TN12R",
+                "sha256": "af10b23d7d5a390c379fd2eb8f37e0d23f7c406a56b64d2b201a913f3346efb3"
+              }
+            ]
+          },
+          "table_count": 20,
+          "source_url": "https://www.supermicro.com/en/products/system/CloudDC/2U/SYS-621C-TN12R",
+          "source_sha256": "af10b23d7d5a390c379fd2eb8f37e0d23f7c406a56b64d2b201a913f3346efb3"
+        },
+        {
+          "id": "supermicro-0ab21b5db7185b56e310",
+          "name": "SYS-212GB-FNR",
+          "kind": "named_product",
+          "compute": {
+            "category": "excluded",
+            "form": "system",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "SYS-212GB-FNR",
+            "source_refs": [
+              {
+                "url": "https://www.supermicro.com/en/products/system/iot/2u/sys-212gb-fnr",
+                "sha256": "1282e542460ee840e0da7dc27eef8d0c42f2b2d7074134e52a40bc2caccd80a5"
+              }
+            ]
+          },
+          "table_count": 21,
+          "source_url": "https://www.supermicro.com/en/products/system/iot/2u/sys-212gb-fnr",
+          "source_sha256": "1282e542460ee840e0da7dc27eef8d0c42f2b2d7074134e52a40bc2caccd80a5"
+        }
+      ],
+      "limitations": [
+        "只覆盖五个服务器型号页；配置/可选件按官网保留，不推成芯片实体。",
+        "仅覆盖本轮审阅的官方型号/系列；历史值与空白保留，不证明当前在售或厂商全量。"
+      ]
+    },
+    {
+      "company_id": "moore-threads",
+      "products": [
+        {
+          "id": "moore-threads-52186b9832147cdb1428",
+          "name": "MTT S5000",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "module",
+            "architecture": "平湖",
+            "architecture_quote": "凭借先进的“平湖”架构",
+            "evidence_quote": "MTT S5000 是一款面向生成式 AI 时代，专为大模型训练、推理及高性能计算而生的全功能 GPU 智算卡。其核心搭载了摩尔线程全新一代 PH100 芯片，凭借先进的“平湖”架构，提供从 FP8 到 FP64 的全精度算力支持。PH100 芯片已首批通过中国信息安全测评中心的安全可靠测评（2026年第2号）。 MTT S5000 依托第四代 MUSA 全栈平台打破生态壁垒，原生适配 PyTorch、Megatron-LM、vLLM 及 SGLang 等主流框架，让用户能够以“零成本”完成代码迁移。无论是构建万卡级超大规模训练集群，还是部署高并发、低延迟的在线推理服务，基于 PH100 芯片强劲性能与高安全等级的 MTT S5000 均展现出对标国际主流旗舰产品的卓越性能与稳定性，为您构建坚实、易用且自主可控的国产算力底座。",
+            "source_refs": [
+              {
+                "url": "https://www.mthreads.com/product/S5000",
+                "sha256": "0818b834ed74c433bf8ec938eae7559e20941788b2dd46e2868c768383171e6e"
+              }
+            ],
+            "chip_links": [
+              {
+                "product_id": "moore-threads-3f768365bdc6568c8b22",
+                "evidence_quote": "PH100 作为旗舰智算卡 MTT S5000 的核心",
+                "source_refs": [
+                  {
+                    "url": "https://www.mthreads.com/architecture/pinghu",
+                    "sha256": "b30ba240d9b47bd4a600c60774331e0b8b3f4153e350cf718061a1e285ca8862"
+                  }
+                ]
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.mthreads.com/product/S5000",
+          "source_sha256": "0818b834ed74c433bf8ec938eae7559e20941788b2dd46e2868c768383171e6e"
+        },
+        {
+          "id": "moore-threads-5949ca701a17644ff29e",
+          "name": "MTT S4000",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "board",
+            "architecture": "曲院 GPU",
+            "architecture_quote": "MTT S4000 是基于摩尔线程曲院 GPU 架构打造的全功能元计算卡",
+            "evidence_quote": "MTT S4000 是基于摩尔线程曲院 GPU 架构打造的全功能元计算卡",
+            "source_refs": [
+              {
+                "url": "https://docs.mthreads.com/s4000/s4000-doc-online/product_specifications/",
+                "sha256": "4dc9266c6e0013598a75b522423c00b0bfc521f4408f0f686bab4062601db23b"
+              }
+            ],
+            "chip_links": [
+              {
+                "product_id": "moore-threads-6f2168d72eea45958b3a",
+                "evidence_quote": "芯片 图形芯片 QY102AA-800",
+                "source_refs": [
+                  {
+                    "url": "https://docs.mthreads.com/s4000/s4000-doc-online/product_specifications/",
+                    "sha256": "4dc9266c6e0013598a75b522423c00b0bfc521f4408f0f686bab4062601db23b"
+                  }
+                ]
+              }
+            ]
+          },
+          "table_count": 2,
+          "source_url": "https://docs.mthreads.com/s4000/s4000-doc-online/product_specifications/",
+          "source_sha256": "4dc9266c6e0013598a75b522423c00b0bfc521f4408f0f686bab4062601db23b"
+        },
+        {
+          "id": "moore-threads-de3386f391e9dc49af0e",
+          "name": "MTT S80",
+          "kind": "named_product",
+          "compute": {
+            "architecture": "",
+            "architecture_quote": "",
+            "category": "gpu",
+            "evidence_quote": "MTT S80 配备了 16GB GDDR6",
+            "form": "board",
+            "source_refs": [
+              {
+                "sha256": "96e490e0000bcb0cade6c91b0e91a1cdc12fda37b7ad4e2d2bec2cc34c9955ee",
+                "url": "https://www.mthreads.com/product/S80"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.mthreads.com/product/S80",
+          "source_sha256": "96e490e0000bcb0cade6c91b0e91a1cdc12fda37b7ad4e2d2bec2cc34c9955ee"
+        },
+        {
+          "id": "moore-threads-6f2168d72eea45958b3a",
+          "name": "QY102AA-800",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "chip",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "芯片 图形芯片 QY102AA-800",
+            "source_refs": [
+              {
+                "url": "https://docs.mthreads.com/s4000/s4000-doc-online/product_specifications/",
+                "sha256": "4dc9266c6e0013598a75b522423c00b0bfc521f4408f0f686bab4062601db23b"
+              }
+            ]
+          },
+          "table_count": 0,
+          "source_url": "https://docs.mthreads.com/s4000/s4000-doc-online/product_specifications/",
+          "source_sha256": "4dc9266c6e0013598a75b522423c00b0bfc521f4408f0f686bab4062601db23b"
+        },
+        {
+          "id": "moore-threads-3f768365bdc6568c8b22",
+          "name": "PH100",
+          "kind": "named_product",
+          "compute": {
+            "category": "gpu",
+            "form": "chip",
+            "architecture": "平湖",
+            "architecture_quote": "基于\"平湖\"架构的全新一代 PH100 芯片",
+            "evidence_quote": "PH100 作为旗舰智算卡 MTT S5000 的核心",
+            "source_refs": [
+              {
+                "url": "https://www.mthreads.com/architecture/pinghu",
+                "sha256": "b30ba240d9b47bd4a600c60774331e0b8b3f4153e350cf718061a1e285ca8862"
+              }
+            ]
+          },
+          "table_count": 0,
+          "source_url": "https://www.mthreads.com/architecture/pinghu",
+          "source_sha256": "b30ba240d9b47bd4a600c60774331e0b8b3f4153e350cf718061a1e285ca8862"
+        }
+      ],
+      "limitations": [
+        "S5000 完整数值硬件参数表未取得；正文精度与OAM形态仅为部分规格。QY102AA-800 自身架构未知，板卡显存/功耗不赋给芯片。",
+        "仅覆盖本轮审阅的官方型号/系列；历史值与空白保留，不证明当前在售或厂商全量。"
+      ]
+    },
+    {
+      "company_id": "biren",
+      "products": [
+        {
+          "id": "biren-15b336b46533d57aeea8",
+          "name": "壁砺™ 166L",
+          "kind": "named_product",
+          "compute": {
+            "architecture": "",
+            "architecture_quote": "",
+            "category": "unknown",
+            "evidence_quote": "冷板式液冷 OAM 模组",
+            "form": "module",
+            "source_refs": [
+              {
+                "sha256": "c34405d7257075c588ffbad8aceaf682ea4fa17fe39d6c4cbe59c277c7b58b88",
+                "url": "https://www.birentech.com/product/hardware/166l/"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.birentech.com/product/hardware/166l/",
+          "source_sha256": "c34405d7257075c588ffbad8aceaf682ea4fa17fe39d6c4cbe59c277c7b58b88"
+        },
+        {
+          "id": "biren-b7dbde707fe2abfc576a",
+          "name": "壁砺™ 166M",
+          "kind": "named_product",
+          "compute": {
+            "architecture": "",
+            "architecture_quote": "",
+            "category": "unknown",
+            "evidence_quote": "4U OAM V1.1 风冷模组",
+            "form": "module",
+            "source_refs": [
+              {
+                "sha256": "bc8293bc4b94fc76990e65266787e3382e78c3473665522920252354f7429b96",
+                "url": "https://www.birentech.com/product/hardware/166m/"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.birentech.com/product/hardware/166m/",
+          "source_sha256": "bc8293bc4b94fc76990e65266787e3382e78c3473665522920252354f7429b96"
+        },
+        {
+          "id": "biren-d99432a7d8e06f58e8ef",
+          "name": "壁砺™ 166C",
+          "kind": "named_product",
+          "compute": {
+            "architecture": "",
+            "architecture_quote": "",
+            "category": "unknown",
+            "evidence_quote": "全高全长（290mm）、双宽 PCIe 板卡",
+            "form": "board",
+            "source_refs": [
+              {
+                "sha256": "3240156d30f4b87831f3be1a9e5b7349e3240d25e48ca3652490486ed328ac99",
+                "url": "https://www.birentech.com/product/hardware/166c/"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://www.birentech.com/product/hardware/166c/",
+          "source_sha256": "3240156d30f4b87831f3be1a9e5b7349e3240d25e48ca3652490486ed328ac99"
+        },
+        {
+          "id": "biren-0d5c1ec8e354c90c24fb",
+          "name": "BR100系列",
+          "kind": "family_or_directory",
+          "compute": {
+            "category": "gpu",
+            "form": "series",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "首款国产高端通用GPU芯片BR100系列已正式发布",
+            "source_refs": [
+              {
+                "url": "https://www.birentech.com/csr-article/gblwq16edn07xrb9pjky963s/",
+                "sha256": "d7cfa6a8bbe80fe4414eaa97826f5320f1478fc4e8e4eeb4479a0375f776d2b9"
+              }
+            ]
+          },
+          "table_count": 0,
+          "source_url": "https://www.birentech.com/csr-article/gblwq16edn07xrb9pjky963s/",
+          "source_sha256": "d7cfa6a8bbe80fe4414eaa97826f5320f1478fc4e8e4eeb4479a0375f776d2b9"
+        }
+      ],
+      "limitations": [
+        "BR100 仅取得官方系列发布原文，未取得 BR100/BR104 独立型号规格或架构原件；166系列不猜底层芯片。",
+        "仅覆盖本轮审阅的官方型号/系列；历史值与空白保留，不证明当前在售或厂商全量。"
+      ]
+    },
+    {
+      "company_id": "sk-hynix",
+      "products": [
+        {
+          "id": "sk-hynix-69160d6dd80240973442",
+          "name": "PEB110",
+          "kind": "named_product",
+          "compute": {
+            "category": "excluded",
+            "form": "unknown",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "SK hynix Inc. (or “the company”, www.skhynix.com) announced today that it has developed PEB110 E1.S (PEB110), a high-performance solid-state drive (SSD) for data centers.",
+            "source_refs": [
+              {
+                "url": "https://news.skhynix.com/en/sk-hynix-develops-peb110-for-data-centers/",
+                "sha256": "1f31413aa7f597a3f3a6dac3e0420ac38960b6f50ee11b72ee1fe78ded11082c"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://news.skhynix.com/en/sk-hynix-develops-peb110-for-data-centers/",
+          "source_sha256": "1f31413aa7f597a3f3a6dac3e0420ac38960b6f50ee11b72ee1fe78ded11082c"
+        },
+        {
+          "id": "sk-hynix-91c6b374e976859c00a2",
+          "name": "PS1012 U.2",
+          "kind": "named_product",
+          "compute": {
+            "category": "excluded",
+            "form": "unknown",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "SK hynix Inc. (or “the company”, www.skhynix.com) announced today that it has completed development of its high-capacity SSD product, ‘PS1012 U.2*’, designed for AI data centers.",
+            "source_refs": [
+              {
+                "url": "https://news.skhynix.com/en/sk-hynix-develops-ps1012-ssd-for-ai-data-centers/",
+                "sha256": "d590f7f3716c657e403cffe4798966a98593da1d29c9b5cd23da9054dcc2e8f0"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://news.skhynix.com/en/sk-hynix-develops-ps1012-ssd-for-ai-data-centers/",
+          "source_sha256": "d590f7f3716c657e403cffe4798966a98593da1d29c9b5cd23da9054dcc2e8f0"
+        },
+        {
+          "id": "sk-hynix-aa25b629acda49287eb8",
+          "name": "HBM3E 12-layer",
+          "kind": "family_or_directory",
+          "compute": {
+            "category": "excluded",
+            "form": "series",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "In addition, SK hynix presented its 36 GB 12-layer HBM3E, installed in NVIDIA’s AI server GPU module GB200.",
+            "source_refs": [
+              {
+                "url": "https://news.skhynix.com/en/sk-hynix-showcases-hbm4-next-gen-ai-memory-at-computex-taipei-2025/",
+                "sha256": "5ba7183abe5a5660b8148ac64153dde228cca8698e53f7ec791fe72cf14a7b5e"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://news.skhynix.com/en/sk-hynix-showcases-hbm4-next-gen-ai-memory-at-computex-taipei-2025/",
+          "source_sha256": "5ba7183abe5a5660b8148ac64153dde228cca8698e53f7ec791fe72cf14a7b5e"
+        },
+        {
+          "id": "sk-hynix-f9e6f0528c774713cb72",
+          "name": "DDR5 RDIMM",
+          "kind": "family_or_directory",
+          "compute": {
+            "category": "excluded",
+            "form": "series",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "In the server DRAM section, SK hynix presented a lineup of DDR5-based memory modules for servers. The spotlight was on the DDR5 RDIMM* and MRDIMM* products built using the 1c node,* the sixth generation of the 10 nm process technology. The company also showcased various DRAM solutions designed to maximize AI server performance and reduce power consumption, including its 96 GB DDR5 RDIMM, 256 GB 3DS* DDR5 RDIMM, and DDR5 MRDIMM in both 96 GB and 256 GB capacities.",
+            "source_refs": [
+              {
+                "url": "https://news.skhynix.com/en/sk-hynix-presents-groundbreaking-ai-server-memory-solutions-at-dtw-2025/",
+                "sha256": "1a7c911bbb0e893b1b3d1ab03286bd6b5d897e4e786b59089bd53a1d54f16051"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://news.skhynix.com/en/sk-hynix-presents-groundbreaking-ai-server-memory-solutions-at-dtw-2025/",
+          "source_sha256": "1a7c911bbb0e893b1b3d1ab03286bd6b5d897e4e786b59089bd53a1d54f16051"
+        },
+        {
+          "id": "sk-hynix-5979cc0543d12bf0ec14",
+          "name": "DDR5 MRDIMM",
+          "kind": "family_or_directory",
+          "compute": {
+            "category": "excluded",
+            "form": "series",
+            "architecture": "",
+            "architecture_quote": "",
+            "evidence_quote": "In the server DRAM section, SK hynix presented a lineup of DDR5-based memory modules for servers. The spotlight was on the DDR5 RDIMM* and MRDIMM* products built using the 1c node,* the sixth generation of the 10 nm process technology. The company also showcased various DRAM solutions designed to maximize AI server performance and reduce power consumption, including its 96 GB DDR5 RDIMM, 256 GB 3DS* DDR5 RDIMM, and DDR5 MRDIMM in both 96 GB and 256 GB capacities.",
+            "source_refs": [
+              {
+                "url": "https://news.skhynix.com/en/sk-hynix-presents-groundbreaking-ai-server-memory-solutions-at-dtw-2025/",
+                "sha256": "1a7c911bbb0e893b1b3d1ab03286bd6b5d897e4e786b59089bd53a1d54f16051"
+              }
+            ]
+          },
+          "table_count": 1,
+          "source_url": "https://news.skhynix.com/en/sk-hynix-presents-groundbreaking-ai-server-memory-solutions-at-dtw-2025/",
+          "source_sha256": "1a7c911bbb0e893b1b3d1ab03286bd6b5d897e4e786b59089bd53a1d54f16051"
+        }
+      ],
+      "limitations": [
+        "product.skhynix.com robots HTTP 500；本批仅官方新闻原文，不冒充产品门户或完整数据表。",
+        "RDIMM/MRDIMM 与 HBM3E 无可订购料号，计系列。",
+        "The archived HBM3E URL now serves a SK hynix Newsroom media-library page. Its archived HTML only contains the media title/date and a download button, not the announcement body or numerical HBM3E specifications; no specs are asserted here.",
+        "The DTW 2025 source identifies DDR5 RDIMM/MRDIMM series and capacities but supplies no ordering part numbers. These entries are series/configurations, not part-number-level concrete SKUs.",
+        "PS1012 article mentions development of 244TB products as a future aim based on 321-high 4D NAND; it does not identify that as a released PS1012 model, so it is excluded as a model specification.",
+        "The PS1012 article states QLC in adjacent article prose; its footnote definition is separate. The model category reflects the article's own classification, and no NAND generation beyond quoted text is inferred.",
+        "仅覆盖本轮审阅的官方型号/系列；历史值与空白保留，不证明当前在售或厂商全量。"
+      ]
+    }
+  ]
+}
