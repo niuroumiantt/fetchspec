@@ -161,7 +161,9 @@ def amd(items):
             p['compute'].update(form='board' if name=='MI350P' else 'module',evidence_quote=require(micro['text'],form_quote))
             p['compute']['source_refs'].append(ref(micro['source']))
             t=micro['page']['tables'][0]; col=next(i for i,c in enumerate(t['rows'][0]) if c['text'].startswith(name+' '))
-            p['tables'].append(native(t,micro['source'],[[r[0],r[col]] for r in t['rows']]))
+            extra=native(t,micro['source'],[[r[0],r[col]] for r in t['rows']])
+            extra['source_table_index']=extra['index'];extra['index']=len(p['tables'])+1
+            p['tables'].append(extra)
         if name == 'MI300A':
             p['compute']['classification_note']='APU：此表仅给 GPU 部分；CPU 核心与封装形态未据本表推定。'
         result.append(p)
@@ -171,6 +173,16 @@ def amd(items):
            'method':'html_explicit_line_aligned_model_row','notes':'官方发布时点原表；保留历史价格和脚注，非当前报价或在售证明。\n'+cpu['page']['tables'][0]['notes'],'source_refs':[ref(cpu['source'])]}
         result.append(make('amd','AMD EPYC '+row[0],cpu,'cpu','chip',quote=row[0],tables=[t],architecture=row[2],architecture_quote=row[2]))
     return result
+
+
+def flex_board_quote(item, model):
+    """Match a complete variant name, never Flex 170 inside Flex 170V."""
+    paragraphs=[n.text() for n in item['doc'].walk('p') if 'PCIe' in n.text()]
+    if model=='140':
+        paragraph=next(p for p in paragraphs if '75W, half-height PCIe package' in p)
+        return require(item['text'],'Intel® Data Center GPU Flex 140 '+paragraph)
+    paragraph=next(p for p in paragraphs if re.search(r'Flex '+re.escape(model)+r'\b',p))
+    return require(item['text'],paragraph)
 
 
 def intel(items):
@@ -192,10 +204,11 @@ def intel(items):
             for row in t['rows']:
                 if row[0]['text']=='Microarchitecture':p['compute'].update(architecture=row[1]['text'],architecture_quote=require(item['text'],row[1]['text']))
         # Never infer silicon model from an ARK board/model name or code name.
-        if 'flex-170' in url:
+        variant=re.search(r'/intel-data-center-gpu-flex-(140|170v?)/',url)
+        if variant:
             directory=next(v for v in items.values() if v['source']['source_url'].endswith('/flex-series.html'))
-            quote=next((n.text() for n in directory['doc'].walk('p') if 'PCIe' in n.text() and '170' in n.text()),'')
-            if quote:p['compute'].update(form='board',evidence_quote=require(directory['text'],quote),source_refs=[ref(item['source']),ref(directory['source'])])
+            quote=flex_board_quote(directory,variant[1].upper())
+            p['compute'].update(form='board',evidence_quote=quote,source_refs=[ref(item['source']),ref(directory['source'])])
         result[url]=p
     return list(result.values())
 
@@ -291,6 +304,9 @@ def run(root,company,baseline):
             item=items.get(old['source_url'])
             if item and ('OAM 模组' in item['text'] or 'OAM V1.1 风冷模组' in item['text']):
                 p=copy.deepcopy(old);require(item['text'],p['compute']['evidence_quote']);p['compute']['form']='module';products.append(p)
+    for p in products:
+        indexes=[t['index'] for t in p['tables']]
+        if len(indexes)!=len(set(indexes)):raise ValueError('duplicate product table index')
     payload=merge_catalog(company,products,[v['source'] for v in items.values()],baseline,config.get('limitations',{}).get(company,[]))
     with ProductStore(root) as store:
         prior={p['id']:p for p in store.export_catalog(company)['products']}

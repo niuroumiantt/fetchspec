@@ -977,14 +977,18 @@
           "kind": "named_product",
           "compute": {
             "category": "gpu",
-            "form": "unknown",
+            "form": "board",
             "architecture": "Xe-HPG",
             "architecture_quote": "Xe-HPG",
-            "evidence_quote": "Intel® Data Center GPU Flex 140",
+            "evidence_quote": "Intel® Data Center GPU Flex 140 Unlock the full potential of VDI efficiency and media processing precision with up to four media engines and 16 Xe cores in a 75W, half-height PCIe package. Enable advanced workloads with unparalleled ease, flexibility, and scalability.",
             "source_refs": [
               {
                 "url": "https://www.intel.com/content/www/us/en/products/sku/230020/intel-data-center-gpu-flex-140/specifications.html",
                 "sha256": "1fb3dc108f496d07d5f49c873d1f8157627ba9f3476dcb00157c6de9041c4781"
+              },
+              {
+                "url": "https://www.intel.com/content/www/us/en/products/details/discrete-gpus/data-center-gpu/flex-series.html",
+                "sha256": "65040d3ba02ce6b212feda31eeedfb04410edf825d3e90d66eb85348ae257a01"
               }
             ]
           },
@@ -1026,7 +1030,7 @@
             "form": "board",
             "architecture": "Xe-HPG",
             "architecture_quote": "Xe-HPG",
-            "evidence_quote": "Step into a new era of unprecedented AI analytics speed and accuracy with up to 32 Xe cores in a 150W, full-height PCIe form factor. The Intel® Data Center GPU Flex 170 is tailored for adaptive AI workloads with up to 500 TOPS.",
+            "evidence_quote": "For VDI applications, experience great compute performance with lower complexity in a 150W, full-height PCIe form factor with 32 Xe cores. The Intel Data Center GPU Flex 170V is built to be a lower TCO option while providing the performance and features needed to enable world-class VDI capabilities.",
             "source_refs": [
               {
                 "url": "https://www.intel.com/content/www/us/en/products/sku/240233/intel-data-center-gpu-flex-170v/specifications.html",
