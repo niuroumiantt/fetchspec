@@ -26,14 +26,15 @@ ssh inews 'set -e
 sudo systemctl start inresearch-only-deploy.service
 sudo cat /var/lib/inresearch-ops/inresearch-only/status
 sudo cat /var/lib/inresearch-ops/inresearch-only/applied
-sudo docker exec inresearch-host-inresearch-1 python3 -c "import inresearch.workflow.catalog_bundle"
+sudo docker exec -w /app -e PYTHONPATH=/app/src inresearch-host-inresearch-1 python3 -c "import inresearch.workflow.catalog_bundle"
 '
 
 mkdir -p "$HOME/.local/state/fetchspec"
 RECEIPT="$HOME/.local/state/fetchspec/legacy-${TASK_RUN}-receipt.json"
 ssh mini "cat /Users/hermes/.local/share/fetchspec/pipeline/legacy-supermicro/${TASK_RUN}/catalog-bundle.tar.gz" \
-  | ssh inews 'sudo docker exec -i inresearch-host-inresearch-1 python3 -m inresearch.workflow.product_catalog import-bundle --company supermicro --input -' \
+  | ssh inews 'sudo docker exec -i -w /app inresearch-host-inresearch-1 python3 manage.py product-catalog import-bundle --company supermicro --input -' \
   | tee "$RECEIPT"
+python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); assert d.get("ok") is True, "catalog import did not return a successful receipt"' "$RECEIPT"
 printf 'Receipt saved: %s\n' "$RECEIPT"
 ssh inews 'set -e
 curl -fsS "https://inresearch.ai/api/company-window?c=supermicro" | python3 -c "import json,sys; d=json.load(sys.stdin); print(json.dumps({k:d[\"catalog\"].get(k) for k in (\"summary\",\"material_count\")},ensure_ascii=False,indent=2))"

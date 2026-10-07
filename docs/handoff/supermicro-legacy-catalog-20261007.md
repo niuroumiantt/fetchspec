@@ -11,3 +11,5 @@
 从干净隔离 checkout 执行 `bash scripts/publish_supermicro_legacy_from_m5.sh`。脚本在 mini 创建该 Fetchspec commit 的独立 worktree，从旧档案离线整理；启动 AWS 现有部署服务并检查导入模块存在，再经 m5 的 SSH 管道传输 HTML/索引包，由容器验证后写接收库。两台常驻源码分支均不切换。回执写在 m5 的 ~/.local/state/fetchspec。若导入中断，完全相同批次可重放；旧包不替换更新资料。
 
 本机测试夹具保留生产 URL/型号形态，但单元格为 TEST_VALUE；跨仓库测试真正调用接收器和 bundle 校验。私有 mini 原件不在云开发环境，实际解析数量、失败情况和 AWS 新数据必须以用户执行脚本回执验收，不能由夹具推定。
+
+用户实机导出回执：1,142 个实体、1,058 个命名产品、9,996 张规格表、4,916 个文档索引，其中 540 个有捕获页面关联，4,376 个待关联；5 个批次，PDF 字节传输为 0。AWS 已健康部署 8ab28002，但首次脚本在模块检查时遇到 ModuleNotFoundError，尚未导入。修正启动方式：容器源码位于 /app/src，模块检查显式设 PYTHONPATH=/app/src；导入使用 /app 下的 `python3 manage.py product-catalog import-bundle`，因为 workflow 模块本身不是可执行 CLI。脚本还校验 JSON 回执的 ok=true，空输出不能视为成功。已有导出包可直接复用，不需重新采集。
