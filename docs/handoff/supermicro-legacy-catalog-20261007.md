@@ -4,6 +4,8 @@
 
 `python3 -m fetchspec.legacy_catalog` 在旧 ledger 和原件上保持只读：验证已捕获英文/中文 HTML 的 SHA，复用原表解析器，保留原始观察时间；旧 URL 上的型号必须在标题/heading 中找到对应文字，保留 + 变体。目录页不计具体型号。按持久 edges 精确关联附件，不靠文件名猜型号。全部有官方 GET 来源的已归档文档按内容 SHA 去重成索引，未关联文档保留；PDF 内容不重新读取、传输或提取，附件关系不等于整个产品规格。
 
+2026-10-07归属修正：上面的官网来源条件不是制造商证明。第三方PCI-E SSD支持页和VROC兼容表不导出为Supermicro产品，报告列出源URL/SHA与排除原因；同样阻断新采集身份和ProductStore新增误归属。旧库的产品导出投影排除已确认冲突但不删历史，网站读端同样修正已经导入的条目。旧数量是当时回执，不是修正后的现行产品计数；重放增补不会删除网站旧产品。详见[归属审计](product-ownership-20261007.md)。
+
 导出 products/sources 与 material_index 分成有界 historical_supplement 批次。每批源 HTML 可独立验证；bundle 只带 JSON 和 HTML。接收端增补当前批次，保留原有身份的当前 payload，重叠旧资料进来源/版本历史；增补与全量快照语义不同。需先部署支持 import-bundle 的 InResearch 版本。文档首页计数和分页搜索使用同一公司地址的 view=materials，原文按点击加载。
 
 **[m5 → macmini → AWS]**

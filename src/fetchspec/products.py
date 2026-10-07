@@ -18,6 +18,7 @@ import tempfile
 from urllib.parse import urlsplit
 
 from .inventory import utc_now
+from .ownership import conflict, audit
 
 
 def encoded(value):
@@ -197,6 +198,8 @@ class ProductStore:
             source_keys.add((url, sha))
         existing = {r[0] for r in self.db.execute('SELECT product_id FROM products WHERE company_id=?', (company,))}
         for product in products:
+            if issue := conflict(product, company):
+                raise ValueError('product ownership conflict: ' + issue['reason'])
             timestamp(product.get('observed_at'))
             if not isinstance(product.get('name'), str) or not isinstance(product.get('tables', []), list):
                 raise ValueError('invalid product name/tables')
@@ -270,13 +273,17 @@ class ProductStore:
 
     def export_catalog(self, company_id):
         products = [json.loads(r[0]) for r in self.db.execute('SELECT payload FROM products WHERE company_id=? ORDER BY product_id', (company_id,))]
+        ownership_audit = audit(products, company_id)
+        excluded_ids = {p['id'] for p in products if conflict(p, company_id)}
+        products = [{**p, 'parent_id': None} if p.get('parent_id') in excluded_ids else p
+                    for p in products if p['id'] not in excluded_ids]
         sources = []
         for row in self.db.execute('SELECT s.*,b.path FROM sources s JOIN blobs b USING(sha256) WHERE company_id=? ORDER BY url,observed_at,sha256', (company_id,)):
             source = json.loads(row['payload'])
             source.update(snapshot_path=row['path'], format=row['format'], language=row['language'])
             sources.append(source)
         return {'schema_version': 1, 'company_id': company_id, 'generated_at': utc_now(),
-                'products': products, 'sources': sources, 'authority': 'candidate_only',
+                'products': products, 'sources': sources, 'authority': 'candidate_only', 'ownership_audit': ownership_audit,
                 'coverage': {'complete': False, 'entity_counts': dict(Counter(p.get('kind') for p in products)),
                              'with_spec_tables': sum(bool(p.get('tables')) for p in products),
                              'limitations': ['Current union of observed products; partial missing entries retained; no shipping/completeness claim.']},
