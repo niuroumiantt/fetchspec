@@ -29,7 +29,8 @@ def fixture(root):
             'https://www.supermicro.com/en/products/system/2u/6029/sys-6029uz-tr4_.php',
             'https://www.supermicro.com/en/products/system/2u/6129/ssg-6129p-acr12n4l.php']
     for i,(url,title) in enumerate(zip(urls,['6039P-TXRT','SYS-6029UZ-TR4+','SSG-6129P-ACR12N4L'])):
-        body=('<title>'+title+'</title><h1>'+title+'</h1><h2>Specifications</h2><table><tr><th>Memory</th><td>TEST_VALUE '+str(i)+'</td></tr></table>').encode()
+        link='<a href="https://www.supermicro.com/products/powersupply/80PLUS/80PLUS_PWS-1K05A-1R.pdf">Test Report</a>' if i==0 else ''
+        body=('<title>'+title+'</title><h1>'+title+'</h1><h2>Specifications</h2><table><tr><th>Memory</th><td>TEST_VALUE '+str(i)+'</td></tr></table>'+link).encode()
         sha=hashlib.sha256(body).hexdigest(); path='ledger/companies/supermicro/snapshots/'+sha+'.html'
         (root/path).parent.mkdir(parents=True,exist_ok=True); (root/path).write_bytes(body)
         db.execute('INSERT INTO requests VALUES(?,?,?,?)',(str(i),url,'GET',sha))
@@ -76,6 +77,19 @@ class LegacyCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'mismatch'):
                 export(root,out)
             self.assertFalse(out.exists())
+
+    def test_old_edge_absent_from_selected_snapshot_stays_unassigned(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)/'legacy';out=Path(temp)/'output';ledger=fixture(root)
+            db=sqlite3.connect(ledger)
+            path=root/db.execute("SELECT path FROM pages WHERE request='0'").fetchone()[0]
+            body=path.read_bytes().split(b'<a href=')[0]
+            path.write_bytes(body);sha=hashlib.sha256(body).hexdigest()
+            db.execute("UPDATE pages SET sha=? WHERE request='0'",(sha,))
+            db.execute("UPDATE requests SET latest_sha=? WHERE id='0'",(sha,))
+            db.commit();db.close()
+            report=export(root,out)
+            self.assertEqual((report['indexed_documents'],report['linked_documents'],report['unassigned_documents']),(2,0,2))
 
     @unittest.skipUnless(os.environ.get('FETCHSPEC_LEGACY_INRESEARCH_ROOT'),'set FETCHSPEC_LEGACY_INRESEARCH_ROOT for supplement receiver integration')
     def test_real_bundle_receiver_preserves_current_and_exposes_all_materials(self):

@@ -49,7 +49,7 @@ def export(root, output, max_batch_bytes=4 * 1024 * 1024):
     db = sqlite3.connect(ledger.as_uri() + '?mode=ro', uri=True)
     db.row_factory = sqlite3.Row
     adapter = SupermicroProductAdapter()
-    products, sources, originals, page_products, skipped = {}, {}, {}, {}, Counter()
+    products, sources, originals, page_products, page_links, skipped = {}, {}, {}, {}, {}, Counter()
     try:
         db.execute('BEGIN')  # one consistent read snapshot, even if crawl resumes
         total_pages = db.execute('SELECT count(*) FROM pages').fetchone()[0]
@@ -83,6 +83,7 @@ def export(root, output, max_batch_bytes=4 * 1024 * 1024):
                             'observed_at': row['observed_at'], 'kind': 'official_html_product_page', 'format': 'html', 'language': language(url)}
             originals[row['sha']] = wire
             page_products[row['request']] = item
+            page_links[row['request']] = {adapter.normalize(link['url'],url) for link in page['links']}
             old = products.get(item['id'])
             # Native specifications outrank a translated/no-table view. Within
             # the same rank retain the latest observation; every source remains.
@@ -110,7 +111,7 @@ def export(root, output, max_batch_bytes=4 * 1024 * 1024):
         for row in db.execute('SELECT e.parent,e.label,e.first_seen,r.url,r.latest_sha FROM edges e JOIN requests r ON r.id=e.child WHERE r.latest_sha IS NOT NULL ORDER BY e.parent,r.url,e.label'):
             item = page_products.get(row['parent'])
             doc = documents.get(row['latest_sha'])
-            if not item or not doc or row['url'] not in doc['urls']:
+            if not item or not doc or row['url'] not in doc['urls'] or row['url'] not in page_links.get(row['parent'],set()):
                 continue
             link = {'product_id': item['id'], 'url': row['url'], 'label': row['label'],
                     'source_url': item['source_url'], 'source_sha256': item['source_sha256']}
@@ -166,6 +167,8 @@ def export(root, output, max_batch_bytes=4 * 1024 * 1024):
         pending.append(doc)
     if pending:
         batches.append(payload([], pending))
+    if sum(len(wire) for wire in originals.values()) + sum(len(json.dumps(p,ensure_ascii=False).encode()) for p in batches) > 510 * 1024 * 1024:
+        raise ValueError('HTML supplement exceeds bundle bound; split scope before export')
     entries = []
     for i,batch in enumerate(batches):
         path = 'catalogs/batch-' + str(i + 1).zfill(5) + '.json'
