@@ -76,3 +76,7 @@ PYTHONPATH=src python3 -m unittest discover -s tests -v
 后续投递必须包含原件 SHA、来源和范围清单，在 Spark 验证完整性再进入阅读/事实提取。
 产品、规格条件/单位、版本、比较结论、证据页码、冲突和任务关联仍需按 inresearch 现行阅读与 C3 规则处理。
 研究目的与后续候选架构见 inresearch 的 `docs/inbox/framework_proposals/2026-09-23-product-research-and-site-evolution.md`，不能冒充已上线功能。
+
+## 既有档案到产品窗口（2026-10-07）
+
+离线整理使用 `fetchspec.legacy_catalog`，操作与验证见 [历史档案交接](../handoff/supermicro-legacy-catalog-20261007.md)。它只读本文的 crawl.sqlite 和 HTML 快照，导出有界型号/原表批次与所有可链接的文档索引。原表、型号身份、文档链接和研究采用分别计量；旧来源不覆盖接收端较新当前资料。PDF/Office 这里只整理链接关系，不声称已提取参数。
