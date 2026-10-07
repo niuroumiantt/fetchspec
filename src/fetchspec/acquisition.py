@@ -18,6 +18,7 @@ from .company import document_kind, is_transient_error
 from .extraction import extract_document
 from .inventory import atomic_bytes, atomic_json, utc_now
 from .network import ProductFetcher
+from .ownership import conflict, audit
 
 
 def _sha(value):
@@ -377,6 +378,10 @@ def _catalog(db, company_id, report, scope, known_catalog=None, root=None):
     def timestamp(value):
         return datetime.fromisoformat(value.replace('Z', '+00:00'))
     products = [known_products[p['id']] if p['id'] in known_products and known_products[p['id']].get('observed_at') and timestamp(known_products[p['id']]['observed_at']) > timestamp(p['observed_at']) else p for p in products]
+    report['ownership_audit'] = audit(products, company_id)
+    excluded_ids = {p['id'] for p in products if conflict(p, company_id)}
+    products = [{**p, 'parent_id': None} if p.get('parent_id') in excluded_ids else p
+                for p in products if p['id'] not in excluded_ids]
     sources = [json.loads(r['payload']) for r in db.execute('SELECT url,payload FROM source_versions ORDER BY url,sha') if r['url'] in scope]
     source_map = {(s['source_url'], s['sha256']): s for s in sources}
     known_sources = {(s['source_url'], s['sha256']): s for s in (known_catalog or {}).get('sources', [])}

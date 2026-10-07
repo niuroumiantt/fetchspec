@@ -49,6 +49,26 @@ def fixture(root):
 
 
 class LegacyCatalogTests(unittest.TestCase):
+    def test_support_tables_are_reported_but_not_exported_as_products(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)/'legacy'; out=Path(temp)/'out'; ledger=fixture(root)
+            with sqlite3.connect(ledger) as db:
+                for brand in ('kioxia','samsung','micron','intel','hgst'):
+                    url='https://www.supermicro.com/en/products/storage/pci-e/'+brand
+                    body=('<title>'+brand+' NVMe | Supermicro</title><h2>Supermicro Servers Support PCI-E SSD Solutions</h2><table><tr><th>SMCI P/N</th><th>Manufacturer P/N</th></tr><tr><td>HDS-TEST</td><td>TEST_VALUE</td></tr></table>').encode()
+                    sha=hashlib.sha256(body).hexdigest(); path='ledger/companies/supermicro/snapshots/'+sha+'.html'
+                    (root/path).write_bytes(body)
+                    db.execute('INSERT INTO requests VALUES(?,?,?,?)',(brand,url,'GET',sha))
+                    db.execute('INSERT INTO pages VALUES(?,?,?,?,?)',(brand,sha,path,brand,'2026-09-23T17:55:00+00:00'))
+            before=ledger.read_bytes()
+            report=export(root,out)
+            self.assertEqual(report['exported_entities'],3)
+            self.assertEqual(report['skipped_pages']['third_party_storage_support_page'],5)
+            self.assertEqual(len(report['ownership_exclusions']),5)
+            self.assertEqual(ledger.read_bytes(),before)
+            manifest=json.loads((out/'manifest.json').read_text())
+            self.assertTrue(all('/storage/pci-e/' not in p['source_url'] for e in manifest['batches'] for p in json.loads((out/e['path']).read_text())['products']))
+
     def test_offline_hash_verified_models_native_cells_and_document_links(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp)/'legacy'; out=Path(temp)/'output'; ledger=fixture(root)

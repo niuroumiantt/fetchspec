@@ -4,6 +4,7 @@ from urllib.parse import urlsplit
 
 from ..company import SupermicroAdapter
 from ..extraction import html_page
+from ..ownership import support_context
 from .base import ProductAdapter
 
 
@@ -25,6 +26,8 @@ class SupermicroProductAdapter(ProductAdapter):
         return page
 
     def identity(self, page, url):
+        if support_context(self.company_id, url):
+            return None
         heading = page.get('heading') or page.get('title')
         if not heading:
             return None

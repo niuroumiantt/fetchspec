@@ -18,9 +18,12 @@ from .adapters.base import FORMATS, language
 from .catalog_batch2 import decode
 from .inventory import atomic_bytes, atomic_json, utc_now
 from .products import timestamp
+from .ownership import support_context, VERSION as OWNERSHIP_VERSION
 
 
 def identity(page, url, adapter):
+    if support_context('supermicro', url):
+        return None
     # Old server titles sometimes omit SYS-, while their official URL supplies
     # it. Require the exact remaining model token in the captured title/heading.
     found = adapter.identity(page, url)
@@ -50,6 +53,7 @@ def export(root, output, max_batch_bytes=4 * 1024 * 1024):
     db.row_factory = sqlite3.Row
     adapter = SupermicroProductAdapter()
     products, sources, originals, page_products, page_links, skipped = {}, {}, {}, {}, {}, Counter()
+    ownership_exclusions = []
     try:
         db.execute('BEGIN')  # one consistent read snapshot, even if crawl resumes
         total_pages = db.execute('SELECT count(*) FROM pages').fetchone()[0]
@@ -67,6 +71,12 @@ def export(root, output, max_batch_bytes=4 * 1024 * 1024):
             if len(wire) > 16 * 1024 * 1024 or hashlib.sha256(wire).hexdigest() != row['sha']:
                 raise ValueError('HTML snapshot size/hash mismatch: ' + row['sha'])
             page = adapter.parse(decode(wire), url)
+            issue = support_context('supermicro', url)
+            if issue:
+                skipped['third_party_storage_support_page'] += 1
+                ownership_exclusions.append({**issue, 'title': page.get('title'),
+                                             'source_sha256': row['sha'], 'observed_at': row['observed_at']})
+                continue
             item = identity(page, url, adapter)
             if not item:
                 skipped['missing_product_heading'] += 1
@@ -181,7 +191,8 @@ def export(root, output, max_batch_bytes=4 * 1024 * 1024):
               'latest_observation':latest, 'exported_entities':len(items), 'named_products':sum(p['kind']=='named_product' for p in items),
               'specification_tables':sum(len(p['tables']) for p in items), 'indexed_documents':len(materials),
               'linked_documents':sum(bool(d['links']) for d in materials), 'unassigned_documents':sum(not d['links'] for d in materials),
-              'skipped_pages':dict(skipped), 'batch_count':len(batches), 'pdf_bytes_transferred':0}
+              'skipped_pages':dict(skipped), 'batch_count':len(batches), 'pdf_bytes_transferred':0,
+              'ownership_policy_version': OWNERSHIP_VERSION, 'ownership_exclusions': ownership_exclusions}
     atomic_json(output / 'materials.json', materials)
     atomic_json(output / 'report.json', report)
     atomic_json(output / 'manifest.json', {'schema_version':1,'company_id':'supermicro','mode':'historical_supplement','batches':entries})

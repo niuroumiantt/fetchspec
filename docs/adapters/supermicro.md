@@ -80,3 +80,5 @@ PYTHONPATH=src python3 -m unittest discover -s tests -v
 ## 既有档案到产品窗口（2026-10-07）
 
 离线整理使用 `fetchspec.legacy_catalog`，操作与验证见 [历史档案交接](../handoff/supermicro-legacy-catalog-20261007.md)。它只读本文的 crawl.sqlite 和 HTML 快照，导出有界型号/原表批次与所有可链接的文档索引。原表、型号身份、文档链接和研究采用分别计量；旧来源不覆盖接收端较新当前资料。PDF/Office 这里只整理链接关系，不声称已提取参数。
+
+产品制造商归属另行核验：`products/storage/pci-e/` 和 `products/nvme/vroc` 是第三方存储支持/兼容表，SMCI P/N不把Kioxia、Samsung、Intel、HGST、Micron变成Supermicro产品。新产品识别与历史导出排除这些路径，导出报告保存`ownership_exclusions`；旧台账、快照和文档原件保留。整机原表中的配件品牌照常保留。各公司标题的异厂品牌仅进入只读复核，不按全文关键词删除产品。详见[归属审计](../handoff/product-ownership-20261007.md)。
