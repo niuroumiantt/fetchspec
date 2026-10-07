@@ -13,7 +13,7 @@ TASK_RUN="$2"
 REPO="$HOME/code/fetchspec"
 WORK="$HOME/.worktrees/fetchspec/legacy-catalog-${TASK_RUN}"
 OUTPUT="$HOME/.local/share/fetchspec/pipeline/legacy-supermicro/${TASK_RUN}"
-git -C "$REPO" fetch --quiet origin main
+git -C "$REPO" fetch --quiet origin main 2>/dev/null || { echo "GitHub source synchronization failed" >&2; exit 1; }
 git -C "$REPO" cat-file -e "${SOURCE_COMMIT}^{commit}"
 mkdir -p "$HOME/.worktrees/fetchspec"
 git -C "$REPO" worktree add --detach "$WORK" "$SOURCE_COMMIT"
