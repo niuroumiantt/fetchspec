@@ -1,4 +1,4 @@
-"""Reviewed official seed pages per target row, and the batch run over them.
+"""Reviewed official seed pages with optional target rows, and the batch run over them.
 
 A seed says: this official product page answers these target rows, because <reason>.
 Seeds live in Git (``seeds/<company>.json``) so every page choice is reviewable. The batch
@@ -34,9 +34,9 @@ def load(seed_dir=None):
             pages = seed.get('max_pages', 3)
             if not url or not adapter.page_allowed(url):
                 raise ValueError(f'{where}: url is not an allowed official product page for {company}')
-            if (not isinstance(targets, list) or not targets or len(set(targets)) != len(targets)
-                    or any(not isinstance(t, str) or not t for t in targets)):
-                raise ValueError(f'{where}: targets must be a non-empty list of target IDs')
+            if (not isinstance(targets, list) or any(not isinstance(t, str) or not t for t in targets)
+                    or len(set(targets)) != len(targets)):
+                raise ValueError(f'{where}: targets must be a list of target IDs; discovery uses []')
             if not isinstance(reason, str) or not reason.strip() or len(reason) > 300:
                 raise ValueError(f'{where}: a review reason (at most 300 characters) is required')
             if type(pages) is not int or not 1 <= pages <= MAX_SEED_PAGES:
@@ -58,11 +58,11 @@ def by_target(seeds):
 def collect_targets(root, store, snapshot, company, urls, targets, *, max_pages, refresh=False, reparse=False, fetcher=None):
     """The single collect path shared by `collect` and `collect-seeds`. Returns (result, payload)."""
     from .acquisition import collect
-    from .targets import validate_target_ids
-    validate_target_ids(snapshot, targets)
+    from .targets import source_targets
+    source_targets(snapshot, targets)
     if not 1 <= max_pages <= 1000:
         raise ValueError('max-pages must be between 1 and 1000')
-    scope = {'snapshot_id': snapshot['snapshot_id'], 'company_id': company,
+    scope = {'snapshot_id': snapshot['snapshot_id'] if snapshot else None, 'company_id': company,
              'target_ids': sorted(set(targets)), 'urls': sorted(set(urls))}
     scope_id = fingerprint(scope)
     atomic_json(Path(root) / 'scopes' / (scope_id + '.json'), scope)
@@ -70,7 +70,7 @@ def collect_targets(root, store, snapshot, company, urls, targets, *, max_pages,
                       known_catalog=store.export_catalog(company))
     result = store.ingest_catalog(payload, root)
     result.update(scope_id=scope_id, acquisition_report=payload.get('acquisition_report'),
-                  binding='review explicit product IDs with bind before delivery')
+                  binding='explicit product selection; model demand binding is optional')
     return result, payload
 
 
@@ -96,15 +96,15 @@ def _seed_products(payload, adapter, url):
 def run(root, store, snapshot, seeds, *, budget=200, bind=False, refresh=False, dry_run=False, include_closed=False,
         fetcher=None):
     """Collect every selected seed within one request budget; optionally bind from seed reasons."""
-    rows = {row['id']: row for row in snapshot['targets']}
+    rows = {row['id']: row for row in snapshot['targets']} if snapshot else {}
     remaining, report = budget, []
     for seed in seeds:
         targets = [t for t in seed['targets'] if t in rows]
         entry = {'company_id': seed['company_id'], 'url': seed['url'], 'targets': targets, 'product': seed['product']}
-        if not targets:
+        if seed['targets'] and not targets:
             report.append({**entry, 'status': 'skipped', 'why': 'targets not in the current snapshot'})
             continue
-        if not include_closed and all(rows[t].get('status') != 'needed' for t in targets):
+        if targets and not include_closed and all(rows[t].get('status') != 'needed' for t in targets):
             report.append({**entry, 'status': 'skipped', 'why': 'targets already sourced, assumed or delivered upstream'})
             continue
         if dry_run:
@@ -128,7 +128,7 @@ def run(root, store, snapshot, seeds, *, budget=200, bind=False, refresh=False, 
                      products=[{'id': p['id'], 'name': p['name'], 'kind': p.get('kind'), 'tables': len(p.get('tables', [])),
                                 'extraction_status': p.get('extraction_status')} for p in products],
                      attempted=acquisition.get('attempted', 0), errors=acquisition.get('errors', []))
-        if bind and with_tables:
+        if bind and with_tables and targets:
             store.bind(snapshot, seed['company_id'], with_tables, targets, 'seed: ' + seed['reason'])
             entry['bound'] = {'products': with_tables, 'targets': targets}
         report.append(entry)

@@ -13,7 +13,7 @@
             "max_pages": 3}]}
 ```
 
-载入时校验：文件名等于已注册适配器的 `company_id`；`url` 必须在该适配器的官方产品页范围内；`targets` 非空且不重复；`reason` 必填，最多 300 字；`max_pages` 为 1–20，默认 3。
+载入时校验：文件名等于已注册适配器的 `company_id`；`url` 必须在该适配器的官方产品页范围内；`targets` 为显式列表且不重复，一般发现写 `[]`、不要求目标快照；`reason` 必填，最多 300 字；`max_pages` 为 1–20，默认 3。
 
 ## 命令
 
@@ -23,6 +23,7 @@ python3 -m fetchspec.pipeline collect-seeds --bind --budget 200          # 全�
 python3 -m fetchspec.pipeline collect-seeds --company vertiv --target P.ups.spec --bind
 ```
 
+- 空目标种子照常采集，不绑定模型；以下跳过规则仅适用于非空目标。
 - 种子的目标行不在当前快照里：跳过，不改写种子。
 - 目标行上游已是 sourced / assumed / delivered：跳过，除非加 `--include-closed`。
 - 每个种子走与 `collect` 相同的路径：robots、逐主机节流、条件请求、内容 SHA、范围文件。

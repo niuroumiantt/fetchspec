@@ -41,7 +41,7 @@ STAGES = {
 
 # 手写的只有这些；其余都从仓库文件里读。
 NARRATIVE = {
-    "position": "六个采集队里的「产品与技术资料」队：按 inresearch 的目标行，从厂商官网取回官方产品规格，保留原件与原表，"
+    "position": "六个采集队里的「产品与技术资料」队：持续从厂商官网取回官方产品规格；一般发现不要求研究目标，保留原件与原表，"
                 "整理成可比较的参数，打包交付并拿回回执。收到不等于采用，研究事实由 inresearch 判断。",
     "not_ours": "翻译、研究结论、目标表状态、全站 URL 清单；新闻、财报、研报、报价、统计归其他队（inews、fetchfilings、"
                 "fetchreports、fetchquotes、fetchstat）。",
@@ -49,7 +49,7 @@ NARRATIVE = {
               ("Spark", "永久归档与深读")],
     "delivery": [
         ("包", "v2.0：manifest.json + SHA256SUMS + files/"),
-        ("每项带", "target_ids、part_ids、来源与语言、版本关系、产品身份、厂商原表、人审过的参数观测（值为厂商原文）"),
+        ("每项带", "target_ids、part_ids（一般发现为空）、来源与语言、版本关系、产品身份、厂商原表、人审过的参数观测（值为厂商原文）"),
         ("接收", "inresearch `manage.py fetchspec-receive` 逐文件验 SHA256 与契约，回执 JSON"),
         ("登记", "`assignments` 生成每目标行一条的登记；作者 checkout 跑 `deliveries import`，走 PR 与审阅"),
         ("不写", "Fetchspec 不写 inresearch 的 Git，不改目标表状态"),

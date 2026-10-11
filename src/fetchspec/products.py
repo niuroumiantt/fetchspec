@@ -304,7 +304,7 @@ class ProductStore:
         return {'products': len(set(product_ids)), 'targets': [t['id'] for t in targets], 'snapshot_id': snapshot['snapshot_id']}
 
     def delivery_items(self, snapshot, company_id, product_ids):
-        from .targets import validate_target_ids
+        from .targets import source_targets
         if not product_ids:
             raise ValueError('choose specific products before delivery')
         catalog = self.export_catalog(company_id)
@@ -317,8 +317,8 @@ class ProductStore:
         for pid in sorted(set(product_ids)):
             if pid not in products:
                 raise ValueError(f'unknown product: {pid}')
-            target_ids = [r[0] for r in self.db.execute('SELECT target_id FROM bindings WHERE snapshot_id=? AND company_id=? AND product_id=? ORDER BY target_id', (snapshot['snapshot_id'], company_id, pid))]
-            target_rows = validate_target_ids(snapshot, target_ids)
+            target_ids = [r[0] for r in self.db.execute('SELECT target_id FROM bindings WHERE snapshot_id=? AND company_id=? AND product_id=? ORDER BY target_id', (snapshot['snapshot_id'] if snapshot else 'discovery', company_id, pid))]
+            target_rows = source_targets(snapshot, target_ids)
             product = products[pid]
             observations = self.parameter_observations(company_id, pid, product, target_rows, sources)
             for url, sha in evidence_refs(product):
@@ -337,7 +337,7 @@ class ProductStore:
                         'version_relation': relation,
                         'product_evidence': [{'product_id': pid, 'name': product['name'], 'parent_id': product.get('parent_id'),
                            'product_url': product.get('product_url'), 'target_ids': target_ids,
-                           'part_ids': sorted({t['part_id'] for t in validate_target_ids(snapshot, target_ids) if t.get('part_id')}),
+                           'part_ids': sorted({t['part_id'] for t in source_targets(snapshot, target_ids) if t.get('part_id')}),
                            'version': fingerprint(semantic(product)), 'specification_tables': product.get('tables', [])}]}
                 attached = [o for o in observations if (o['source_url'], o['source_sha256']) == (url, sha)]
                 if attached:  # absent key keeps packages without mappings byte-identical to earlier releases

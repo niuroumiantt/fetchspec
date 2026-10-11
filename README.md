@@ -1,6 +1,6 @@
 # Fetchspec
 
-Fetchspec 是 [inresearch.ai](https://github.com/niuroumiantt/inresearch.ai) 六个采集队里的"产品与技术资料"队：按 inresearch 的目标行，从厂商官网取回官方产品规格，保留原件与原表，整理成可比较的参数，打包交付并拿回回执。收到不等于采用，研究事实由 inresearch 判断。
+Fetchspec 是 [inresearch.ai](https://github.com/niuroumiantt/inresearch.ai) 六个采集队里的"产品与技术资料"队：从厂商官网持续取回官方产品规格；先登记产品身份和原件，再按需关联 inresearch 的研究目标，保留原件与原表，整理成可比较的参数，打包交付并拿回回执。收到不等于采用，研究事实由 inresearch 判断。
 
 一条主线：**需求 → 爬取 → 整理 → 输出**。为什么这样分、每段的边界，见 [框架](docs/framework-2026-09-30.md)；模块、落盘和机器见 [架构](docs/ARCHITECTURE.md)。
 
@@ -13,8 +13,8 @@ Fetchspec 是 [inresearch.ai](https://github.com/niuroumiantt/inresearch.ai) 六
 | 项 | 内容 |
 |---|---|
 | 给谁 | inresearch.ai。包由接收端 `manage.py fetchspec-receive` 收下，登记由作者 checkout 的 `manage.py deliveries import` 写回 Git |
-| 什么 | v2.0 包：`manifest.json` + `SHA256SUMS` + `files/`。每项带 `target_ids`、`part_ids`、来源与语言、版本关系、产品身份、厂商原表，以及人审过的参数观测（字段即契约 `parameter_observation_fields`，值为厂商原文） |
-| 按哪张表领任务 | inresearch `framework/tco_targets.json` 里 `team == "fetchspec"` 的行：2026-09-30 为 130 行，63 条 `P.<部件>.spec`、61 条 `P.<部件>.operation`、6 条 `F.*`。只领构成与运行两类变量 |
+| 什么 | v2.0 包：`manifest.json` + `SHA256SUMS` + `files/`。每项带 `target_ids`、`part_ids`（一般资料发现明确为空，无需目标快照）、来源与语言、版本关系、产品身份、厂商原表，以及人审过的参数观测（字段即契约 `parameter_observation_fields`，值为厂商原文） |
+| 模型任务另按哪张表 | inresearch `framework/tco_targets.json` 里 `team == "fetchspec"` 的行：2026-09-30 为 130 行，63 条 `P.<部件>.spec`、61 条 `P.<部件>.operation`、6 条 `F.*`。只领构成与运行两类变量 |
 | 回执怎么进 delivered | 回执经 `receipt` 入本地台账；`assignments` 生成每目标行一条的登记文件；作者跑 `deliveries import`，重跑目标表，走 PR 与审阅。Fetchspec 不写 inresearch 的 Git |
 | 不给什么 | 翻译、研究结论、目标表状态、全站 URL 清单；新闻、财报、研报、报价、统计归其他队 |
 | 跑在哪 | 采集在 macmini（目标表 `host`）；NVIDIA 批次与开发在 M5；接收与展示在 AWS；永久归档与深读在 Spark |
@@ -25,7 +25,7 @@ Fetchspec 是 [inresearch.ai](https://github.com/niuroumiantt/inresearch.ai) 六
 
 | 段 | 命令 | 做什么 |
 |---|---|---|
-| ① 需求 | `sync-targets` | 只读快照 inresearch 的目标表与供应契约（commit + SHA） |
+| ① 可选需求 | `sync-targets` | 只读快照 inresearch 的目标表与供应契约（commit + SHA） |
 | | `plan` · `coverage` | 每条目标的下一步：在途 / 现在可抓 / 复核实例 / 缺适配器；`--backflow` 读 inresearch 回流（[申请中](docs/upstream/backflow-request.md)） |
 | ② 爬取 | `map-sync` · `map-ack` | 官方产品 sitemap 的新增与变化候选，人工确认 |
 | | `collect` | 从明确种子有界采集：robots、节流、条件请求、内容 SHA |
@@ -72,3 +72,5 @@ FETCHSPEC_INRESEARCH_ROOT=~/code/inresearch.ai PYTHONPATH=src python3 -m unittes
 第二批型号与芯片关系补齐见 [第二批交接](docs/handoff/compute-catalog-batch2-20261002.md)，入口 `python3 -m fetchspec.catalog_batch2`；固定审阅来源SHA并保留已核对生产基线。
 
 Supermicro 旧公司归档离线接入见 [历史档案交接](docs/handoff/supermicro-legacy-catalog-20261007.md)：`python3 -m fetchspec.legacy_catalog` 从既有 HTML/链接台账导出增补批次与资料索引，保留原始时间；`scripts/publish_supermicro_legacy_from_m5.sh` 经现有 SSH 接入 AWS。无需继续旧抓取队列，不自动成为研究事实。
+
+普通资料采集不要求模型用途：`collect --company vertiv --url <官方产品URL> --max-pages 3`，明确选择产品后 `package --company vertiv --product <product-id>`。发现包独立验收：`python3 scripts/verify_package.py <包目录>`；绑定任务包仍加 `--targets <快照目标表>`。只保留原件和原生值不等于正式采用；完整流程见 [来源优先管线](docs/SOURCE_PIPELINE.md)。

@@ -18,7 +18,7 @@ import zipfile
 from .adapters import adapter_for
 from .deliver import MIME, collector_revision as current_revision, sha256_file
 from .inventory import FORMATS, atomic_json, utc_now
-from .targets import SHA, canonical_bytes, digest, load_snapshot, validate_target_ids
+from .targets import SHA, canonical_bytes, digest, load_snapshot, source_targets
 
 SUPPORTED_FORMATS = FORMATS | {"html", "json"}  # json: official data components named by a product page
 READER_FORMATS = {"pdf", "html", "csv", "docx", "pptx", "xlsx", "xls", "ppt"}
@@ -213,7 +213,7 @@ def _prepare(snapshot, company_id, raw_items):
         if not blob.is_file() or sha256_file(blob) != sha:
             raise ValueError("source blob SHA mismatch")
         _validate_format(blob, fmt)
-        rows = validate_target_ids(snapshot, raw.get("target_ids"))
+        rows = source_targets(snapshot, raw.get("target_ids"))
         source = _source(raw.get("source"), adapter)
         if not isinstance(raw.get("source_item_id"), str) or not raw["source_item_id"]:
             raise ValueError("source_item_id required")
@@ -241,7 +241,7 @@ def _prepare(snapshot, company_id, raw_items):
                 raise ValueError("product evidence must name a product bound to this source")
             evidence = json.loads(canonical_bytes(original))
             evidence_targets = evidence.get("target_ids", observation["target_ids"])
-            selected = validate_target_ids(snapshot, evidence_targets)
+            selected = source_targets(snapshot, evidence_targets)
             if set(evidence_targets) - set(observation["target_ids"]):
                 raise ValueError("product evidence target is outside source binding")
             evidence["target_ids"] = sorted(evidence_targets)
@@ -283,7 +283,7 @@ def _prepare(snapshot, company_id, raw_items):
         observations = {canonical_bytes(obs): obs for _, obs, _ in values}
         item["source_observations"] = [observations[key] for key in sorted(observations)]
         item["target_ids"] = sorted({tid for _, obs, _ in values for tid in obs["target_ids"]})
-        item["part_ids"] = _parts(validate_target_ids(snapshot, item["target_ids"]))
+        item["part_ids"] = _parts(source_targets(snapshot, item["target_ids"]))
         item["product_ids"] = sorted({pid for _, obs, _ in values for pid in obs["product_ids"]})
         evidence_by_content = {}
         for candidate, _, _ in values:
@@ -294,7 +294,7 @@ def _prepare(snapshot, company_id, raw_items):
                 else:
                     kept = evidence_by_content[key]
                     kept["target_ids"] = sorted(set(kept["target_ids"]) | set(evidence["target_ids"]))
-                    kept["part_ids"] = _parts(validate_target_ids(snapshot, kept["target_ids"]))
+                    kept["part_ids"] = _parts(source_targets(snapshot, kept["target_ids"]))
         item["product_evidence"] = [evidence_by_content[key] for key in sorted(evidence_by_content)]
         item["source"] = dict(item["source"])
         item["source"]["categories"] = sorted({category for _, obs, _ in values for category in obs["source"]["categories"]})
@@ -341,12 +341,12 @@ def _verify_package(package, expected_sha=None):
 
 
 def build_package(state_root, snapshot, company_id, items, *, delivery_id=None, collector_revision=None):
-    snapshot = _snapshot(state_root, snapshot)
+    snapshot = _snapshot(state_root, snapshot) if any(i.get("target_ids") for i in items) else {"snapshot_id": "discovery", "upstream": {}}
     if not isinstance(company_id, str) or not re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,79}", company_id):
         raise ValueError("invalid company_id")
     prepared, blobs = _prepare(snapshot, company_id, items)
     target_ids = sorted({tid for item in prepared for tid in item["target_ids"]})
-    validate_target_ids(snapshot, target_ids)
+    source_targets(snapshot, target_ids)
     revision = collector_revision or current_revision()
     intent = {"company_id": company_id, "target_snapshot_id": snapshot["snapshot_id"],
               "collector_revision": revision, "items": prepared}
@@ -366,7 +366,7 @@ def build_package(state_root, snapshot, company_id, items, *, delivery_id=None, 
             stored_intent = {key: manifest.get(key) for key in ("company_id", "target_snapshot_id", "collector_revision", "items")}
             if (manifest.get("intent_sha256") != intent_sha or digest(canonical_bytes(stored_intent)) != intent_sha
                     or manifest.get("delivery_id") != delivery_id or manifest.get("target_ids") != target_ids
-                    or manifest.get("part_ids") != _parts(validate_target_ids(snapshot, target_ids))):
+                    or manifest.get("part_ids") != _parts(source_targets(snapshot, target_ids))):
                 raise ValueError("delivery_id reused with different package content")
         else:
             if prior:
@@ -374,8 +374,8 @@ def build_package(state_root, snapshot, company_id, items, *, delivery_id=None, 
             manifest = {"contract_version": "2.0", "provider_id": "fetchspec", "delivery_id": delivery_id,
                         "company_id": company_id, "collector_revision": revision, "created_at": utc_now(),
                         "task_id_or_discovery": "discovery", "target_ids": target_ids,
-                        "part_ids": _parts(validate_target_ids(snapshot, target_ids)),
-                        "collection_trigger": "generated_targets", "target_snapshot_id": snapshot["snapshot_id"],
+                        "part_ids": _parts(source_targets(snapshot, target_ids)),
+                        "collection_trigger": "generated_targets" if target_ids else "discovery", "target_snapshot_id": snapshot["snapshot_id"],
                         "upstream": snapshot["upstream"], "intent_sha256": intent_sha,
                         "files_included": True, "acceptance": "candidate", "items": prepared}
             observation_count = sum(len(e.get("parameter_observations", [])) for i in prepared for e in i["product_evidence"])
@@ -417,8 +417,8 @@ def _validate_receipt(receipt, manifest, manifest_sha, snapshot):
     if not isinstance(context, dict):
         raise ValueError("receipt research_context required")
     expected_targets = manifest["target_ids"]
-    current_parts = _parts(validate_target_ids(snapshot, expected_targets))
-    if (_ids(context.get("target_ids"), "receipt targets", required=True) != expected_targets
+    current_parts = _parts(source_targets(snapshot, expected_targets))
+    if (_ids(context.get("target_ids"), "receipt targets") != expected_targets
             or _ids(context.get("part_ids"), "receipt parts") != current_parts
             or manifest["part_ids"] != current_parts):
         raise ValueError("receipt target/part binding mismatch or upstream mapping changed")
@@ -433,12 +433,12 @@ def _validate_receipt(receipt, manifest, manifest_sha, snapshot):
             raise ValueError("receipt SHA set mismatch")
         seen.add(item["sha256"])
         original = expected[item["sha256"]]
-        validate_target_ids(snapshot, original["target_ids"])
+        source_targets(snapshot, original["target_ids"])
         readable = original["format"] in READER_FORMATS
         status = "received" if readable else "needs_supplement"
         handoff = item.get("reader_handoff")
         if (item.get("format") != original["format"]
-                or _ids(item.get("target_ids"), "item receipt targets", required=True) != original["target_ids"]
+                or _ids(item.get("target_ids"), "item receipt targets") != original["target_ids"]
                 or item.get("status") != status
                 or handoff not in ({"held", "eligible"} if readable else {"extractor_required"})):
             raise ValueError("receipt item binding/status mismatch")
@@ -455,7 +455,6 @@ def import_receipt(state_root, receipt, *, snapshot=None, environment="receiver"
     ``receiver`` preserves compatibility but does not assert a production origin.
     Environmental metadata is external to the official receipt and cannot change it.
     """
-    snapshot = _snapshot(state_root, snapshot)
     environment = _environment(environment)
     context = {} if context is None else context
     if not isinstance(context, dict):
@@ -477,6 +476,7 @@ def import_receipt(state_root, receipt, *, snapshot=None, environment="receiver"
         if package is None:
             raise ValueError("unknown receipt delivery_id")
         manifest, manifest_sha = _verify_package(Path(package["package_path"]), package["manifest_sha256"])
+        snapshot = _snapshot(state_root, snapshot) if manifest["target_ids"] else None
         _validate_receipt(receipt, manifest, manifest_sha, snapshot)
         prior = db.execute("SELECT * FROM receipts WHERE delivery_id=? AND environment=?",
                            (manifest["delivery_id"], environment)).fetchone()
@@ -497,17 +497,18 @@ def import_receipt(state_root, receipt, *, snapshot=None, environment="receiver"
 
 
 def _received_delivery(state_root, delivery_id, snapshot, environment):
-    """Return (row, manifest, manifest_sha, receipt) only for a re-verified receipt."""
+    """Return the verified delivery, receipt and optional demand snapshot."""
     with closing(_database(state_root)) as db:
         row = db.execute("SELECT p.*,r.receipt_sha256,r.receipt_json,r.context_json,r.imported_at FROM packages p JOIN receipts r USING(delivery_id) WHERE delivery_id=? AND environment=?", (delivery_id, environment)).fetchone()
     if row is None:
         raise ValueError("a validated receipt is required for an author proposal")
     manifest, manifest_sha = _verify_package(Path(row["package_path"]), row["manifest_sha256"])
+    snapshot = _snapshot(state_root, snapshot) if manifest['target_ids'] else None
     if digest(row["receipt_json"].encode("utf-8")) != row["receipt_sha256"]:
         raise ValueError("stored raw receipt SHA mismatch")
     receipt = json.loads(row["receipt_json"].encode("utf-8"))
     _validate_receipt(receipt, manifest, manifest_sha, snapshot)
-    return row, manifest, manifest_sha, receipt
+    return row, manifest, manifest_sha, receipt, snapshot
 
 
 UPSTREAM_IMPORT = "python3 manage.py deliveries import --assignments <this file>"
@@ -515,12 +516,11 @@ UPSTREAM_IMPORT = "python3 manage.py deliveries import --assignments <this file>
 
 def export_author_proposal(state_root, delivery_id, *, snapshot=None, output_path=None, environment="receiver"):
     """Export a reviewable proposal; never write an inresearch author checkout."""
-    snapshot = _snapshot(state_root, snapshot)
     environment = _environment(environment)
-    row, manifest, manifest_sha, receipt = _received_delivery(state_root, delivery_id, snapshot, environment)
+    row, manifest, manifest_sha, receipt, snapshot = _received_delivery(state_root, delivery_id, snapshot, environment)
     records = []
     for item in manifest["items"]:
-        for target in validate_target_ids(snapshot, item["target_ids"]):
+        for target in source_targets(snapshot, item["target_ids"]):
             evidence = [entry for entry in item["product_evidence"] if target["id"] in entry["target_ids"]]
             products = sorted({entry["product_id"] for entry in evidence}) if item["product_evidence"] else item["product_ids"]
             records.append({"target_id": target["id"], "part_id": target["part_id"],
@@ -534,7 +534,7 @@ def export_author_proposal(state_root, delivery_id, *, snapshot=None, output_pat
               "status": "validation_only" if environment == "local_receiver_validation" else "proposed",
               **_environment_context(environment), "receiver_context": json.loads(row["context_json"]),
               "delivery_id": delivery_id, "manifest_sha256": manifest_sha,
-              "receipt_sha256": row["receipt_sha256"], "target_snapshot_id": snapshot["snapshot_id"],
+              "receipt_sha256": row["receipt_sha256"], "target_snapshot_id": snapshot["snapshot_id"] if snapshot else None,
               "package_target_snapshot_id": manifest["target_snapshot_id"], "records": records,
               "suggested_carrier": "data/event_cards.json via deliveries import (per target_id)",
               "upstream_import": "fetchspec.pipeline assignments --delivery-id " + delivery_id + " --output <file>; then " + UPSTREAM_IMPORT,
@@ -562,17 +562,16 @@ def export_assignments(state_root, delivery_id, *, snapshot=None, output_path=No
     (``fetchspec.observations``: original text, unit, condition, source URL and SHA). Receipts from local receiver validation are
     refused unless explicitly allowed for rehearsal, and are then marked as such.
     """
-    snapshot = _snapshot(state_root, snapshot)
     environment = _environment(environment)
     if not isinstance(by, str) or not re.fullmatch(r"[A-Za-z0-9._@-]{1,80}", by):
         raise ValueError("invalid --by identity")
     local_only = environment == "local_receiver_validation"
     if local_only and not allow_validation:
         raise ValueError("local receiver validation receipts do not prove production receipt; pass --allow-validation only for a rehearsal")
-    row, manifest, manifest_sha, receipt = _received_delivery(state_root, delivery_id, snapshot, environment)
+    row, manifest, manifest_sha, receipt, snapshot = _received_delivery(state_root, delivery_id, snapshot, environment)
     received_at = str(row["imported_at"])[:10]
     records = []
-    for target in validate_target_ids(snapshot, manifest["target_ids"]):
+    for target in source_targets(snapshot, manifest["target_ids"]):
         primary, related = _primary_item(manifest["items"], target["id"])
         url = primary["source"]["url"]
         parsed = urlsplit(url)
@@ -599,7 +598,8 @@ def export_assignments(state_root, delivery_id, *, snapshot=None, output_path=No
                                       "source_sha256": sorted(i["sha256"] for i in related), "acceptance": "candidate"}})
     result = {"version": 1, "updated": received_at, "records": records,
               "source": {"kind": "fetchspec_assignments_export", "delivery_id": delivery_id,
-                         "target_snapshot_id": snapshot["snapshot_id"], "upstream_commit": snapshot["upstream"]["commit"],
+                         "target_snapshot_id": snapshot["snapshot_id"] if snapshot else None,
+                         "upstream_commit": snapshot["upstream"]["commit"] if snapshot else None,
                          **_environment_context(environment), "rehearsal": local_only,
                          "import_with": UPSTREAM_IMPORT, "git_target_status": "unchanged_until_author_import",
                          "research_adoption": "not_inferred"}}

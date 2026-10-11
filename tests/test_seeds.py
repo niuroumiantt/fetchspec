@@ -72,7 +72,7 @@ class SeedLoadTests(unittest.TestCase):
         cases = {
             'outside scope': {**good, 'url': 'https://www.vertiv.com/en-us/search/?q=ups'},
             'other host': {**good, 'url': 'https://example.com/en-us/products-catalog/x/'},
-            'no targets': {**good, 'targets': []},
+            'missing targets': {k:v for k,v in good.items() if k != 'targets'},
             'duplicate targets': {**good, 'targets': ['P.ups.spec', 'P.ups.spec']},
             'no reason': {**good, 'reason': '  '},
             'long reason': {**good, 'reason': 'x' * 301},
@@ -109,6 +109,14 @@ class SeedRunTests(unittest.TestCase):
 
     def bindings(self):
         return sorted(tuple(r) for r in self.store.db.execute('SELECT target_id, product_id, reason FROM bindings'))
+
+    def test_discovery_seed_collects_without_snapshot_or_model_binding(self):
+        seed={**self.seeds[0], 'targets': []}
+        result=seeds.run(self.root,self.store,None,[seed],bind=True,fetcher=self.fetcher)
+        self.assertEqual(result['results'][0]['status'],'collected')
+        self.assertEqual(result['bound_targets'],[])
+        self.assertEqual(self.bindings(),[])
+        self.assertGreater(result['requests_used'],0)
 
     def test_dry_run_plans_without_requests(self):
         result = seeds.run(self.root, self.store, self.snapshot, self.seeds, dry_run=True, fetcher=self.fetcher)

@@ -47,6 +47,23 @@ class DeliveryV2Tests(unittest.TestCase):
         return build_package(self.state, self.snapshot, "nvidia", items or [self.item],
                              collector_revision="test-revision", **kwargs)
 
+    def test_discovery_without_snapshot_packages_and_acknowledges_without_model_support(self):
+        self.item['target_ids'] = []
+        state = self.base/'uncommissioned'
+        summary = build_package(state, None, 'nvidia', [self.item], collector_revision='test')
+        self.assertEqual(summary['target_ids'], [])
+        manifest = json.loads((Path(summary['package'])/'manifest.json').read_text())
+        self.assertEqual(manifest['collection_trigger'], 'discovery')
+        imported = import_receipt(state, receipt(summary))
+        self.assertEqual(imported['target_ids'], [])
+        self.assertTrue(build_package(state, None, 'nvidia', [self.item], collector_revision='test')['replayed'])
+        self.assertEqual(export_assignments(state,summary['delivery_id'])['records'],[])
+        self.assertEqual(export_author_proposal(state,summary['delivery_id'])['records'],[])
+        import importlib.util
+        spec=importlib.util.spec_from_file_location('verify_discovery',Path(__file__).resolve().parents[1]/'scripts/verify_package.py')
+        verifier=importlib.util.module_from_spec(spec);spec.loader.exec_module(verifier)
+        self.assertTrue(verifier.verify(summary['package'])['complete'])
+
     def test_package_is_stable_per_content_binding_and_preserves_input_bytes(self):
         first = self.build()
         manifest_path = Path(first["package"]) / "manifest.json"
