@@ -4,7 +4,7 @@
 |---|---|
 | 我们是谁、四段逻辑、与 inresearch 的接口（先读） | [framework-2026-09-30.md](framework-2026-09-30.md) |
 | 架构图与模块、落盘、机器 | [ARCHITECTURE.md](ARCHITECTURE.md)（图：[architecture.svg](architecture.svg)） |
-| 工程细则：身份、存储、采集、交付、回执 | [TARGET_PIPELINE.md](TARGET_PIPELINE.md) |
+| 工程细则：身份、存储、采集、交付、回执 | [SOURCE_PIPELINE.md](SOURCE_PIPELINE.md) |
 | 每条目标行从哪个官方页取（种子）与 `collect-seeds` | [SEEDS.md](SEEDS.md) |
 | 各厂商官网能否自动采集、拿不到的去哪个通道 | [adapters/access.md](adapters/access.md) |
 | 各厂商适配器的范围与例外 | [adapters/](adapters/)：[Astera Labs](adapters/asteralabs.md)、[Delta](adapters/delta.md)、[Micron](adapters/micron.md)、[NVIDIA](adapters/nvidia.md)、[Siemens](adapters/siemens.md)、[Siemens Energy](adapters/siemens-energy.md)、[Supermicro](adapters/supermicro.md)、[Vertiv](adapters/vertiv.md) |

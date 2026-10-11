@@ -61,10 +61,10 @@ class PipelineTests(unittest.TestCase):
         return build_package(self.root, self.snapshot, company,
             self.store.delivery_items(self.snapshot, company, [company + ":model-a"]), collector_revision="pipeline-test")
 
-    def test_cli_binding_package_requires_explicit_demand_and_retains_original_tables(self):
+    def test_cli_discovery_package_then_explicit_demand_retains_original_tables(self):
         payload = self.catalog(); self.store.ingest_catalog(payload, self.archive)
-        with self.assertRaises(ValueError):
-            self.package()
+        discovery = self.package()
+        self.assertEqual(discovery['target_ids'], [])
         with contextlib.redirect_stdout(io.StringIO()) as output:
             result = main(["--root", str(self.root), "bind", "--company", "nvidia", "--product", "nvidia:model-a",
                            "--target", "P.gpu.spec", "--reason", "reviewed fixture scope"])

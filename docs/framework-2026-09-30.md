@@ -1,6 +1,6 @@
 # Fetchspec 的位置与框架（2026-09-30）
 
-> 对齐 inresearch.ai 骨架（`framework/CURRENT.md`，2026-09-28 起）与 inews.today 框架（`docs/framework-2026-09-30.md`）后写定。这里只定位置、逻辑与接口，不定实现。实现细则在 [TARGET_PIPELINE.md](TARGET_PIPELINE.md)，架构图在 [ARCHITECTURE.md](ARCHITECTURE.md)。改框架先改这里，再改代码和图。
+> 对齐 inresearch.ai 骨架（`framework/CURRENT.md`，2026-09-28 起）与 inews.today 框架（`docs/framework-2026-09-30.md`）后写定。这里只定位置、逻辑与接口，不定实现。实现细则在 [SOURCE_PIPELINE.md](SOURCE_PIPELINE.md)，架构图在 [ARCHITECTURE.md](ARCHITECTURE.md)。改框架先改这里，再改代码和图。
 
 ## 一、定位
 

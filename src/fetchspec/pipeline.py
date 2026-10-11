@@ -20,10 +20,10 @@ def main(argv=None):
     migrate.add_argument('--catalog', type=Path, required=True)
     migrate.add_argument('--archive-root', type=Path, required=True)
     migrate.add_argument('--history-db', type=Path)
-    collect = sub.add_parser('collect', help='bounded official product/source refresh for explicit target demand')
+    collect = sub.add_parser('collect', help='bounded official product/source refresh; optional model demand')
     collect.add_argument('--company', required=True, choices=sorted(ADAPTERS))
     collect.add_argument('--url', action='append', required=True)
-    collect.add_argument('--target', action='append', required=True)
+    collect.add_argument('--target', action='append', default=[], help='optional model demand; source discovery does not need a target')
     collect.add_argument('--max-pages', type=int, default=20)
     collection_mode = collect.add_mutually_exclusive_group()
     collection_mode.add_argument('--refresh', action='store_true')
@@ -38,7 +38,7 @@ def main(argv=None):
     seeds.add_argument('--include-closed', action='store_true', help='also run seeds whose targets are no longer needed upstream')
     mapping_sync = sub.add_parser('map-sync', help='reconcile official product sitemap candidates without collecting pages')
     mapping_sync.add_argument('--company', required=True, choices=sorted(ADAPTERS))
-    mapping_sync.add_argument('--target', action='append', required=True)
+    mapping_sync.add_argument('--target', action='append', default=[])
     map_ack = sub.add_parser('map-ack', help='acknowledge reviewed sitemap candidates after collection/review')
     map_ack.add_argument('--company', required=True, choices=sorted(ADAPTERS))
     map_ack.add_argument('--url', action='append', required=True)
@@ -48,7 +48,7 @@ def main(argv=None):
     bind.add_argument('--product', action='append', required=True)
     bind.add_argument('--target', action='append', required=True)
     bind.add_argument('--reason', required=True)
-    package = sub.add_parser('package', help='build immutable v2 package from current bindings')
+    package = sub.add_parser('package', help='build immutable v2 package from explicit products; optional demand bindings')
     package.add_argument('--company', required=True)
     package.add_argument('--product', action='append', required=True)
     package.add_argument('--delivery-id')
@@ -104,13 +104,13 @@ def main(argv=None):
 
 
 def execute(args, root):
-    from .targets import sync_targets, load_snapshot, validate_target_ids
+    from .targets import sync_targets, load_snapshot, validate_target_ids, source_targets
     from .delivery_v2 import build_package, import_receipt, export_author_proposal, export_assignments
     if args.command == 'sync-targets':
         snapshot = sync_targets(args.upstream, root)
         return {'snapshot_id': snapshot['snapshot_id'], 'targets': len(snapshot['targets']), 'upstream': snapshot['upstream']}
     if args.command == 'receipt':
-        return import_receipt(root, args.input, snapshot=load_snapshot(root), environment=args.environment)
+        return import_receipt(root, args.input, snapshot=None, environment=args.environment)
     if args.command == 'author-proposal':
         return export_author_proposal(root, args.delivery_id, snapshot=load_snapshot(root), output_path=args.output, environment=args.environment)
     if args.command == 'plan':
@@ -162,13 +162,15 @@ def execute(args, root):
             return {'matched': len(selected), 'products': [{k: p.get(k) for k in ('id', 'name', 'kind', 'parent_id', 'source_url', 'extraction_status')} for p in selected[:max(1, args.limit)]]}
         if args.command == 'export':
             return store.export_csv(args.directory, args.company)
-        snapshot = load_snapshot(root)
+        needs_targets = (args.command == "bind" or bool(getattr(args,"target",None))
+                         or args.command == 'package' and (root/'targets/current.json').is_file())
+        snapshot = load_snapshot(root) if needs_targets else None
         if args.command == 'map-sync':
             from .product_map import sync_map
-            validate_target_ids(snapshot, args.target)
+            source_targets(snapshot, args.target)
             result = sync_map(root,args.company,known_catalog=store.export_catalog(args.company))
             result['target_ids'] = args.target
-            result['snapshot_id'] = snapshot['snapshot_id']
+            result['snapshot_id'] = snapshot['snapshot_id'] if snapshot else None
             plan = result.pop('plan')
             result['pending_candidates'] = len(plan)
             result['plan_preview'] = plan[:10]
@@ -192,6 +194,8 @@ def execute(args, root):
             from .seeds import load as load_seeds, run as run_seeds
             selected = [seed for seed in load_seeds() if (not args.company or seed['company_id'] in args.company)
                         and (not args.target or set(seed['targets']) & set(args.target))]
+            if any(seed['targets'] for seed in selected) and snapshot is None:
+                snapshot = load_snapshot(root)
             if not 1 <= args.budget <= 5000:
                 raise ValueError('budget must be between 1 and 5000')
             return run_seeds(root, store, snapshot, selected, budget=args.budget, bind=args.bind, refresh=args.refresh,

@@ -68,11 +68,13 @@ def _squeeze(text):
     return re.sub(r'\s+', '', text)
 
 
-def verify(package, targets_path, require_formats=()):
+def verify(package, targets_path=None, require_formats=()):
     package = Path(package)
     manifest = json.loads((package / 'manifest.json').read_text(encoding='utf-8'))
-    rows = {t['id']: t for t in json.loads(Path(targets_path).read_text(encoding='utf-8'))['targets']}
+    rows = {t['id']: t for t in json.loads(Path(targets_path).read_text(encoding='utf-8'))['targets']} if targets_path else {}
     problems, per_target = [], {}
+    if manifest.get('target_ids') and not targets_path:
+        problems.append('bound package requires its target snapshot; discovery packages use []')
     sums = {}
     for line in (package / 'SHA256SUMS').read_text(encoding='utf-8').splitlines():
         if line.strip():
@@ -142,8 +144,8 @@ def verify(package, targets_path, require_formats=()):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument('package', type=Path)
-    parser.add_argument('--targets', type=Path, required=True,
-                        help='tco_targets.json of the snapshot the package was built from')
+    parser.add_argument('--targets', type=Path,
+                        help='required for model-bound packages; omitted for target-free discovery')
     parser.add_argument('--require-format', action='append', default=[], metavar='FORMAT')
     args = parser.parse_args(argv)
     result = verify(args.package, args.targets, args.require_format)

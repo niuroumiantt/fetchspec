@@ -211,3 +211,9 @@ def validate_target_ids(snapshot, target_ids):
     if any(target_id not in registered for target_id in target_ids):
         raise ValueError("unknown target or target not owned by Fetchspec")
     return [registered[target_id] for target_id in target_ids]
+
+
+def source_targets(snapshot, target_ids):
+    """Discovery can be uncommissioned; supplied demands remain fully checked."""
+    _strings(target_ids, "target_ids")
+    return validate_target_ids(snapshot, target_ids) if target_ids else []
