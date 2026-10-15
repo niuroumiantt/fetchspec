@@ -1,6 +1,6 @@
 # 来源优先规格管线
 
-现行 Fetchspec 工程细则，2026-10-11 更新。位置、四段逻辑与接口见 [框架](framework-2026-09-30.md)，架构图见 [ARCHITECTURE.md](ARCHITECTURE.md)。本页替代新任务继续扩大 `company-crawl` 全站队列的做法；旧命令保留维护既有资料。研究权威仍只来自 inresearch.ai 的 CURRENT、现行目标表与供应契约，本仓库不复制或修改正式研究事实。
+现行 Fetchspec 工程细则，2026-10-16 更新。位置、四段逻辑与接口见 [框架](framework-2026-09-30.md)，架构图见 [ARCHITECTURE.md](ARCHITECTURE.md)。本页替代新任务继续扩大 `company-crawl` 全站队列的做法；旧命令保留维护既有资料。研究权威仍只来自 inresearch.ai 的 CURRENT、现行目标表与供应契约，本仓库不复制或修改正式研究事实。
 
 ## 边界与模块
 
@@ -32,6 +32,11 @@ NVIDIA 的成熟 `product_catalog.py` 解析和身份规则通过兼容适配复
 产品版本指纹覆盖完整产品身份、来源和原表，只排除检查时间与展示变化标签。辅助 PDF/表格变化也会生成版本。旧时间批次保存历史而不回退当前指针；同时间冲突拒绝。缺失产品继续保留，局部目录消失和 404 只进入复核，不能推断停产。
 
 CSV 分别导出产品图、原始单元格和版本化比较映射；包括行/列、跨度、表名、脚注、方法、来源 SHA 和目标绑定。仅 CSV 展示转义公式，数据库原值不变。单位、典型/最大、配置、条件保留在厂商原表；`map-field` 需要明确表/行/单元格、字段名、单位、条件与复核人，不自动换算或填补未知值；可用 `--target` 限定它回答哪几条目标行（`comparison_targets` 表），省略时回答产品绑定的全部目标行。打包时当前版本的映射按 inresearch `parameter_observation_fields` 写进 `items[].product_evidence[].parameter_observations`，值为厂商原文；没有映射的包不带这一键，与旧包逐字节一致。旧版映射不会自动沿用到新版规格，CSV 标记 current/historical。
+
+
+2026-10-16：`coverage`（JSON和CSV）、`plan`保留冻结的`collection_contract`、完整`request`及其中的`requirements`，不只给旧参数提示。`plan --backflow`同时保留回流`records`中的要求与目标表SHA；回流范围和本地快照SHA不一致时只提示先复核并`sync-targets`，不静默替换本地执行权威。接口没给完整`request`时仍从干净Git快照取得，不能把接口已上线当作执行机已同步。
+
+现有行`status=sourced/assumed/delivered`及历史包/回执状态保持。带新增取证合同或具体requirements的范围，如果没有同一冻结范围的显式`production`接收包，仍进入现有plan的`review_scope`组复核资料、映射缺项并补交；该组不计入`in_flight`或`collect_now`，旧规格已采集不证明新配置/工况/网络存储边界等要求全部完成。范围指纹只取实质合同、正式问题链接、必需/范围字段、profile/node和requirements范围，排除状态、审阅时间、候选提示及执行分配元数据；完整原文仍在投影中保留。仅这些元数据或无关提交改变不重开已交同范围。新增字段、配置或验收要求改变仍须跟进。同范围生产回执只避免重复的本地跟进，不证明请求字段正确、现场适用、全文阅读或研究采用。历史快照缺失/损坏、仅本地验收或未指定环境的回执均不能消除新范围跟进。此改动不增加来源或调度，也不自动触发采集。
 
 ## NVIDIA 迁移
 

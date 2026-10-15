@@ -124,8 +124,8 @@ def execute(args, root):
         if args.csv:
             write_csv(report, args.csv)
         records = [r for r in report['records'] if not args.stage or r['stage'] == args.stage]
-        return {k: report[k] for k in ('snapshot_id', 'upstream_commit', 'targets', 'summary', 'parts_without_adapter', 'authority')} | {
-            'records': [{k: r[k] for k in ('target_id', 'stage', 'adapters', 'bound_products', 'receipt_environments')} for r in records]
+        return {k: report[k] for k in ('snapshot_id', 'upstream_commit', 'targets', 'summary', 'parts_without_adapter', 'authority', 'targets_sha256', 'scope_receipt_boundary')} | {
+            'records': records
             if args.stage else f'{len(records)} records; use --stage or --csv for rows'}
     if args.command == 'assignments':
         result = export_assignments(root, args.delivery_id, snapshot=load_snapshot(root), output_path=args.output,

@@ -26,7 +26,7 @@ Fetchspec 是 [inresearch.ai](https://github.com/niuroumiantt/inresearch.ai) 六
 | 段 | 命令 | 做什么 |
 |---|---|---|
 | ① 可选需求 | `sync-targets` | 只读快照 inresearch 的目标表与供应契约（commit + SHA） |
-| | `plan` · `coverage` | 每条目标的下一步：在途 / 现在可抓 / 复核实例 / 缺适配器；`--backflow` 读 inresearch 回流（[申请中](docs/upstream/backflow-request.md)） |
+| | `plan` · `coverage` | 每条目标的下一步：在途 / 现在可抓 / 复核取证范围 / 复核实例 / 缺适配器；`--backflow` 读 inresearch 回流（[接口约定](docs/upstream/backflow-request.md)），执行机仍须同步干净的 Git 目标快照 |
 | ② 爬取 | `map-sync` · `map-ack` | 官方产品 sitemap 的新增与变化候选，人工确认 |
 | | `collect` | 从明确种子有界采集：robots、节流、条件请求、内容 SHA |
 | | `collect-seeds` | 按 `seeds/*.json` 里审过的种子批量采集，一个请求预算；`--bind` 只绑种子页上有表的产品（[说明](docs/SEEDS.md)） |
